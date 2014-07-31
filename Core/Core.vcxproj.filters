@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Src\Macro.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Thread.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ThreadMgr.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Singleton.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Math.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\System.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Assert.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PCH.cpp" />
+    <ClCompile Include="Src\Thread.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ThreadMgr.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Math.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Core.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Src">
+      <UniqueIdentifier>{3b1152d9-c4bb-4796-974b-fe4cb47a3c84}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
