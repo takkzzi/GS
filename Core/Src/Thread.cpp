@@ -70,6 +70,7 @@ void Thread::Begin(bool bSuspend)
 		std::wstring	str;
 		str = TEXT("test");
 
+
 		return;
 	}
 

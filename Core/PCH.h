@@ -8,7 +8,11 @@
 #include "targetver.h"
 
 #define		WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#define		_CRT_SECURE_NO_WARNINGS
+#ifndef _CRT_SECURE_NO_WARNINGS
+	#define		_CRT_SECURE_NO_WARNINGS
+#endif // !_CRT_SECURE_NO_WARNINGS
+
+
 
 // TODO: reference additional headers your program requires here
 #include <windows.h>
@@ -19,6 +23,7 @@
 #include <stddef.h>  // For ptrdiff_t
 #include <tchar.h>
 */
+#include <tchar.h>
 
 #include <vector>
 #include <list>

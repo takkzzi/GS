@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)..\Lib\$(Configuration)</OutDir>
+    <OutDir>$(ProjectDir)..\Lib\$(Configuration)\</OutDir>
     <IntDir>..\Immediate\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -52,7 +52,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ASSERT;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>./;..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -94,9 +94,13 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Core.h" />
     <ClInclude Include="Src\Assert.h" />
+    <ClInclude Include="Src\Dump.h" />
+    <ClInclude Include="Src\Logger.h" />
     <ClInclude Include="Src\Math.h" />
+    <ClInclude Include="Src\MemLeakDetect.h" />
     <ClInclude Include="Src\Singleton.h" />
     <ClInclude Include="Src\Macro.h" />
+    <ClInclude Include="Src\StrUtil.h" />
     <ClInclude Include="Src\System.h" />
     <ClInclude Include="Src\Thread.h" />
     <ClInclude Include="Src\ThreadMgr.h" />
@@ -108,7 +112,10 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\Core.cpp" />
+    <ClCompile Include="Src\Dump.cpp" />
+    <ClCompile Include="Src\Logger.cpp" />
     <ClCompile Include="Src\Math.cpp" />
+    <ClCompile Include="Src\StrUtil.cpp" />
     <ClCompile Include="Src\System.cpp" />
     <ClCompile Include="Src\Thread.cpp" />
     <ClCompile Include="Src\ThreadMgr.cpp" />

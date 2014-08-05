@@ -32,28 +32,23 @@
 #define NORPC
 */
 
-#ifdef ASSERT
-	#undef		ASSERT
-#endif // ASSERT
-
 #ifdef USE_ASSERT
 
-	
+	#pragma warning( push )
+	#pragma warning( disable : 4996 )
+	#include "Externals/Debugging/BugslayerUtil.h"
+	#undef new
 
-	#ifdef ASSERT_DUMP		//For Server Build
-		#define ASSERT(Expr)		ASSERT_DUMP(Expr)		//TODO:	 Full-Dumping
-	#else
-		#pragma warning( push )
-		#pragma warning( disable : 4996 )
-		#include "Externals/Debugging/BugslayerUtil.h"
-		#undef new
-		#define ASSERT(Expr)		SUPERASSERT(Expr)
-		#pragma warning( pop )
-	#endif
+#ifdef ASSERT
+	#undef	ASSERT
+#endif // ASSERT
+
+	#define ASSERT(Expr)		SUPERASSERT(Expr)
+	#pragma warning( pop )
 
 #else
-
-
+	#define			ASSERT(Expr)	
+#endif
 	
 #endif //#ifdef WIN32
 

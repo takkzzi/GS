@@ -12,12 +12,12 @@ namespace Core
 		static				void			Init();
 
 		//System Info
+		static				void			CheckWindowVersion();
 		static		const	SYSTEM_INFO*	GetSystemInfo();
 		static				DWORD			GetProcessorCount();
 		static		const	MEMORYSTATUS*	GetMemoryStatus();
 		static				DWORD			GetTotalPhysicalMemory();		// in byte
 		static				DWORD			GetAvailPhysicalMemory();
-
 		static				DWORD			GetLastErrorMessage(TCHAR* outStr, INT outStrLen);
 
 	protected :

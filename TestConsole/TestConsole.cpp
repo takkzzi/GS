@@ -2,27 +2,23 @@
 //
 
 #include "stdafx.h"
-#include <windows.h>
-#include <stdio.h>
-#include "Core\Core.h"
-
-class test {
-public :
-	int			i;
-	int			j;
-};
+#include "Test0.h"
 
 using namespace Core;
+using namespace std;
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
 	CoreSystem::Init();
+	
+	for (int i = 0; i < 100; ++i)
+		Logger::Log(_T("TEST0"), _T("al;kjsdgla;jsdglk;ajsld;kfjal;ksjdfl;asjf : %d"), i);
 
-	test* t = new test;
-	delete t;
-	t = NULL;
-	ASSERT(t != NULL);
+	for (int i = 0; i < 100; ++i)
+		Logger::LogWithDate(_T("TEST1"), _T("asldfkjal;sdfjla;sjdkfl;kajsdfl;kajlsd;fjla;s : %d"), i);
 
+	CoreSystem::Finalize();
 
 	return 0;
 }

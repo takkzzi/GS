@@ -17,6 +17,29 @@ void System::Init()
 	msbInit = true;
 	::GetSystemInfo(&msSysInfo);
 	::GlobalMemoryStatus(&msMemStatus);
+
+	CheckWindowVersion();
+}
+
+void System::CheckWindowVersion() 
+{
+	HKEY hKey; 
+
+	if( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\") ,0,KEY_QUERY_VALUE,&hKey) != ERROR_SUCCESS )  
+	{
+		//Logger::DebugOutput(_T("[System]"), _T("WARNING* Not NT OS")); 
+		return;
+	}
+
+	DWORD charSize = 100;  
+	TCHAR ProductName[100];  
+		 
+	if(RegQueryValueEx (hKey, TEXT("ProductName"), NULL, NULL, (LPBYTE) ProductName, &charSize) != ERROR_SUCCESS)  
+	{
+		//Logger::Log(_T("ERROR* Fail to Load the ProductName"));  		
+	}
+	
+	RegCloseKey (hKey); 
 }
 
 const SYSTEM_INFO* System::GetSystemInfo()

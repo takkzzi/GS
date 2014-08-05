@@ -15,7 +15,7 @@ namespace Core {
 
 		//Random
 		static void			SetRandSeed(DWORD seed);
-
+		static DWORD		GetRandSeed()			 { return msRandSeed; }
 		static int			Rand();
 		static int			RandRange(int begin, int end);
 		static float		RandFloat();		//0.0 ~ 1.0

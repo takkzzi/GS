@@ -31,21 +31,24 @@
 #define NOPROXYSTUB
 #define NORPC
 */
+
 #ifdef USE_ASSERT
+
 	#pragma warning( push )
 	#pragma warning( disable : 4996 )
 	#include "Externals/Debugging/BugslayerUtil.h"
 	#undef new
 
-	#ifdef ASSERT
-		#undef		ASSERT
-	#endif // ASSERT
-	
+#ifdef ASSERT
+	#undef	ASSERT
+#endif // ASSERT
+
 	#define ASSERT(Expr)		SUPERASSERT(Expr)
 	#pragma warning( pop )
 
+#else
+	#define			ASSERT(Expr)	
 #endif
-
 	
 #endif //#ifdef WIN32
 

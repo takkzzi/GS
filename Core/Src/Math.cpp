@@ -19,6 +19,7 @@ void Math::Init()
 
 void Math::SetRandSeed(DWORD seed)
 {
+	msRandSeed = seed;
 	srand(seed);
 }
 
