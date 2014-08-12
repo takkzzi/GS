@@ -21,14 +21,14 @@ namespace Core
 		Thread();
 		virtual ~Thread();
 
-		static	void	SetTerminateWaitTime(DWORD milliSec)		{ msTermWaitTime = milliSec; };
-
 		void			Begin(bool bSuspend=false);
 		void			End(bool bForceTerminate=false);
 		bool			Resume();
 		
 		TCHAR*			GetErrorString(DWORD errorCode);
 		eState			GetState() { return mState; }
+
+		void			SetTerminateWaitTime(DWORD milliSec)		{ mTermWaitTime = milliSec; };
 
 	protected:
 		
@@ -39,10 +39,9 @@ namespace Core
 
 	protected:
 
-		static	DWORD			msTermWaitTime;
-
 		HANDLE					mhThread;
 		HANDLE					mhEndEvent;
 		eState					mState;
+		DWORD					mTermWaitTime;
 	};
 }
