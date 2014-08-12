@@ -16,10 +16,10 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -38,16 +38,27 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(ProjectDir)..\Lib\$(Configuration)\</OutDir>
+    <IntDir>..\Immediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>./;..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\Include\Network</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -64,17 +75,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Listener.cpp" />
-    <ClCompile Include="Network.cpp" />
-    <ClCompile Include="Session.cpp" />
-    <ClCompile Include="SessionMgr.cpp" />
+    <ClCompile Include="PCH.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\Listener.cpp" />
+    <ClCompile Include="Src\Network.cpp" />
+    <ClCompile Include="Src\IOCP.cpp" />
+    <ClCompile Include="Src\Session.cpp" />
+    <ClCompile Include="Src\SessionMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Listener.h" />
-    <ClInclude Include="NetLib.h" />
-    <ClInclude Include="Network.h" />
-    <ClInclude Include="Session.h" />
-    <ClInclude Include="SessionMgr.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="Src\Listener.h" />
+    <ClInclude Include="Src\Network.h" />
+    <ClInclude Include="Src\IOCP.h" />
+    <ClInclude Include="Src\Session.h" />
+    <ClInclude Include="Src\SessionMgr.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

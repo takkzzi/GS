@@ -15,7 +15,7 @@ namespace Core
 	{
 	public:
 		static void			Init();
-		static void			Finalize();
+		static void			Shutdown();
 	};
 }
 

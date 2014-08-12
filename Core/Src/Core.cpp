@@ -13,8 +13,8 @@ void CoreSystem::Init()
 	Logger::Init();
 }
 
-void CoreSystem::Finalize() 
+void CoreSystem::Shutdown() 
 {
-	Logger::Finalize();
-	Dump::Finalize();
+	Logger::Shutdown();
+	Dump::Shutdown();
 }

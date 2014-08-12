@@ -94,6 +94,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Core.h" />
     <ClInclude Include="Src\Assert.h" />
+    <ClInclude Include="Src\CriticalSection.h" />
     <ClInclude Include="Src\Dump.h" />
     <ClInclude Include="Src\Logger.h" />
     <ClInclude Include="Src\Math.h" />

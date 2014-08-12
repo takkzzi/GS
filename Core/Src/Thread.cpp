@@ -1,13 +1,12 @@
 #include "pch.h"
 #include "Thread.h"
+#include "Logger.h"
+
 
 using namespace Core;
 using namespace std;
 
-#define		DebugLog	OutputDebugString
-
-
-DWORD	Thread::msTermWaitTime		=	500;
+#define		ThreadLog			_T("ThreadLog")
 
 DWORD CALLBACK Thread::ThreadRunner(LPVOID param)
 {
@@ -27,6 +26,7 @@ Thread::Thread()
 	: mhThread(INVALID_HANDLE_VALUE)
 	, mhEndEvent(INVALID_HANDLE_VALUE)
 	, mState(STATE_NONE)
+	, mTermWaitTime(500)
 {	
 }
 
@@ -38,6 +38,7 @@ Thread::~Thread()
 	End(true);
 }
 
+/*
 TCHAR* Thread::GetErrorString(DWORD errorCode) 
 {
 	switch(errorCode) {
@@ -51,9 +52,12 @@ TCHAR* Thread::GetErrorString(DWORD errorCode)
 		return TEXT("WAIT_FAILED");
 	}
 
+	static TCHAR errorStrBuff[256];
 
-	return NULL;
+	_itow((int)errorCode, errorStrBuff, 10);
+	return errorStrBuff;
 }
+*/
 
 void Thread::Begin(bool bSuspend) 
 {
@@ -66,11 +70,8 @@ void Thread::Begin(bool bSuspend)
 
 	if ( mhThread == NULL ) 
 	{	
-		DWORD error = GetLastError();
-		std::wstring	str;
-		str = TEXT("test");
-
-
+		DWORD err = GetLastError();
+		Logger::Log(ThreadLog, _T("Thread::Begin Error : %d"), err);
 		return;
 	}
 
@@ -87,14 +88,13 @@ void Thread::End(bool bForceTerminate)
 
 	mState = STATE_ENDING;
 
-	DWORD waitTime = bForceTerminate ? msTermWaitTime : INFINITE;
+	DWORD waitTime = bForceTerminate ? mTermWaitTime : INFINITE;
 	DWORD waitRes = ::WaitForSingleObject(mhThread, waitTime);
 	BOOL bEnded = (waitRes == WAIT_OBJECT_0);
 
 	if ( ! bEnded) {
-		DebugLog(GetErrorString(waitRes));
 		if ( TerminateThread(mhThread, 0) ) {
-			DebugLog(TEXT("TerminateThread"));
+			Logger::Log(ThreadLog, TEXT("TerminateThread! Handle : %d"), mhThread);
 			bEnded = true;
 			this->OnEnd(true);
 		}
@@ -118,20 +118,22 @@ bool Thread::Resume()
 void Thread::OnEnd(bool bTerminated) 
 {
 	if ( bTerminated )
-		DebugLog(TEXT("OnEnd Terminated"));
+		Logger::Log(ThreadLog, TEXT("OnEnd Terminated"));
 	else
-		DebugLog(TEXT("OnEnd Success"));
+		Logger::Log(ThreadLog, TEXT("OnEnd Success"));
 }
 
 DWORD Thread::Run() 
 {
+	//상속받는 클래스의 Run 함수 내에서 아래와 같이
+	//mhEndEvent 이벤트를 감지하여 Thread 함수를 종료하자.
 	while(1) {
 		if ( ::WaitForSingleObject(mhEndEvent, 1) == WAIT_OBJECT_0 ) {
 			break;
 		}
 
 		Sleep(1000);
-		DebugLog(TEXT("Running\n"));
+		Logger::Log(ThreadLog, TEXT("Running\n"));
 	}
 
 	return 0;
