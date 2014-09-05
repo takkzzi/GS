@@ -2,6 +2,8 @@
 #include "Core.h"
 
 
+using namespace Core;
+
 void CoreSystem::Init()
 {
 	System::Init();

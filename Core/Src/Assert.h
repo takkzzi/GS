@@ -1,9 +1,9 @@
 //For Assertion
 #pragma once
 
-#if defined WIN32 | _WIN64
+#ifdef WIN32
 
-
+/*
 #define NOGDICAPMASKS
 //#define NOMENUS
 #define NORASTEROPS
@@ -30,22 +30,22 @@
 #define NOIMAGE
 #define NOPROXYSTUB
 #define NORPC
-
+*/
 
 #ifdef USE_ASSERT
 
 	#pragma warning( push )
 	#pragma warning( disable : 4996 )
 	#include "Externals/Debugging/BugslayerUtil.h"
-	#pragma warning( pop )
-	//#undef new
+	#undef new
 
 #ifdef ASSERT
 	#undef	ASSERT
 #endif // ASSERT
 
 	#define ASSERT(Expr)		SUPERASSERT(Expr)
-	
+	#pragma warning( pop )
+
 #else
 	#define			ASSERT(Expr)	
 #endif

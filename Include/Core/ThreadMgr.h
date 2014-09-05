@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core {
 
 	class Thread;
@@ -21,7 +17,3 @@ namespace Core {
 		std::list<Thread*>		mThreadList;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="NetLib">
+      <UniqueIdentifier>{87ba7fd6-e6f2-41d0-92f6-59f2911372c1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\NetLib\Listener.cpp">
+      <Filter>NetLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NetLib\Network.cpp">
+      <Filter>NetLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NetLib\Session.cpp">
+      <Filter>NetLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\NetLib\SessionMgr.cpp">
+      <Filter>NetLib</Filter>
+    </ClCompile>
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\NetLib\Listener.h">
+      <Filter>NetLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NetLib\Network.h">
+      <Filter>NetLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NetLib\Session.h">
+      <Filter>NetLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NetLib\SessionMgr.h">
+      <Filter>NetLib</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+</Project>

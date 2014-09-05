@@ -5,6 +5,11 @@
 #include "Server.h"
 #include "stdio.h"
 
+#include "../CoreLib/CoreLib.h"
+#include "../NetLib/NetLib.h"
+
+
+
 
 #define MAX_LOADSTRING 100
 
@@ -46,15 +51,15 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SERVER));
 
-	CoreSystem::Init();
-	NetworkSystem::Init();
+	Network::Startup();
 	
 	int port = 42006;
-	int sessionCount = 5000;
-	
+	int sessionCount = 64;
 
-	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, true, 512, 512);
-	iocp->BeginListen(port);
+	Network* net = Network::Create(NetMethod::EventSelect, NetRole::Server, port, sessionCount);
+
+	Core::Thread* thread = new Core::Thread();
+	thread->Begin();
 
 	// 기본 메시지 루프입니다.
 	while (1)
@@ -76,12 +81,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	int i = 0;
-	//ASSERT(i == 1);
-	SAFE_DELETE(iocp);
+	thread->End(true);
+	
+	Network::Destroy(net);
 
-	Network::NetworkSystem::Shutdown();
-	Core::CoreSystem::Shutdown();
+	Network::Shutdown();
 
 	return (int) msg.wParam;
 }

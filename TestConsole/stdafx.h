@@ -8,23 +8,17 @@
 #include "targetver.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <memory.h>
 #include <tchar.h>
 
 
 
 // TODO: reference additional headers your program requires here
 
-/*
 #include <windows.h>
 #include <iostream>
 
 #include <vector>
 #include <map>
 #include <list>
-*/
 
 #include "Core\Core.h"
-#include "Network\Network.h"

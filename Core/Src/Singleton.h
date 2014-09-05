@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core 
 {
 	template<class T> class Singleton 
@@ -34,6 +30,3 @@ namespace Core
 	template<class T> T* Singleton<T>::msSingleton = NULL;
 }
 
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

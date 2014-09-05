@@ -23,21 +23,17 @@ namespace Core
 }
 #endif // __cpluscplus
 
-using namespace Core;
 
 #include "Macro.h"
 #include "Assert.h"
 #include "System.h"
 #include "Math.h"
 #include "Dump.h"
-#include "Logger.h"
-#include "Thread.h"
-
 //#include "MemLeakDetect.h"
 
 #ifdef _DEBUG
 #include "Externals/Debugging/vld.h"	//Visual Leak Detector : Need "vld.lib"
 #endif // _DEBUG
 
-
+#include "Logger.h"
 
