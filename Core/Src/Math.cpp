@@ -6,7 +6,7 @@
 using namespace Core;
 
 bool	Math::msbInit = false;
-DWORD	Math::msRandSeed = 0;
+volatile DWORD	Math::msRandSeed = 0;
 
 void Math::Init() 
 {
@@ -25,17 +25,17 @@ void Math::SetRandSeed(DWORD seed)
 
 int Math::Rand()
 {
-	return rand();
+	//return rand();
+	return( ((msRandSeed = msRandSeed * 214013L + 2531011L) >> 16) & 0x7FFF );
 }
 
 int Math::RandRange(int begin, int end)
 {
 	int diff = end - begin;
-	//Debug::Assert(diff > 0);
-	return (rand() % diff) + begin;
+	return (Rand() % diff) + begin;
 }
 
 float Math::RandFloat()
 {
-	return (float)rand() / (float)RAND_MAX;
+	return (float)Rand() / (float)RAND_MAX;
 }

@@ -25,8 +25,8 @@ namespace Core {
 
 	protected :
 		
-		static	bool		msbInit;
-		static  DWORD		msRandSeed;
+		static	bool				msbInit;
+		static  volatile DWORD		msRandSeed;
 
 	};
 }

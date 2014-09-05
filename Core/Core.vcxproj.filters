@@ -42,6 +42,12 @@
     <ClInclude Include="Src\CriticalSection.h">
       <Filter>Src</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Stream.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MemPoolObject.h">
+      <Filter>Src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
@@ -67,6 +73,9 @@
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\Logger.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Stream.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>

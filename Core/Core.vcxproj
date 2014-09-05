@@ -180,8 +180,10 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
     <ClInclude Include="Src\Logger.h" />
     <ClInclude Include="Src\Math.h" />
     <ClInclude Include="Src\MemLeakDetect.h" />
+    <ClInclude Include="Src\MemPoolObject.h" />
     <ClInclude Include="Src\Singleton.h" />
     <ClInclude Include="Src\Macro.h" />
+    <ClInclude Include="Src\Stream.h" />
     <ClInclude Include="Src\StrUtil.h" />
     <ClInclude Include="Src\System.h" />
     <ClInclude Include="Src\Thread.h" />
@@ -199,6 +201,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
     <ClCompile Include="Src\Dump.cpp" />
     <ClCompile Include="Src\Logger.cpp" />
     <ClCompile Include="Src\Math.cpp" />
+    <ClCompile Include="Src\Stream.cpp" />
     <ClCompile Include="Src\StrUtil.cpp" />
     <ClCompile Include="Src\System.cpp" />
     <ClCompile Include="Src\Thread.cpp" />
