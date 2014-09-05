@@ -1,16 +1,18 @@
 #pragma once
 
+#ifdef __cpluscplus
+extern "C" {
+#endif // __cpluscplus
 
 namespace Core 
 {
 	class ThreadMgr;
 
-	enum eState {
-		STATE_NONE,
-		STATE_SUSPEND,
-		STATE_RUNNING,
-		STATE_ENDING,
-		STATE_END
+	enum ThreadState {
+		THREAD_NONE,
+		THREAD_SUSPEND,
+		THREAD_RUNNING,
+		THREAD_END,
 	};
 
 	class Thread  
@@ -21,14 +23,17 @@ namespace Core
 		Thread();
 		virtual ~Thread();
 
-		static	void	SetTerminateWaitTime(DWORD milliSec)		{ msTermWaitTime = milliSec; };
+		virtual bool	Begin(bool bSuspend=false);
+		virtual void	End(bool bForceTerminate=false);
 
-		void			Begin(bool bSuspend=false);
-		void			End(bool bForceTerminate=false);
+		bool			Suspend();
 		bool			Resume();
 		
 		TCHAR*			GetErrorString(DWORD errorCode);
-		eState			GetState() { return mState; }
+		ThreadState		GetState() { return mState; }
+
+		void			SetTerminateWaitTime(DWORD milliSec)		{ mTermWaitTime = milliSec; };
+		bool			IsState(ThreadState state) { return (mState == state); }
 
 	protected:
 		
@@ -39,10 +44,13 @@ namespace Core
 
 	protected:
 
-		static	DWORD			msTermWaitTime;
-
 		HANDLE					mhThread;
-		HANDLE					mhEndEvent;
-		eState					mState;
+		//HANDLE					mhEndEvent;
+		ThreadState				mState;
+		DWORD					mTermWaitTime;
 	};
 }
+
+#ifdef __cpluscplus
+}
+#endif // __cpluscplus

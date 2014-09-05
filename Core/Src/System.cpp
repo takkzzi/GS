@@ -116,6 +116,6 @@ DWORD Time::GetAppTicks()
 
 double Time::GetSecFromTicks(DWORD ticks)
 {
-	ASSERT(msbInit);
+	//ASSERT(msbInit);
 	return ((double)(ticks / msFrequency.QuadPart) * 1000.0);
 }
