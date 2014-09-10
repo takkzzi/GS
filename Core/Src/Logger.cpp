@@ -38,10 +38,13 @@ bool Logger::LogError(LPTSTR logData, ...)
 
 	LogWithDate(_T("[Error]"), logData);
 
+	/*
 	if ( ::IsDebuggerPresent() ) {
 		DebugBreak();
 	}
-
+	*/
+	ASSERT(0);
+	
 	return TRUE;
 }
 

@@ -5,25 +5,25 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="DefulatSourceFile">
+    <Filter Include="DefaultFiles">
       <UniqueIdentifier>{4ab0e4cb-8ea4-48c1-a64b-e9c185dd2ff5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>DefulatSourceFile</Filter>
+      <Filter>DefaultFiles</Filter>
     </ClCompile>
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
-      <Filter>DefulatSourceFile</Filter>
+      <Filter>DefaultFiles</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>DefulatSourceFile</Filter>
+      <Filter>DefaultFiles</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>DefulatSourceFile</Filter>
+      <Filter>DefaultFiles</Filter>
     </ClInclude>
     <ClInclude Include="Server.h" />
   </ItemGroup>

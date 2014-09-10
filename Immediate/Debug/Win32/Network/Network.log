@@ -1,15 +1,5 @@
-﻿  PCH.cpp
-  SessionMgr.cpp
-  Session.cpp
-  IOCP.cpp
-  Network.cpp
-  Listener.cpp
-  Generating Code...
-  Network.vcxproj -> D:\Works\_2nd Project\GameServer\Network\..\Lib\Win32\Network_d.lib
-  D:\Works\_2nd Project\GameServer\Network\Src\Defines.h -> D:\Works\_2nd Project\GameServer\Include\Network\Defines.h
-  D:\Works\_2nd Project\GameServer\Network\Src\IOCP.h -> D:\Works\_2nd Project\GameServer\Include\Network\IOCP.h
-  D:\Works\_2nd Project\GameServer\Network\Src\Listener.h -> D:\Works\_2nd Project\GameServer\Include\Network\Listener.h
-  D:\Works\_2nd Project\GameServer\Network\Src\Network.h -> D:\Works\_2nd Project\GameServer\Include\Network\Network.h
-  D:\Works\_2nd Project\GameServer\Network\Src\Session.h -> D:\Works\_2nd Project\GameServer\Include\Network\Session.h
-  D:\Works\_2nd Project\GameServer\Network\Src\SessionMgr.h -> D:\Works\_2nd Project\GameServer\Include\Network\SessionMgr.h
-  6개 파일이 복사되었습니다.
+﻿Build started 2014-09-10 오후 9:18:09.
+
+Build succeeded.
+
+Time Elapsed 00:00:00.01

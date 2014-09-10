@@ -1,5 +1,8 @@
 #pragma once
 
+#ifdef __cpluscplus
+extern "C" {
+#endif // __cpluscplus
 
 template <class T, int ALLOC_BLOCK_SIZE = 50>
 class MemPoolObject //: public ThreadSync<T>
@@ -56,3 +59,7 @@ protected:
 
 template <class T, int ALLOC_BLOCK_SIZE>
 UCHAR* CMemoryPool<T, ALLOC_BLOCK_SIZE>::mFreePointer;
+
+#ifdef __cpluscplus
+}
+#endif // __cpluscplus

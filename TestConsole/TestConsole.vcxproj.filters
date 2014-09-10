@@ -7,14 +7,12 @@
     <ClInclude Include="targetver.h">
       <Filter>Default Files</Filter>
     </ClInclude>
-    <ClInclude Include="Test0.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestConsole.cpp" />
     <ClCompile Include="stdafx.cpp">
       <Filter>Default Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test0.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Default Files">

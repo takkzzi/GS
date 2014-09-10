@@ -9,9 +9,6 @@
     <ClInclude Include="Src\Thread.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ThreadMgr.h">
-      <Filter>Src</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Singleton.h">
       <Filter>Src</Filter>
     </ClInclude>
@@ -48,13 +45,13 @@
     <ClInclude Include="Src\MemPoolObject.h">
       <Filter>Src</Filter>
     </ClInclude>
+    <ClInclude Include="Src\ThreadSync.h">
+      <Filter>Src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
     <ClCompile Include="Src\Thread.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ThreadMgr.cpp">
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\Math.cpp">
@@ -76,6 +73,9 @@
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\Stream.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ThreadSync.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>

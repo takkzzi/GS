@@ -1,20 +1,23 @@
 ﻿------------ Core ------------ 
 
 * Memory Leak (Library 가 x64/x86 나뉘어 있음)
- - 빌드를 x64/x86 나눌것.
+ - 빌드를 x64/x86 나눌것. - complete
 
 * Math
  - 각종 Interpolate Class.
 
-* Assert !! - 작동하지 않음 !!!
+* Assert - x64에서 작동하지 않음 !!!
  - 각 빌드 상황에 맞는 기능 (Dump를 만들지, Assertion 을 띄울지, 아무일도 안할지)
  - Release 에서 테스트
 
-* Dump
- - Full Dumping
-
-* Log
+* Logger 
+ - LogError 안에서 Assert 띄우기
+ - LogWarning 에서도
  - Thread-safe 하게 구현
+
+* Dump
+ - Mini Dump Test. (also 64 bit)
+ - Full Dumping
 
 
 ------------ Network ------------ 
@@ -22,7 +25,6 @@
 * Overlappped IO - Skip
 
 * IOCP
-	- Socket 500 개 Connect - Accept Test !!!
 	- Send, Recv Buffer 구현 ( 일단 AT 사용 )
 	- AcceptEx : 연결 허용 처리 구현, Accept 시 함께 전송된 Data 처리
 

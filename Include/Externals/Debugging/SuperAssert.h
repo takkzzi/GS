@@ -113,6 +113,9 @@ BUGSUTIL_DLLINTERFACE BOOL
     }                                                                  \
 }
 
+#else	//devsapiens
+#define NEWASSERT_REALMACRO( exp , type )
+	
 #endif  // _M_IX86
 
 /*----------------------------------------------------------------------
