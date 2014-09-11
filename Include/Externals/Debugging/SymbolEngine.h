@@ -218,7 +218,7 @@ public      :
                                            EnumModulesCallback  ,
                                            UserContext           ) ) ;
     }
-
+#if !defined(_WIN64)
     BOOL SymEnumerateModules ( IN PSYM_ENUMMODULES_CALLBACK64
                                                  EnumModulesCallback,
                                IN PVOID             UserContext )
@@ -227,6 +227,7 @@ public      :
                                            EnumModulesCallback  ,
                                            UserContext           ) ) ;
     }
+#endif
 
     DWORD64 SymLoadModule64 ( IN  HANDLE     hFile       ,
                               IN  PSTR       ImageName   ,
@@ -248,7 +249,7 @@ public      :
                               IN  DWORD64    BaseOfDll   ,
                               IN  DWORD      SizeOfDll    ) ;
 
-
+#if !defined(_WIN64)
     DWORD64 SymLoadModule ( IN  HANDLE     hFile       ,
                             IN  PSTR       ImageName   ,
                             IN  PSTR       ModuleName  ,
@@ -262,6 +263,7 @@ public      :
                                      BaseOfDll    ,
                                      SizeOfDll     ) ) ;
     }
+#endif
 
     DWORD64 SymLoadModuleEx ( IN  HANDLE         hProcess   ,
                               IN  HANDLE         hFile      ,
@@ -291,6 +293,7 @@ public      :
                                               UserContext              ));
     }
 
+#if !defined(_WIN64)
     BOOL EnumerateLoadedModules ( IN PENUMLOADED_MODULES_CALLBACK64
                                             EnumLoadedModulesCallback,
                                   IN PVOID         UserContext       )
@@ -299,16 +302,19 @@ public      :
                                               EnumLoadedModulesCallback ,
                                               UserContext              ));
     }
+#endif
 
     BOOL SymUnloadModule64 ( IN  DWORD64 BaseOfDll )
     {
         return ( ::SymUnloadModule64 ( m_hProcess , BaseOfDll ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymUnloadModule ( IN  DWORD64 BaseOfDll )
     {
         return ( ::SymUnloadModule64 ( m_hProcess , BaseOfDll ) ) ;
     }
+#endif
 
     BOOL SymGetModuleInfo64 ( IN  DWORD64            dwAddr     ,
                               OUT PIMAGEHLP_MODULE64 ModuleInfo  )
@@ -325,7 +331,8 @@ public      :
                                          qwAddr       ,
                                          ModuleInfo    ) ) ;
     }
-    
+   
+#if !defined(_WIN64)
     BOOL SymGetModuleInfo ( IN  DWORD64            dwAddr     ,
                             OUT PIMAGEHLP_MODULE64 ModuleInfo  )
     {
@@ -333,16 +340,19 @@ public      :
                                        dwAddr        ,
                                        ModuleInfo     ) ) ;
     }
+#endif
 
     DWORD64 SymGetModuleBase64 ( IN DWORD64 dwAddr )
     {
         return ( ::SymGetModuleBase64 ( m_hProcess , dwAddr ) ) ;
     }
 
+#if !defined(_WIN64)
     DWORD64 SymGetModuleBase ( IN DWORD64 dwAddr )
     {
         return ( ::SymGetModuleBase64 ( m_hProcess , dwAddr ) ) ;
     }
+#endif
 
 /*----------------------------------------------------------------------
                    Public Symbol and Type Manipulation
@@ -417,7 +427,8 @@ public      :
                                             EnumSymbolsCallback ,
                                             UserContext          ) ) ;
     }
-    
+   
+#if !defined(_WIN64)
     BOOL SymEnumerateSymbols (IN DWORD64                    BaseOfDll,
                               IN PSYM_ENUMSYMBOLS_CALLBACK64
                                                   EnumSymbolsCallback,
@@ -428,6 +439,7 @@ public      :
                                            EnumSymbolsCallback ,
                                            UserContext          ) ) ;
     }
+#endif
 
     BOOL SymGetSymFromAddr64 ( IN  DWORD64             dwAddr          ,
                                OUT PDWORD64            pdwDisplacement ,
@@ -439,6 +451,7 @@ public      :
                                          Symbol            ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetSymFromAddr ( IN  DWORD64             dwAddr          ,
                              OUT PDWORD64            pdwDisplacement ,
                              OUT PIMAGEHLP_SYMBOL64  Symbol          )
@@ -448,6 +461,7 @@ public      :
                                          pdwDisplacement  ,
                                          Symbol            ) ) ;
     }
+#endif
 
     BOOL SymGetSymFromName64 ( IN  LPSTR              Name   ,
                                OUT PIMAGEHLP_SYMBOL64 Symbol  )
@@ -457,6 +471,7 @@ public      :
                                          Symbol      ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetSymFromName ( IN  LPSTR              Name   ,
                              OUT PIMAGEHLP_SYMBOL64 Symbol  )
     {
@@ -464,26 +479,31 @@ public      :
                                          Name       ,
                                          Symbol      ) ) ;
     }
+#endif
 
     BOOL SymGetSymNext64 ( IN OUT PIMAGEHLP_SYMBOL64 Symbol )
     {
         return ( ::SymGetSymNext64 ( m_hProcess , Symbol ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetSymNext ( IN OUT PIMAGEHLP_SYMBOL64 Symbol )
     {
         return ( ::SymGetSymNext64 ( m_hProcess , Symbol ) ) ;
     }
+#endif
 
     BOOL SymGetSymPrev64 ( IN OUT PIMAGEHLP_SYMBOL64 Symbol )
     {
         return ( ::SymGetSymPrev64 ( m_hProcess , Symbol ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetSymPrev ( IN OUT PIMAGEHLP_SYMBOL64 Symbol )
     {
         return ( ::SymGetSymPrev64 ( m_hProcess , Symbol ) ) ;
     }
+#endif
 
 /*----------------------------------------------------------------------
                      Public Source Line Manipulation
@@ -502,6 +522,7 @@ public      :
 
     }
 
+#if !defined(_WIN64)
     BOOL SymGetLineFromAddr ( IN  DWORD64          dwAddr          ,
                               OUT PDWORD           pdwDisplacement ,
                               OUT PIMAGEHLP_LINE64 Line             )
@@ -513,6 +534,7 @@ public      :
                                           Line             ) ) ;
 
     }
+#endif
 
     BOOL SymGetLineFromName64 ( IN     LPSTR            ModuleName    ,
                                 IN     LPSTR            FileName      ,
@@ -528,6 +550,7 @@ public      :
                                           Line              ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetLineFromName ( IN     LPSTR            ModuleName    ,
                               IN     LPSTR            FileName      ,
                               IN     DWORD            dwLineNumber  ,
@@ -541,26 +564,31 @@ public      :
                                           plDisplacement   ,
                                           Line              ) ) ;
     }
+#endif
 
     BOOL SymGetLineNext64 ( IN OUT PIMAGEHLP_LINE64 Line )
     {
         return ( ::SymGetLineNext64 ( m_hProcess , Line ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetLineNext ( IN OUT PIMAGEHLP_LINE64 Line )
     {
         return ( ::SymGetLineNext64 ( m_hProcess , Line ) ) ;
     }
+#endif
 
     BOOL SymGetLinePrev64 ( IN OUT PIMAGEHLP_LINE64 Line )
     {
         return ( ::SymGetLinePrev64 ( m_hProcess , Line ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymGetLinePrev ( IN OUT PIMAGEHLP_LINE64 Line )
     {
         return ( ::SymGetLinePrev64 ( m_hProcess , Line ) ) ;
     }
+#endif
 
     BOOL SymMatchFileName ( IN  LPSTR   FileName        ,
                             IN  LPSTR   Match           ,
@@ -595,10 +623,12 @@ public      :
         return ( ::SymFunctionTableAccess64 ( m_hProcess , AddrBase ) ) ;
     }
 
+#if !defined(_WIN64)
     LPVOID SymFunctionTableAccess ( DWORD64 AddrBase )
     {
         return ( ::SymFunctionTableAccess64 ( m_hProcess , AddrBase ) ) ;
     }
+#endif
 
     BOOL SymGetSearchPath ( OUT LPSTR SearchPath        ,
                             IN  DWORD SearchPathLength   )
@@ -628,9 +658,15 @@ public      :
                                                        CallbackFunction,
                                IN PVOID                UserContext    )
     {
+#ifdef _WIN64
+		return ( ::SymRegisterCallback ( m_hProcess         ,
+                                         CallbackFunction   ,
+                                         (ULONG64)UserContext         ) ) ;
+#else
         return ( ::SymRegisterCallback ( m_hProcess         ,
                                          CallbackFunction   ,
                                          UserContext         ) ) ;
+#endif
     }
 
     BOOL SymFindFileInPath ( LPSTR                      SearchPath  ,
@@ -682,13 +718,15 @@ public      :
         return ( ::SymUnDName64 ( sym , UnDecName , UnDecNameLength ) ) ;
     }
 
+#if !defined(_WIN64)
     BOOL SymUnDName ( IN  PIMAGEHLP_SYMBOL64 sym              ,
                       OUT PSTR               UnDecName        ,
                       IN  DWORD              UnDecNameLength   )
     {
         return ( ::SymUnDName64 ( sym , UnDecName , UnDecNameLength ) ) ;
     }
-    
+#endif
+
 /*----------------------------------------------------------------------
                           Protected Data Methods
 ----------------------------------------------------------------------*/

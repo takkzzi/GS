@@ -7,6 +7,11 @@
 
 #include "targetver.h"
 
+#define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
+// Windows 헤더 파일:
+#include <windows.h>
+
+// C의 런타임 헤더 파일입니다.
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -14,17 +19,14 @@
 #include <tchar.h>
 
 
-
-// TODO: reference additional headers your program requires here
-
+// TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 /*
-#include <windows.h>
-#include <iostream>
-
 #include <vector>
-#include <map>
 #include <list>
+#include <map>
+#include <thread>
+#include <WinSock2.h>
 */
 
-#include "Core\Core.h"
-#include "Network\Network.h"
+//#include "Core\Core.h"
+//#include "Network\Network.h"

@@ -25,6 +25,18 @@ namespace Core
 
 using namespace Core;
 
+#ifndef WIN32_LEAN_AND_MEAN             
+	#define	WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#endif
+
+#ifndef _CRT_SECURE_NO_WARNINGS
+	#define		_CRT_SECURE_NO_WARNINGS
+#endif // !_CRT_SECURE_NO_WARNINGS
+
+#include <windows.h>
+
+
+#include "MemLeakDetect.h"
 #include "Macro.h"
 #include "Assert.h"
 #include "System.h"
@@ -33,7 +45,7 @@ using namespace Core;
 #include "Logger.h"
 #include "Thread.h"
 
-//#include "MemLeakDetect.h"
+
 
 #ifdef _DEBUG
 #include "Externals/Debugging/vld.h"	//Visual Leak Detector : Need "vld.lib"

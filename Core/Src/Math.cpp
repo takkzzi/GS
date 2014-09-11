@@ -26,7 +26,13 @@ void Math::SetRandSeed(DWORD seed)
 int Math::Rand()
 {
 	//return rand();
-	return( ((msRandSeed = msRandSeed * 214013L + 2531011L) >> 16) & 0x7FFF );
+	SetRandSeed( ((GetRandSeed() * 214013L + 2531011L) >> 16) & 0x7FFF );
+	return GetRandSeed();
+}
+
+int Math::RandSys() 
+{
+	return rand();
 }
 
 int Math::RandRange(int begin, int end)

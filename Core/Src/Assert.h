@@ -40,9 +40,9 @@
 	#pragma warning( pop )
 	//#undef new
 
-#ifdef ASSERT
-	#undef	ASSERT
-#endif // ASSERT
+	#ifdef ASSERT
+		#undef	ASSERT
+	#endif // ASSERT
 
 	#define ASSERT(Expr)		SUPERASSERT(Expr)
 	

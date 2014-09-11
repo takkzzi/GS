@@ -28,8 +28,11 @@ public :
 		{
 			if ( IsState(THREAD_END) )
 				break;
-
+#ifdef    _WIN64
+			BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+#else
 			BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+#endif
 			if ( ! ret) {
 				Logger::LogWarning(_T("GetQueuedCompletionStatus Error.- &d"), GetLastError());
 				continue;
@@ -113,6 +116,11 @@ IOCP::~IOCP(void)
 void IOCP::BeginIo(int threadCount)
 {
 	mThreadVec.reserve(threadCount);
+
+	if (threadCount <= 0 ) {
+		DWORD processors = System::GetProcessorCount();
+		threadCount = processors * 2 + 1; //optimized count for processors
+	}
 
 	for(int i = 0; i < threadCount; ++i) {
 		IOCPThread* th = new IOCPThread(this);
