@@ -22,9 +22,13 @@
 * Overlappped IO - Skip
 
 * IOCP
-	- Socket 500 개 Connect - Accept Test !!!
+	- 결국 Session Manager 가 있어야함. (Game 로직내 컨트롤)
 	- Send, Recv Buffer 구현 ( 일단 AT 사용 )
 	- AcceptEx : 연결 허용 처리 구현, Accept 시 함께 전송된 Data 처리
 
 * Dummy Client
+	- SessionManager 20 (Threding) 개 생성. 1개당 250 Session Packet Transfering Test.
+
+* Game Server
+	- 5000 Session 생성후 랜덤한 Session 30 개에 Echo. Test.
 

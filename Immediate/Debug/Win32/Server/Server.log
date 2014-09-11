@@ -1,7 +1,0 @@
-﻿  stdafx.cpp
-c:\program files (x86)\microsoft visual studio 11.0\vc\include\crtdbg.h(571): warning C4005: '_malloca' : macro redefinition
-          c:\program files (x86)\microsoft visual studio 11.0\vc\include\malloc.h(218) : see previous definition of '_malloca'
-  Server.cpp
-  LINK : ..\Bin_Win32\Server_d.exe not found or not built by the last incremental link; performing full link
-stdafx.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
-  Server.vcxproj -> D:\Works\_2nd Project\GameServer\Server\..\Bin_Win32\Server_d.exe
