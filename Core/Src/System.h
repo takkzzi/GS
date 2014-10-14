@@ -16,8 +16,8 @@ namespace Core
 		static		const	SYSTEM_INFO*	GetSystemInfo();
 		static				DWORD			GetProcessorCount();
 		static		const	MEMORYSTATUS*	GetMemoryStatus();
-		static				DWORD			GetTotalPhysicalMemory();		// in byte
-		static				DWORD			GetAvailPhysicalMemory();
+		static				SIZE_T			GetTotalPhysicalMemory();		// in byte
+		static				SIZE_T			GetAvailPhysicalMemory();
 		static				DWORD			GetLastErrorMessage(TCHAR* outStr, INT outStrLen);
 
 	protected :

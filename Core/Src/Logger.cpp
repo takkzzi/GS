@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Logger.h"
 #include <stdarg.h>
+#include "StrUtil.h"
 
 #define				MAX_LOG_BUFFER		2048
 
@@ -28,7 +29,7 @@ void Logger::Shutdown()
 	msFileMap.clear();
 }
 
-bool Logger::LogError(LPTSTR logData, ...)
+void Logger::LogError(const LPTSTR logData, ...)
 {
 	va_list		ap;
 	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
@@ -44,11 +45,28 @@ bool Logger::LogError(LPTSTR logData, ...)
 	}
 	*/
 	ASSERT(0);
-	
-	return TRUE;
 }
 
-bool Logger::LogWarning(LPTSTR logData, ...)
+void Logger::LogError(const CHAR* logData, ...)
+{
+	va_list		ap;
+	CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
+	va_start(ap, logData);
+	vsprintf(logBuff, logData, ap);
+	va_end(ap);
+
+	LogWithDate("[Error]", logData);
+
+	/*
+	if ( ::IsDebuggerPresent() ) {
+		DebugBreak();
+	}
+	*/
+	ASSERT(0);
+}
+
+
+void Logger::LogWarning(const LPTSTR logData, ...)
 {
 	va_list		ap;
 	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
@@ -58,50 +76,38 @@ bool Logger::LogWarning(LPTSTR logData, ...)
 
 	LogWithDate(_T("[Warning]"), logData);
 
+	/*
 	if ( ::IsDebuggerPresent() ) {
 		DebugBreak();
 	}
-
-	return TRUE;
+	*/
+	ASSERT(0);
 }
 
-bool Logger::Log(const LPTSTR category, LPTSTR logData, ...)
+void Logger::LogWarning(const CHAR* logData, ...)
 {
-	FILE* file = NULL;
-	auto search = msFileMap.find(category);
-    if(search != msFileMap.end()) {
-		file = (FILE*)search->second;
-	}
-	
-	TCHAR		fileName[MAX_PATH]		= {0,};
-	TCHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
-	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
+	va_list		ap;
+	CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
+	va_start(ap, logData);
+	vsprintf(logBuff, logData, ap);
+	va_end(ap);
 
-	if ( file == NULL ) {
-		_sntprintf(fileName, MAX_PATH, _T("%s%s.log"), 
-			msLogPath, 
-			category);
-
-		file = _tfopen(fileName, _T("a"));
-		if (!file)
-			return FALSE;
-
-		msFileMap[category] = file;;
-	}
-
-	SYSTEMTIME	SystemTime;
-	GetLocalTime(&SystemTime);
+	LogWithDate("[Warning]", logData);
 
 	/*
-	TCHAR		CurrentDate[32]					= {0,};
-	_sntprintf(CurrentDate, 32, _T("%d-%d-%d %d:%d:%d"),
-		SystemTime.wYear, 
-		SystemTime.wMonth, 
-		SystemTime.wDay, 
-		SystemTime.wHour,
-		SystemTime.wMinute,
-		SystemTime.wSecond);
+	if ( ::IsDebuggerPresent() ) {
+		DebugBreak();
+	}
 	*/
+	ASSERT(0);
+}
+
+void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
+{
+	FILE* file = FindFile(category);
+
+	TCHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
+	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 
 	va_list		ap;
 	va_start(ap, logData);
@@ -110,8 +116,6 @@ bool Logger::Log(const LPTSTR category, LPTSTR logData, ...)
 
 	_ftprintf(file, _T("%s\n"), logBuff);
 	fflush(file);
-
-	//fclose(FilePtr);
 
 	if ( IsDebuggerPresent() ) {
 		//_sntprintf(debugLogBuff, MAX_LOG_BUFFER, _T("[%s] %s\n"), CurrentDate, logBuff);
@@ -122,34 +126,36 @@ bool Logger::Log(const LPTSTR category, LPTSTR logData, ...)
 		_tprintf(_T("%s"), debugLogBuff);
 #endif // DEBUG	
 	}
-
-	return true;
 }
 
-bool Logger::LogWithDate(const LPTSTR category, LPTSTR logData, ...)
+void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 {
-	FILE* file = NULL;
-	auto search = msFileMap.find(category);
-    if(search != msFileMap.end()) {
-		file = (FILE*)search->second;
+	FILE* file = FindFile(category);
+
+	CHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
+	CHAR		logBuff[MAX_LOG_BUFFER]				= {0,};
+
+	va_list		ap;
+	va_start(ap, logData);
+	vsprintf(logBuff, logData, ap);
+	va_end(ap);
+
+	fprintf(file, "%s\n", logBuff);
+	fflush(file);
+
+	if ( IsDebuggerPresent() ) {
+		_snprintf(debugLogBuff, MAX_LOG_BUFFER, " %s\n", logBuff);
+		OutputDebugStringA(debugLogBuff);
+
+#ifdef _CONSOLE
+		_tprintf("%s", debugLogBuff);
+#endif // DEBUG	
 	}
-	
-	TCHAR		fileName[MAX_PATH]		= {0,};
-	TCHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
+}
 
-	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
-
-	if ( file == NULL ) {
-		_sntprintf(fileName, MAX_PATH, _T("%s%s.log"), 
-			msLogPath, 
-			category);
-
-		file = _tfopen(fileName, _T("a"));
-		if (!file)
-			return FALSE;
-
-		msFileMap[category] = file;
-	}
+void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
+{
+	FILE* file = FindFile(category);
 
 	SYSTEMTIME	SystemTime;
 	GetLocalTime(&SystemTime);
@@ -162,6 +168,9 @@ bool Logger::LogWithDate(const LPTSTR category, LPTSTR logData, ...)
 		SystemTime.wHour,
 		SystemTime.wMinute,
 		SystemTime.wSecond);
+
+	TCHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
+	TCHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
 
 	va_list		ap;
 	va_start(ap, logData);
@@ -181,7 +190,69 @@ bool Logger::LogWithDate(const LPTSTR category, LPTSTR logData, ...)
 		_tprintf(_T("%s"), debugBuff);
 #endif // DEBUG	
 	}
-
-	return true;
 }
 
+void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
+{
+	FILE* file = FindFile(category);
+
+	SYSTEMTIME	SystemTime;
+	GetLocalTime(&SystemTime);
+
+	CHAR		CurrentDate[32]					= {0,};
+	_snprintf(CurrentDate, 32, "%d-%d-%d %d:%d:%d",
+		SystemTime.wYear, 
+		SystemTime.wMonth, 
+		SystemTime.wDay, 
+		SystemTime.wHour,
+		SystemTime.wMinute,
+		SystemTime.wSecond);
+
+	CHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
+	CHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
+
+	va_list		ap;
+	va_start(ap, logData);
+	vsprintf(logBuff, logData, ap);
+	va_end(ap);
+
+	fprintf(file, "[%s] %s\n", CurrentDate, logBuff);
+	fflush(file);
+
+	//fclose(FilePtr);
+
+	if ( IsDebuggerPresent() ) {
+		_snprintf(debugBuff, MAX_LOG_BUFFER, "[%s] %s\n", CurrentDate, logBuff);
+		OutputDebugStringA(debugBuff);
+
+#ifdef _CONSOLE
+		printf("%s", debugBuff);
+#endif // DEBUG	
+	}
+}
+
+FILE* Logger::FindFile(const LPTSTR name)
+{
+	auto search = msFileMap.find(name);
+    if(search != msFileMap.end()) {
+		return (FILE*)search->second;
+	}
+
+	TCHAR		fileName[MAX_PATH]		= {0,};
+	_sntprintf(fileName, MAX_PATH, _T("%s%s.log"), msLogPath, name);
+
+	FILE* file = _tfopen(fileName, _T("a"));
+	if (!file)
+		return FALSE;
+
+	msFileMap[name] = file;
+	return file;
+}
+
+FILE* Logger::FindFile(const CHAR* name)
+{
+	TCHAR nameTemp[128] = {0, };
+	StrUtil::CopyAnsi2TCHAR(nameTemp, name);
+
+	return FindFile(nameTemp);
+}

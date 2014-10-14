@@ -2,12 +2,12 @@
 #include "Dump.h"
 
 #ifndef USE_ASSERT
-	#include <DbgHelp.h>	//Assert.h의 #include "Externals/Debugging/BugslayerUtil.h" 와 중복 방지
+	#include <DbgHelp.h>	//Assert.h의 #include "Externals/Bugslayer/BugslayerUtil.h" 와 중복 방지
 #endif // !USE_ASSERT	
 
 using namespace Core;
 
-
+#ifndef    _WIN64		
 typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)( // Callback 함수의 원형
 	HANDLE hProcess, 
 	DWORD dwPid, 
@@ -16,8 +16,6 @@ typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)( // Callback 함수의 원형
 	CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
 	CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
 	CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
-
-LPTOP_LEVEL_EXCEPTION_FILTER PreviousExceptionFilter = NULL;
 
 LONG WINAPI UnHandledExceptionFilter(struct _EXCEPTION_POINTERS *exceptionInfo)
 {
@@ -84,11 +82,18 @@ LONG WINAPI UnHandledExceptionFilter(struct _EXCEPTION_POINTERS *exceptionInfo)
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
+#else
+LONG WINAPI UnHandledExceptionFilter(struct _EXCEPTION_POINTERS *exceptionInfo)
+{
+	return 0;
+}
+#endif
+
+LPTOP_LEVEL_EXCEPTION_FILTER PreviousExceptionFilter = NULL;
 
 void Dump::Init()
 {
 	SetErrorMode(SEM_FAILCRITICALERRORS);
-
 	PreviousExceptionFilter = SetUnhandledExceptionFilter(UnHandledExceptionFilter);
 }
 

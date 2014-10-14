@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <map>
-#include "Core/Thread.h"
 
 #ifdef __cpluscplus
 extern "C" {
@@ -10,6 +9,7 @@ extern "C" {
 
 namespace Network
 {
+	using namespace Core;
 
 	class Session;
 	class Listener;

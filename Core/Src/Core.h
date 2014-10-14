@@ -35,6 +35,9 @@ using namespace Core;
 
 #include <windows.h>
 
+#ifdef _DEBUG
+#include "Externals/VisualLeakDetector/vld.h"	//Visual Leak Detector : Need "vld.lib"
+#endif // _DEBUG
 
 #include "MemLeakDetect.h"
 #include "Macro.h"
@@ -45,11 +48,6 @@ using namespace Core;
 #include "Logger.h"
 #include "Thread.h"
 
-
-
-#ifdef _DEBUG
-#include "Externals/Debugging/vld.h"	//Visual Leak Detector : Need "vld.lib"
-#endif // _DEBUG
 
 
 

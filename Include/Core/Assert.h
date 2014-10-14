@@ -1,9 +1,6 @@
 //For Assertion
 #pragma once
 
-#if defined WIN32 | _WIN64
-
-
 #define NOGDICAPMASKS
 //#define NOMENUS
 #define NORASTEROPS
@@ -31,25 +28,35 @@
 #define NOPROXYSTUB
 #define NORPC
 
-
 #ifdef USE_ASSERT
 
-	#pragma warning( push )
-	#pragma warning( disable : 4996 )
-	#include "Externals/Debugging/BugslayerUtil.h"
-	#pragma warning( pop )
-	//#undef new
+	#ifdef _WIN64
 
-	#ifdef ASSERT
 		#undef	ASSERT
-	#endif // ASSERT
+		#undef	assert
 
-	#define ASSERT(Expr)		SUPERASSERT(Expr)
+	#include <Assert.h>
+		#define ASSERT(Expr)	(void)( (!!(Expr)) || (_wassert(_CRT_WIDE(#Expr), _CRT_WIDE(__FILE__), __LINE__), 0) )
 	
+
+	#else
+
+		#pragma warning( push )
+		#pragma warning( disable : 4996 )
+		#include "Externals/Bugslayer/BugslayerUtil.h"
+		#pragma warning( pop )
+		//#undef new
+
+		#undef	ASSERT
+		#undef assert
+
+		#define ASSERT(Expr)		SUPERASSERT(Expr)
+
+	#endif
+
 #else
-	#define			ASSERT(Expr)	
-#endif
-	
+		#define ASSERT(Expr)	(VOID(0))
+
 #endif //#ifdef WIN32
 
 

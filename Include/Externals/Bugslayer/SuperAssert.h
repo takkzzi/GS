@@ -82,7 +82,7 @@ BUGSUTIL_DLLINTERFACE BOOL
 // If you add local variables to this macro, make sure to update the
 // g_szAssertLocalVars array in AssertDlg.CPP so they don't show up in
 // the locals output and confuse the user.
-#ifdef _M_IX86
+#if defined (_M_IX86)
 #define NEWASSERT_REALMACRO( exp , type )                              \
 {                                                                      \
     /* The local instance of the ignore count and the total hits. */   \
@@ -112,9 +112,36 @@ BUGSUTIL_DLLINTERFACE BOOL
         }                                                              \
     }                                                                  \
 }
-
-#else	//devsapiens
-#define NEWASSERT_REALMACRO( exp , type )
+#elif defined (_M_X64)
+#define NEWASSERT_REALMACRO( exp , type )                              \
+{                                                                      \
+    /* The local instance of the ignore count and the total hits. */   \
+    static int sIgnoreCount = 0 ;                                      \
+    static int sFailCount   = 0 ;                                      \
+    /* The local stack and frame at the assertion's location. */       \
+	CONTEXT ctx;														\
+	RtlCaptureContext(&ctx);											\
+																		\
+    /* Check the expression. */                                        \
+    if ( ! ( exp ) )                                                   \
+    {                                                                  \
+		DWORD dwStack = ctx.Rsp;     									\
+		DWORD dwStackFrame = ctx.Rbp;									\
+        if ( TRUE == SuperAssertion ( TEXT ( type )         ,          \
+                                      TEXT ( #exp )         ,          \
+                                      TEXT ( __FUNCTION__ ) ,          \
+                                      TEXT ( __FILE__ )     ,          \
+                                      __LINE__              ,          \
+                                      SUPERASSERT_EMAIL     ,          \
+                                      (DWORD64)dwStack      ,          \
+                                      (DWORD64)dwStackFrame ,          \
+                                      &sFailCount           ,          \
+                                      &sIgnoreCount          ) )       \
+        {                                                              \
+            ::DebugBreak();                                            \
+        }                                                              \
+    }                                                                  \
+}
 	
 #endif  // _M_IX86
 

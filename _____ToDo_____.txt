@@ -7,7 +7,6 @@
  - 각종 Interpolate Class.
 
 * Assert - x64에서 작동하지 않음 !!!
- - 각 빌드 상황에 맞는 기능 (Dump를 만들지, Assertion 을 띄울지, 아무일도 안할지)
  - Release 에서 테스트
 
 * Logger 
@@ -16,7 +15,8 @@
  - Thread-safe 하게 구현
 
 * Dump
- - Mini Dump Test. (also 64 bit)
+ - Mini Dump is Not Work In x64 !!!
+ - Assert 없이 Dump 남기기
  - Full Dumping
 
 

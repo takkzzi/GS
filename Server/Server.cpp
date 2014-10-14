@@ -52,9 +52,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	int port			= 42006;
 	int sessionCount	= 5000;
 	
-	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, true, 512, 512);
-	iocp->BeginListen(port);
+	int sendBufferSize = 5120;
+	int recvBufferSize = 5120;
 
+	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, true, sendBufferSize, recvBufferSize);
+	iocp->BeginListen(port);
 
 	// 기본 메시지 루프입니다.
 	while (1)
@@ -76,8 +78,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	int i = 0;
-	//ASSERT(i == 1);
 	SAFE_DELETE(iocp);
 
 	Network::NetworkSystem::Shutdown();
@@ -115,7 +115,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hInstance		= hInstance;
 	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SERVER));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	//wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_SERVER);
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));

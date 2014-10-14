@@ -59,13 +59,13 @@ const MEMORYSTATUS*	System::GetMemoryStatus()
 	return &msMemStatus;
 }
 
-DWORD System::GetTotalPhysicalMemory()  // in byte
+SIZE_T System::GetTotalPhysicalMemory()  // in byte
 {
 	//Debug::Assert(msbInit);
 	return msMemStatus.dwTotalPhys;
 }
 
-DWORD System::GetAvailPhysicalMemory() // in byte
+SIZE_T System::GetAvailPhysicalMemory() // in byte
 {
 	//Debug::Assert(msbInit);
 	return msMemStatus.dwAvailPhys;
