@@ -1,10 +1,6 @@
 
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core 
 {
 	class Dump 
@@ -14,7 +10,3 @@ namespace Core
 		static	void		Shutdown();
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

@@ -64,10 +64,11 @@ bool Session::Connect(CHAR* addr, USHORT port)
 
 bool Session::Disconnect()
 {
-	//TODO : shutdown() 사용하여 Half-Close ?
-
 	if ( mSock == INVALID_SOCKET)
 		return TRUE;
+
+	//Cancel Sending, Receiving
+	shutdown( mSock, SD_BOTH );
 
 	int err = closesocket( mSock );
 	if( err == SOCKET_ERROR ) {

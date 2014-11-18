@@ -1,9 +1,5 @@
 #pragma once 
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core {
 	class Math
 	{
@@ -14,12 +10,11 @@ namespace Core {
 		static void			Init();
 
 		//Random
-		static void			SetRandSeed(DWORD seed);
-		static DWORD		GetRandSeed()			 { return msRandSeed; }
-		static int			Rand();
-		static int			RandSys();
-		static int			RandRange(int begin, int end);
-		static float		RandFloat();		//0.0 ~ 1.0
+		static volatile void		SetRandSeed(DWORD seed);
+		static DWORD				GetRandSeed()			 { return msRandSeed; }
+		static volatile int			Rand();
+		static int					RandRange(int begin, int end);
+		static float				RandFloat();		//0.0 ~ 1.0
 
 		//TODO : Add Interpolation Functions
 		//
@@ -31,7 +26,3 @@ namespace Core {
 
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

@@ -1,30 +1,58 @@
 #pragma once
-#include "CriticalSection.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 namespace Core
 {
 
-class ThreadSync
+class CriticalSection 
 {
-public:
+public :
+	CriticalSection() 
+	{
+		::InitializeCriticalSection(&mCS);
+	}
 
-	ThreadSync();
-	virtual ~ThreadSync();
+	~CriticalSection()
+	{
+		::DeleteCriticalSection(&mCS);
+	}
 
-	void		Enter();
-	void		Leave();
+	void Enter()
+	{
+		::EnterCriticalSection(&mCS);
+	}
 
-protected:
-	
-	CriticalSection		mCS;
+	void Leave()
+	{
+		::LeaveCriticalSection(&mCS);
+	}
+
+private :
+	CRITICAL_SECTION	mCS;
 };
 
-}
 
-#ifdef __cplusplus
+template <class T>
+class ThreadSyncStatic
+{
+public :
+	class ThreadSync
+	{
+	public:
+
+		ThreadSync() {
+			T::msCS.Enter();
+		}
+
+		~ThreadSync() {
+			T::msCS.Leave();
+		}
+	};
+
+protected :
+	static CriticalSection	msCS;
+};
+
+template <class T>
+CriticalSection ThreadSyncStatic<T>::msCS;
+
 }
-#endif

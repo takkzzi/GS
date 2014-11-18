@@ -45,12 +45,13 @@
 		#pragma warning( disable : 4996 )
 		#include "Externals/Bugslayer/BugslayerUtil.h"
 		#pragma warning( pop )
-		//#undef new
 
 		#undef	ASSERT
-		#undef assert
+		#undef	assert
 
 		#define ASSERT(Expr)		SUPERASSERT(Expr)
+
+		#undef new
 
 	#endif
 

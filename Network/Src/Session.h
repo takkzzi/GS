@@ -15,12 +15,14 @@ namespace Network
 	};
 
 	struct Overlapped {
-		Overlapped(OverlappedIoType type, SOCKET s, int bufLen) { 
+		Overlapped(OverlappedIoType type, SOCKET s, int bufLen) 
+		{ 
 			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
 			iotype = type;
 			wsaBuf.buf = new CHAR[bufLen];
 			wsaBuf.len = bufLen;
 		}
+
 		~Overlapped() {
 			delete wsaBuf.buf;
 		}

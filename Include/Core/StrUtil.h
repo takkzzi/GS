@@ -1,10 +1,6 @@
 #pragma once
 #include <cstdio>
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core
 {
 	#define MAX_STRING_SIZE	(2048)
@@ -39,6 +35,3 @@ namespace Core
 	};
 }
 
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

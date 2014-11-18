@@ -2,10 +2,6 @@
 
 #include <map>
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core
 {
 	class Logger
@@ -33,7 +29,3 @@ namespace Core
 		static		std::map<const LPTSTR, FILE*>		msFileMap;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

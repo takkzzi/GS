@@ -5,10 +5,6 @@
 //#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
 //#include <windows.h>
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
-
 namespace Core 
 {
 	class CoreSystem
@@ -19,9 +15,6 @@ namespace Core
 	};
 }
 
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus
 
 using namespace Core;
 
@@ -39,6 +32,11 @@ using namespace Core;
 #include "Externals/VisualLeakDetector/vld.h"	//Visual Leak Detector : Need "vld.lib"
 #endif // _DEBUG
 
+#include <tchar.h>
+#include <vector>
+#include <list>
+#include <map>
+
 #include "MemLeakDetect.h"
 #include "Macro.h"
 #include "Assert.h"
@@ -47,6 +45,7 @@ using namespace Core;
 #include "Dump.h"
 #include "Logger.h"
 #include "Thread.h"
+#include "MemPoolObject.h"
 
 
 

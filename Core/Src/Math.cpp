@@ -17,22 +17,16 @@ void Math::Init()
 }
 
 
-void Math::SetRandSeed(DWORD seed)
+volatile void Math::SetRandSeed(DWORD seed)
 {
 	msRandSeed = seed;
-	srand(seed);
+	//srand(seed);
 }
 
-int Math::Rand()
+volatile int Math::Rand()
 {
-	//return rand();
 	SetRandSeed( ((GetRandSeed() * 214013L + 2531011L) >> 16) & 0x7FFF );
 	return GetRandSeed();
-}
-
-int Math::RandSys() 
-{
-	return rand();
 }
 
 int Math::RandRange(int begin, int end)

@@ -8,9 +8,6 @@
 #include <cstdlib> // for Consol Application
 #endif
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Core 
 {
@@ -85,8 +82,5 @@ namespace Core
 
 }	//namespace Core
 
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus
 
 #endif // if defined(_MSC_VER) && defined (_DEBUG)

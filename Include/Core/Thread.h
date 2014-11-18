@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Core 
 {
@@ -50,7 +47,3 @@ namespace Core
 		DWORD					mTermWaitTime;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

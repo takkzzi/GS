@@ -45,7 +45,7 @@
 		#pragma warning( disable : 4996 )
 		#include "Externals/Bugslayer/BugslayerUtil.h"
 		#pragma warning( pop )
-		//#undef new
+		#undef new
 
 		#undef	ASSERT
 		#undef assert

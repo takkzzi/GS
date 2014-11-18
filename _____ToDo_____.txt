@@ -1,17 +1,11 @@
 ﻿------------ Core ------------ 
 
-* Memory Leak (Library 가 x64/x86 나뉘어 있음)
- - 빌드를 x64/x86 나눌것. - complete
 
 * Math
  - 각종 Interpolate Class.
 
-* Assert - x64에서 작동하지 않음 !!!
- - Release 에서 테스트
-
 * Logger 
- - LogError 안에서 Assert 띄우기
- - LogWarning 에서도
+ - LogError(LogWarning) 안에서 Assert 띄우기에서도
  - Thread-safe 하게 구현
 
 * Dump
@@ -25,8 +19,13 @@
 * Overlappped IO - Skip
 
 * IOCP
-	- Send, Recv Buffer 구현 ( 일단 AT 사용 )
+	- Send, Recv Buffer 구현 ( Atlantica 참고 )
 	- AcceptEx : 연결 허용 처리 구현, Accept 시 함께 전송된 Data 처리
 
-* Dummy Client
+* Server - 일단 Connection 처리 테스트로 Echo Server 구현
+* Dummy Client (Stress Tester(C#) 개량해서 사용)
+
+
+
+
 
