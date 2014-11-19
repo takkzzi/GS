@@ -1,13 +1,15 @@
 #include "PCH.h"
-#include "Logger.h"
 #include <stdarg.h>
+
+#include "Logger.h"
 #include "StrUtil.h"
+#include "System.h"
+
 
 #define				MAX_LOG_BUFFER		2048
 
 using namespace Core;
 using namespace std;
-
 
 TCHAR							Logger::msLogPath[MAX_PATH];
 map<const LPTSTR, FILE*>		Logger::msFileMap;
@@ -105,6 +107,7 @@ void Logger::LogWarning(const CHAR* logData, ...)
 void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 {
 	FILE* file = FindFile(category);
+	if ( ! file ) return;
 
 	TCHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
 	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
@@ -131,6 +134,7 @@ void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 {
 	FILE* file = FindFile(category);
+	if ( ! file ) return;
 
 	CHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
 	CHAR		logBuff[MAX_LOG_BUFFER]				= {0,};
@@ -156,18 +160,10 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 {
 	FILE* file = FindFile(category);
+	if ( ! file ) return;
 
-	SYSTEMTIME	SystemTime;
-	GetLocalTime(&SystemTime);
-
-	TCHAR		CurrentDate[32]					= {0,};
-	_sntprintf(CurrentDate, 32, _T("%d-%d-%d %d:%d:%d"),
-		SystemTime.wYear, 
-		SystemTime.wMonth, 
-		SystemTime.wDay, 
-		SystemTime.wHour,
-		SystemTime.wMinute,
-		SystemTime.wSecond);
+	const CHAR*	timeStr = Time::GetSystemTimeStr();
+	const TCHAR* currTimeT = StringUtil::TCHARFromAnsi(timeStr);
 
 	TCHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
 	TCHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
@@ -177,13 +173,11 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 	_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 	va_end(ap);
 
-	_ftprintf(file, _T("[%s] %s\n"), CurrentDate, logBuff);
+	_ftprintf(file, _T("[%s] %s\n"), currTimeT, logBuff);
 	fflush(file);
 
-	//fclose(FilePtr);
-
 	if ( IsDebuggerPresent() ) {
-		_sntprintf(debugBuff, MAX_LOG_BUFFER, _T("[%s] %s\n"), CurrentDate, logBuff);
+		_sntprintf(debugBuff, MAX_LOG_BUFFER, _T("[%s] %s\n"), currTimeT, logBuff);
 		OutputDebugString(debugBuff);
 
 #ifdef _CONSOLE
@@ -195,18 +189,9 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 {
 	FILE* file = FindFile(category);
-
-	SYSTEMTIME	SystemTime;
-	GetLocalTime(&SystemTime);
-
-	CHAR		CurrentDate[32]					= {0,};
-	_snprintf(CurrentDate, 32, "%d-%d-%d %d:%d:%d",
-		SystemTime.wYear, 
-		SystemTime.wMonth, 
-		SystemTime.wDay, 
-		SystemTime.wHour,
-		SystemTime.wMinute,
-		SystemTime.wSecond);
+	if ( ! file ) return;
+	
+	const CHAR*	currTime = Time::GetSystemTimeStr();
 
 	CHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
 	CHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
@@ -216,13 +201,13 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 	vsprintf(logBuff, logData, ap);
 	va_end(ap);
 
-	fprintf(file, "[%s] %s\n", CurrentDate, logBuff);
+	fprintf(file, "[%s] %s\n", currTime, logBuff);
 	fflush(file);
 
 	//fclose(FilePtr);
 
 	if ( IsDebuggerPresent() ) {
-		_snprintf(debugBuff, MAX_LOG_BUFFER, "[%s] %s\n", CurrentDate, logBuff);
+		_snprintf(debugBuff, MAX_LOG_BUFFER, "[%s] %s\n", currTime, logBuff);
 		OutputDebugStringA(debugBuff);
 
 #ifdef _CONSOLE
@@ -242,6 +227,8 @@ FILE* Logger::FindFile(const LPTSTR name)
 	_sntprintf(fileName, MAX_PATH, _T("%s%s.log"), msLogPath, name);
 
 	FILE* file = _tfopen(fileName, _T("a"));
+	ASSERT(file && "Logger::FindFile() Failed");
+
 	if (!file)
 		return FALSE;
 
@@ -252,7 +239,7 @@ FILE* Logger::FindFile(const LPTSTR name)
 FILE* Logger::FindFile(const CHAR* name)
 {
 	TCHAR nameTemp[128] = {0, };
-	StrUtil::CopyAnsi2TCHAR(nameTemp, name);
+	StringUtil::CopyAnsi2TCHAR(nameTemp, name);
 
 	return FindFile(nameTemp);
 }

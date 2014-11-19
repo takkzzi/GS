@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Network
 {
@@ -18,10 +15,6 @@ namespace Network
 		static	bool		msbInit;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus
 
 #ifndef WIN32_LEAN_AND_MEAN             
 	#define	WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers

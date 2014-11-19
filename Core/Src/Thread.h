@@ -41,9 +41,9 @@ namespace Core
 
 	protected:
 
-		HANDLE					mhThread;
+		HANDLE						mhThread;
 		//HANDLE					mhEndEvent;
-		ThreadState				mState;
-		DWORD					mTermWaitTime;
+		volatile	ThreadState		mState;
+		DWORD						mTermWaitTime;
 	};
 }

@@ -3,9 +3,6 @@
 #include <vector>
 #include <map>
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Network
 {
@@ -52,7 +49,3 @@ namespace Network
 		std::map<int, Session*>					mSessionMap;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

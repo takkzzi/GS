@@ -31,7 +31,7 @@ void Session::SetState(SessionState state)
 	::InterlockedExchange((LONG*)&mState, (LONG)state);
 }
 
-bool Session::Connect(CHAR* addr, USHORT port)
+bool Session::Connect(const CHAR* addr, USHORT port)
 {
 	if ( ! IsState(SESSION_NONE) ) 
 		return FALSE;
@@ -73,7 +73,7 @@ bool Session::Disconnect()
 	int err = closesocket( mSock );
 	if( err == SOCKET_ERROR ) {
 		int lasterr = WSAGetLastError();
-		Logger::Log( _T("Session"), _T("Id : %d, close socket err(%d)\n"), mId, WSAGetLastError() );
+		Logger::Log("Session", "Id : %d, close socket error(ErrorCode:%d)\n", mId, WSAGetLastError() );
 	}
 
 	mSock = INVALID_SOCKET;
@@ -118,26 +118,44 @@ void Session::OnAccept(IOCP* iocp, SOCKET listenSock)
 	DWORD dwBytes, dwFlags = 0;
 	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
 	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-		//SetState( SESSION_STATE_DISCONNECTED );
 		Disconnect();
+	}
+	else {
+		Logger::Log("Session", "Id : %d, OnAccept", GetId() );
 	}
 }
 
 void Session::OnSendComplete(int sendSize)
 {
+	if ( sendSize <= 0 ) {
+		OnDisconnect();
+		return;
+	}
+
 	//TODO : Send Complete
 	//mSendBuffer->Complete(sendSize)
 }
 
 void Session::OnRecvComplete(int recvSize)
 {
-	//TODO : Receive Complete
-	//mRecvBuffer->Complete(recvSize)
+	if ( recvSize <= 0 ) { //Close At Remote Session
+		OnDisconnect();
+		return;
+	}
 
 	DWORD dwBytes, dwFlags = 0;
 	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
 	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-		//SetState( SESSION_STATE_DISCONNECTED );
-		Disconnect();
+		OnDisconnect();
+		return;
 	}
+
+	//TODO : Receive Complete
+	//mRecvBuffer->Complete(recvSize)
+}
+
+void Session::OnDisconnect() 
+{
+	Logger::Log("Session", "Id : %d, OnDisconnect", mId, WSAGetLastError() );
+	Disconnect();
 }

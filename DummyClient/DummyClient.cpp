@@ -17,6 +17,50 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
+const char* gServerIP = "127.0.0.1";
+const int	gServerPort = 42006;
+
+
+class SessionTester : public Thread 
+{
+public :
+	SessionTester(IOCP* iocp, int startId) 
+	{
+		mIocp = new IOCP(1, 1000, true, 1024, 1024);
+		//mIocp = iocp;
+
+		for(int i = 0; i < 1000; ++i) {
+			Session* se = mIocp->GetSession(i);
+			se->Connect(gServerIP, gServerPort);
+		}
+		
+		Begin();
+	};
+
+	virtual ~SessionTester() 
+	{
+		for(int i = 0; i < 1000; ++i) {
+			Session* se = mIocp->GetSession(i);
+			se->Disconnect();
+		}
+
+		SAFE_DELETE(mIocp);
+	};
+
+	virtual DWORD Run()
+	{
+		while(1) {
+			if ( IsState(THREAD_END) ) 
+				break;
+		}
+
+		return 0;
+	}
+
+protected :
+	IOCP*						mIocp;
+	std::vector<Session*>		mSessions;
+};
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -47,28 +91,53 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	CoreSystem::Init();
 	NetworkSystem::Init();
 
-	int sessionCount = 500;
-	int port = 42006;
 
-	IOCP* iocp = new IOCP(1, sessionCount, true, 1024, 1024);
-	for(int i = 0; i < sessionCount; ++i) {
-		Session* s= iocp->GetNewSession();
-		bool bCon = s->Connect("127.0.0.1", port);
-		//ASSERT(bCon);
-	}
+	IOCP* iocp = NULL; //new IOCP(1, 5000, true, 1024, 1024);
+
+	SessionTester* sessTester[5];
+	sessTester[0] = new SessionTester(iocp, 0);
+	sessTester[1] = new SessionTester(iocp, 1000);
+	sessTester[2] = new SessionTester(iocp, 2000);
+	sessTester[3] = new SessionTester(iocp, 3000);
+	sessTester[4] = new SessionTester(iocp, 4000);
 
 
 	// Main message loop:
+	double startTime = Time::GetAppTime();
+
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) )
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if( msg.message == WM_QUIT )
+				break;
+
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+		else
+		{
+			//Main Loop
+
+			double currTime = Time::GetAppTime();
+			if ( (currTime - startTime) > 3.0 ) {
+				break;
+			}
 		}
 	}
 
-	SAFE_DELETE(iocp);
+	delete sessTester[0];
+	delete sessTester[1];
+	delete sessTester[2];
+	delete sessTester[3];
+	delete sessTester[4];
+
+	//SAFE_DELETE(iocp);
+
+	Sleep(5000);
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

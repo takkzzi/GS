@@ -101,7 +101,7 @@ DWORD Listener::Run()
 		if ( netEvent != 0 ) 
 		{
 			//ASSERT( netEvent != 0 && _T("Listner::WSAEnumNetworkEvents is non-zero.") );
-			Core::Logger::Log(_T("Network"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%d"), GetLastError());
+			Logger::LogWarning(_T("Network"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%d"), GetLastError());
 			continue;
 		}
 

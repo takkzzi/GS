@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Network
 {
@@ -15,7 +12,3 @@ namespace Network
 		virtual ~SessionMgr(void);
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

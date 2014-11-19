@@ -1,9 +1,6 @@
 #pragma once
 #include "Core/Thread.h"
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Network
 {
@@ -32,7 +29,3 @@ namespace Network
 		IOCP*			mIocp;
 	};
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

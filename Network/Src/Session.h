@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cpluscplus
-extern "C" {
-#endif // __cpluscplus
 
 namespace Network
 {
@@ -48,14 +45,14 @@ namespace Network
 
 	public:
 
-		bool					Connect(CHAR* addr, USHORT port);
+		bool					Connect(const CHAR* addr, USHORT port);
 		bool					Disconnect();
 		bool					Send(BYTE* data, int dataLen);
 
 		virtual void			OnAccept(IOCP* iocp, SOCKET listenSock);
 		virtual void			OnSendComplete(int sendSize);
 		virtual void			OnRecvComplete(int recvSize);
-		//virtual void			OnDisconnect();
+		virtual void			OnDisconnect();
 
 	public:
 		int						GetId()		{ return mId; }
@@ -79,7 +76,3 @@ namespace Network
 	};
 
 }
-
-#ifdef __cpluscplus
-}
-#endif // __cpluscplus

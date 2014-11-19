@@ -30,6 +30,8 @@ namespace Core
 	public :
 		static				void			Init();
 
+		static		const	SYSTEMTIME*		GetSystemTime();
+		static		const	CHAR*			GetSystemTimeStr();
 		static				double			GetAppTime();
 		static				DWORD			GetAppTicks();
 		static				double			GetSecFromTicks(DWORD tick);
@@ -38,6 +40,7 @@ namespace Core
 		static		bool					msbInit;
 		static		LARGE_INTEGER			msFrequency;
 		static		LARGE_INTEGER			msInitCounter;
+		static		SYSTEMTIME				msSystemTime;
 	};
 
 }

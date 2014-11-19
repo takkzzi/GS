@@ -5,15 +5,15 @@ namespace Core
 {
 	#define MAX_STRING_SIZE	(2048)
 
-	class StrUtil
+	class StringUtil
 	{
 	public : 
 		
 		//Hex Manipulating
 		//@ 반드시 data 사이즈가 len보다 2배 이상이어야 한다.
-		static void		Hex2Ascii(const unsigned char* hex, char* data, size_t len);
-		static void		Ascii2Hex(const char* data, unsigned char* hex, size_t len);
-		static void		HexDump(FILE* stream, void const * data, size_t len);
+		static void				Hex2Ascii(const unsigned char* hex, char* data, size_t len);
+		static void				Ascii2Hex(const char* data, unsigned char* hex, size_t len);
+		static void				HexDump(FILE* stream, void const * data, size_t len);
 		//String Converting
 
 		static void				CopyAnsi2TCHAR( TCHAR* dst, const char* src );

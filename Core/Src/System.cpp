@@ -83,7 +83,7 @@ DWORD System::GetLastErrorMessage(TCHAR* outStr, INT outStrLen)
 bool			Time::msbInit = false;
 LARGE_INTEGER	Time::msFrequency;
 LARGE_INTEGER	Time::msInitCounter;
-
+SYSTEMTIME		Time::msSystemTime;
 
 void Time::Init() 
 {
@@ -94,11 +94,21 @@ void Time::Init()
 	msbInit = true;
 }
 
+const SYSTEMTIME* Time::GetSystemTime() {
+	GetLocalTime(&msSystemTime);
+	return &msSystemTime;
+}
+
+const CHAR* Time::GetSystemTimeStr() {
+	static char strBuff[32];
+	GetSystemTime();
+	_snprintf(strBuff, 32, "%d/%d/%d %d:%d:%d", msSystemTime.wYear, msSystemTime.wMonth, msSystemTime.wDay, msSystemTime.wHour, msSystemTime.wMinute, msSystemTime.wSecond);
+	return strBuff;
+}
+
 //Elpased time since Time::Init
 double Time::GetAppTime()
 {
-	//Debug::Assert(msbInit);
-
 	LARGE_INTEGER counter;
     QueryPerformanceCounter(&counter);
     return (double)( (long double)(counter.QuadPart - msInitCounter.QuadPart) / (long double)msFrequency.QuadPart);
@@ -106,8 +116,6 @@ double Time::GetAppTime()
 
 DWORD Time::GetAppTicks()
 {
-	//Debug::Assert(msbInit);
-
 	LARGE_INTEGER counter;
     QueryPerformanceCounter(&counter);
 
@@ -116,6 +124,5 @@ DWORD Time::GetAppTicks()
 
 double Time::GetSecFromTicks(DWORD ticks)
 {
-	//ASSERT(msbInit);
 	return ((double)(ticks / msFrequency.QuadPart) * 1000.0);
 }

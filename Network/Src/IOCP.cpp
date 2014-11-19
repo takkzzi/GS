@@ -39,11 +39,7 @@ public :
 			}
 
 			if ( keySession ) {
-				if (cbTransferred == 0) {
-					keySession->Disconnect();
-					continue;
-				}
-				else if ( overlapped->iotype == IO_SEND ) {
+				if ( overlapped->iotype == IO_SEND ) {
 					keySession->OnSendComplete(cbTransferred);
 				}
 				else if ( overlapped->iotype == IO_RECV ) {

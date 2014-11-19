@@ -5,7 +5,7 @@
 
 using namespace Core;
 
-void StrUtil::Hex2Ascii(const unsigned char* hex, char* data, size_t srclen)
+void StringUtil::Hex2Ascii(const unsigned char* hex, char* data, size_t srclen)
 {
 	data[0] = '\0';
 	char szChunk[4];
@@ -17,7 +17,7 @@ void StrUtil::Hex2Ascii(const unsigned char* hex, char* data, size_t srclen)
 	//data[ srclen ] = '\0';
 }
 
-void StrUtil::Ascii2Hex(const char* data, unsigned char* hex, size_t len)
+void StringUtil::Ascii2Hex(const char* data, unsigned char* hex, size_t len)
 {
 	for (size_t i=0; i<(len/2); ++i)
 	{
@@ -27,7 +27,7 @@ void StrUtil::Ascii2Hex(const char* data, unsigned char* hex, size_t len)
 
 //FILE * hexstrm=NULL;
 
-void StrUtil::HexDump(FILE * stream, void const * data, size_t len)
+void StringUtil::HexDump(FILE * stream, void const * data, size_t len)
 {
 	unsigned int i;
 	unsigned int r,c;
@@ -73,7 +73,7 @@ void StrUtil::HexDump(FILE * stream, void const * data, size_t len)
 }
 
 
-void StrUtil::CopyToAnsi( char* dest, const TCHAR* src )
+void StringUtil::CopyToAnsi( char* dest, const TCHAR* src )
 {
 #ifdef UNICODE
 	wcstombs( dest, src, MAX_STRING_SIZE );  //_tclen(src)+2 );
@@ -82,7 +82,7 @@ void StrUtil::CopyToAnsi( char* dest, const TCHAR* src )
 #endif
 }
 
-void StrUtil::CopyToUnicode( wchar_t* dest, const TCHAR* src )
+void StringUtil::CopyToUnicode( wchar_t* dest, const TCHAR* src )
 {
 #ifdef UNICODE
 	wcscpy( dest, src );	
@@ -91,35 +91,35 @@ void StrUtil::CopyToUnicode( wchar_t* dest, const TCHAR* src )
 #endif
 }
 
-void StrUtil::CopyUnicode2Ansi( char* dest, const wchar_t* src )
+void StringUtil::CopyUnicode2Ansi( char* dest, const wchar_t* src )
 {
 	wcstombs( dest, src, MAX_STRING_SIZE );  //_tclen(src)+2 );
 }
 
-void StrUtil::CopyAnsi2Unicode( wchar_t* dest, const char* src )
+void StringUtil::CopyAnsi2Unicode( wchar_t* dest, const char* src )
 {
 	mbstowcs( dest, src, strlen(src)+1 );
 }
 
-char* StrUtil::GetStaticAnsi64()
+char* StringUtil::GetStaticAnsi64()
 {
 	static char temp[64];
 	return temp;
 }
 
-char* StrUtil::GetStaticAnsi1024()
+char* StringUtil::GetStaticAnsi1024()
 {
 	static char temp[1024];
 	return temp;
 }
 
-char* StrUtil::GetStaticAnsi4096()
+char* StringUtil::GetStaticAnsi4096()
 {
 	static char temp[4096];
 	return temp;
 }
 
-const char*	StrUtil::AnsiFromTCHAR( const TCHAR* src )
+const char*	StringUtil::AnsiFromTCHAR( const TCHAR* src )
 {
 #ifdef UNICODE
 	static char temp[4096];
@@ -130,14 +130,14 @@ const char*	StrUtil::AnsiFromTCHAR( const TCHAR* src )
 #endif
 }
 
-const  char* StrUtil::AnsiFromUnicode( const wchar_t* src )
+const  char* StringUtil::AnsiFromUnicode( const wchar_t* src )
 {
 	static char temp[4096];
 	wcstombs( temp, src, MAX_STRING_SIZE );  //_tclen(src)+2 );
 	return temp;
 }
 
-const wchar_t* StrUtil::UnicodeFromTCHAR( const TCHAR* src )
+const wchar_t* StringUtil::UnicodeFromTCHAR( const TCHAR* src )
 {
 #ifdef UNICODE
 	return const_cast<wchar_t*>(src);	
@@ -148,7 +148,7 @@ const wchar_t* StrUtil::UnicodeFromTCHAR( const TCHAR* src )
 #endif
 }
 
-const wchar_t* StrUtil::UnicodeFromAnsi( const char* src )
+const wchar_t* StringUtil::UnicodeFromAnsi( const char* src )
 {
 	static wchar_t temp[2048];
 	mbstowcs( temp, src, strlen(src)+1 );
@@ -156,7 +156,7 @@ const wchar_t* StrUtil::UnicodeFromAnsi( const char* src )
 }
 
 
-const TCHAR* StrUtil::TCHARFromAnsi( const char* src )
+const TCHAR* StringUtil::TCHARFromAnsi( const char* src )
 {
 #ifdef UNICODE
 	return UnicodeFromAnsi( src );
@@ -166,7 +166,7 @@ const TCHAR* StrUtil::TCHARFromAnsi( const char* src )
 
 }
 
-const TCHAR* StrUtil::TCHARFromUnicode( const wchar_t* src )
+const TCHAR* StringUtil::TCHARFromUnicode( const wchar_t* src )
 {
 #ifdef UNICODE
 	return src;
@@ -177,7 +177,7 @@ const TCHAR* StrUtil::TCHARFromUnicode( const wchar_t* src )
 }
  
 
-void StrUtil::CopyAnsi2TCHAR( TCHAR* dest, const char* src )
+void StringUtil::CopyAnsi2TCHAR( TCHAR* dest, const char* src )
 {
 #ifdef UNICODE
 	mbstowcs( dest, src, strlen(src)+1 );
@@ -186,7 +186,7 @@ void StrUtil::CopyAnsi2TCHAR( TCHAR* dest, const char* src )
 #endif	
 }
 
-void StrUtil::CopyTCHAR2Ansi( char* dest, const TCHAR* src )
+void StringUtil::CopyTCHAR2Ansi( char* dest, const TCHAR* src )
 {
 #ifdef UNICODE
 	wcstombs( dest, src, MAX_STRING_SIZE );  //_tclen(src)+2 );
