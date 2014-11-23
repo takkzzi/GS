@@ -73,7 +73,7 @@ bool Session::Disconnect()
 	int err = closesocket( mSock );
 	if( err == SOCKET_ERROR ) {
 		int lasterr = WSAGetLastError();
-		Logger::Log("Session", "Id : %d, close socket error(ErrorCode:%d)\n", mId, WSAGetLastError() );
+		Logger::Log("Session", "Id : %d, close socket error(ErrorCode:%d)\n", mId, lasterr );
 	}
 
 	mSock = INVALID_SOCKET;
@@ -119,9 +119,7 @@ void Session::OnAccept(IOCP* iocp, SOCKET listenSock)
 	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
 	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 		Disconnect();
-	}
-	else {
-		Logger::Log("Session", "Id : %d, OnAccept", GetId() );
+		
 	}
 }
 
@@ -156,6 +154,6 @@ void Session::OnRecvComplete(int recvSize)
 
 void Session::OnDisconnect() 
 {
-	Logger::Log("Session", "Id : %d, OnDisconnect", mId, WSAGetLastError() );
+	//Logger::Log("Session", "Id : %d, OnDisconnect", mId, WSAGetLastError() );
 	Disconnect();
 }

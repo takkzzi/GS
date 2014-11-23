@@ -55,7 +55,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	int sendBufferSize = 5120;
 	int recvBufferSize = 5120;
 
-	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, true, sendBufferSize, recvBufferSize);
+	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, 10000, sendBufferSize, recvBufferSize);
 	iocp->BeginListen(port);
 
 	// 기본 메시지 루프입니다.

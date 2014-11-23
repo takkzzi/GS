@@ -24,13 +24,13 @@ const int	gServerPort = 42006;
 class SessionTester : public Thread 
 {
 public :
-	SessionTester(IOCP* iocp, int startId) 
+	SessionTester(IOCP* iocp, int connCount) 
 	{
-		mIocp = new IOCP(1, 1000, true, 1024, 1024);
-		//mIocp = iocp;
+		//mIocp = new IOCP(1, connCount, true, 1024, 1024);
+		mIocp = iocp;
 
-		for(int i = 0; i < 1000; ++i) {
-			Session* se = mIocp->GetSession(i);
+		for(int i = 0; i < connCount; ++i) {
+			Session* se = mIocp->GetNewSession();
 			se->Connect(gServerIP, gServerPort);
 		}
 		
@@ -39,22 +39,29 @@ public :
 
 	virtual ~SessionTester() 
 	{
-		for(int i = 0; i < 1000; ++i) {
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			se->Disconnect();
 		}
 
-		SAFE_DELETE(mIocp);
+		//SAFE_DELETE(mIocp);
 	};
 
-	virtual DWORD Run()
+	virtual DWORD ThreadTick()
 	{
-		while(1) {
-			if ( IsState(THREAD_END) ) 
-				break;
+
+		for(int i = 0; i < 50; ++i) {
+			int r = Core::Math::RandRange(0, mIocp->GetSessionCount());
+			Session* se = mIocp->GetSession(r);
+			if ( se->IsState(SESSION_CONNECTED) )
+				se->Disconnect();
+			else if ( se->IsState(SESSION_NONE) )
+				se->Connect(gServerIP, gServerPort);
 		}
 
-		return 0;
+		Sleep(100);
+
+		return 1;
 	}
 
 protected :
@@ -92,14 +99,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	NetworkSystem::Init();
 
 
-	IOCP* iocp = NULL; //new IOCP(1, 5000, true, 1024, 1024);
+	IOCP* iocp = new IOCP(1, 1000, 10000, 1024, 1024);
 
-	SessionTester* sessTester[5];
-	sessTester[0] = new SessionTester(iocp, 0);
-	sessTester[1] = new SessionTester(iocp, 1000);
-	sessTester[2] = new SessionTester(iocp, 2000);
-	sessTester[3] = new SessionTester(iocp, 3000);
-	sessTester[4] = new SessionTester(iocp, 4000);
+	SessionTester* sessTester[5] = { 0, 0, 0, 0, 0 };
+	sessTester[0] = new SessionTester(iocp, 200);
+	sessTester[1] = new SessionTester(iocp, 200);
+	sessTester[2] = new SessionTester(iocp, 200);
+	sessTester[3] = new SessionTester(iocp, 200);
+	sessTester[4] = new SessionTester(iocp, 200);
 
 
 	// Main message loop:
@@ -118,15 +125,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				DispatchMessage(&msg);
 			}
 		}
-		else
-		{
-			//Main Loop
-
-			double currTime = Time::GetAppTime();
-			if ( (currTime - startTime) > 3.0 ) {
-				break;
-			}
-		}
 	}
 
 	delete sessTester[0];
@@ -135,9 +133,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	delete sessTester[3];
 	delete sessTester[4];
 
-	//SAFE_DELETE(iocp);
-
-	Sleep(5000);
+	SAFE_DELETE(iocp);
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

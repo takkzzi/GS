@@ -14,7 +14,7 @@ namespace Network
 	class IOCP
 	{
 	public:
-		IOCP(int threadCount, int maxSession, bool bPrecacheSession, int sendBufferSize, int recvBufferSize);
+		IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize);
 		virtual ~IOCP(void);
 
 	public:
@@ -25,7 +25,7 @@ namespace Network
 		Session*		GetNewSession();
 		Session*		GetSession(int id);
 		void			ClearSession(int id);
-		
+		int				GetSessionCount()				{ return mSessionVec.size(); }
 		HANDLE			GetIocpHandle()					{ return mIocp; }
 
 		void			Update();
@@ -40,12 +40,12 @@ namespace Network
 		HANDLE							mIocp;
 		class Listener*					mListener;
 
-		int								mSessionCount;
+		int								mSessionLimitCount;
 		int								mSendBufferSize;
 		int								mRecvBufferSize;
 
 		std::vector<Core::Thread*>				mThreadVec;
 		std::vector<Session*>					mSessionVec;
-		std::map<int, Session*>					mSessionMap;
+		//std::map<int, Session*>					mSessionMap;
 	};
 }

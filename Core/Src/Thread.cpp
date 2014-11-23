@@ -14,77 +14,70 @@ DWORD CALLBACK Thread::ThreadRunner(LPVOID param)
 		return -1;
 
 	Thread* th = (Thread*)param;
-	DWORD res = th->Run();
-	if ( res == 0 ) {
-		th->OnEnd();
+	while(true) {
+		if ( th->IsState(THREAD_END) )
+			break;
+
+		if ( th->ThreadTick() == 0 )
+			break;
 	}
 
-	return res;
+	th->OnEnd(false);
+
+	return 0;
 }
 
 Thread::Thread() 
 	: mhThread(INVALID_HANDLE_VALUE)
-	//, mhEndEvent(INVALID_HANDLE_VALUE)
+	, mThreadId(0)
 	, mState(THREAD_NONE)
-	, mTermWaitTime(500)
+	, mTermWaitTime(1000)
 {	
 }
 
 Thread::~Thread()
 {
-	if ( mState != THREAD_NONE )
-		End(true);
+	if ( mState != THREAD_NONE ) {
+		//bool ended = End();
+		//if ( ! ended ) {
+			Termainate();
+		//}
+	}
 }
 
 bool Thread::Begin(bool bSuspend) 
 {
 	if ( mhThread != INVALID_HANDLE_VALUE )
 		return FALSE;
-	
-	DWORD id;
-	mhThread = ::CreateThread(NULL, 0, Thread::ThreadRunner, this, bSuspend ? CREATE_SUSPENDED : 0, &id);
+
+	if ( ! IsState(THREAD_NONE) )
+		return FALSE;
+
+	mhThread = ::CreateThread(NULL, 0, Thread::ThreadRunner, this, bSuspend ? CREATE_SUSPENDED : 0, &mThreadId);
 	//::CloseHandle( mhThread );	//이후 mhThread 핸들 사용 불가
 
 	if ( mhThread == NULL ) 
-	{	
-		DWORD err = GetLastError();
-		Logger::Log(ThreadLog, _T("Thread::Begin Error : %d"), err);
 		return FALSE;
-	}
 
 	mState = bSuspend ? THREAD_SUSPEND : THREAD_RUNNING;
 
-	//mhEndEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	return TRUE;
 }
 
-void Thread::End(bool bForceTerminate) 
+bool Thread::End() 
 {
 	if ( IsState(THREAD_END) )
-		return;
+		return false;
 
-	if ( IsState(THREAD_SUSPEND) ) {
+	if ( IsState(THREAD_SUSPEND) )
 		Resume();
-	}
 
 	mState = THREAD_END;
 
-	DWORD waitTime = bForceTerminate ? mTermWaitTime : INFINITE;
-	DWORD waitRes = ::WaitForSingleObject(mhThread, waitTime);		//Waiting For Thread Return.
-	BOOL bEnded = (waitRes == WAIT_OBJECT_0);
+	DWORD waitRes = ::WaitForSingleObject(mhThread, mTermWaitTime);		//Waiting For Thread Return.
+	bool bEnded = (waitRes == WAIT_OBJECT_0);
 
-	if ( ! bEnded) {
-		if ( TerminateThread(mhThread, 0) ) {
-			Logger::Log(ThreadLog, TEXT("TerminateThread! Handle : %d"), mhThread);
-			bEnded = true;
-			this->OnEnd(true);
-		}
-	}
-
-	if ( bEnded ) {
-		if ( ::CloseHandle(mhThread) )
-			mhThread = INVALID_HANDLE_VALUE;
-	}
+	return bEnded;
 }
 
 bool Thread::Suspend() 
@@ -115,32 +108,37 @@ bool Thread::Resume()
 	}
 
 	if ( prevSusCount < 0 ) {
-		Logger::Log(ThreadLog, _T("Thread::Resume Error : %d"), GetLastError());
+		ASSERT((prevSusCount >= 0) && "Thread::Resume Error");
 		return FALSE;
 	}
 
-	if ( prevSusCount == 0 )
+	if ( prevSusCount <= 1 )
 		mState = THREAD_RUNNING;
 
 	return TRUE;
 }
 
-void Thread::OnEnd(bool bTerminated) 
+bool Thread::Termainate() 
 {
-	if ( bTerminated )
-		Logger::Log(ThreadLog, TEXT("OnEnd Terminated (Thread Handle:%d)"), mhThread);
+	if ( ! IsState(THREAD_RUNNING) )
+		return false;
 
-	mState = THREAD_NONE;
-}
-
-DWORD Thread::Run() 
-{
-	//상속받는 클래스의 Run 함수 내에서 아래와 같이
-	//State 를 검사하여 Thread 함수를 종료하자.
-	while(1) {
-		if ( IsState(THREAD_END) ) 
-			break;
+	if ( TerminateThread(mhThread, 0) ) {
+		//Logger::Log(ThreadLog, TEXT("TerminateThread! Handle : %d"), mhThread);
+		OnEnd(true);
+		return true;
 	}
 
-	return 0;
+	return false;
+}
+
+void Thread::OnEnd(bool bTerminated) 
+{
+	if ( ! IsState(THREAD_END) )
+		return;
+
+	BOOL bClose = CloseHandle(mhThread);
+	ASSERT(bClose);
+	mhThread = INVALID_HANDLE_VALUE;
+	mState = THREAD_NONE;
 }

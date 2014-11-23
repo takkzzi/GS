@@ -13,9 +13,9 @@ namespace Network
 		~Listener(void);
 
 		virtual bool		Begin(bool bSuspend=false);
-		virtual void		End(bool bForceTerminate=false);
+		virtual bool		End();
 
-		virtual DWORD		Run();
+		virtual DWORD		ThreadTick();
 		virtual void		OnEnd(bool bTerminated=false);
 
 	private:

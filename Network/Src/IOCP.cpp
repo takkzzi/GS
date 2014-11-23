@@ -17,50 +17,45 @@ public :
 	{
 	}
 
-	virtual DWORD Run()
+	virtual DWORD ThreadTick()
 	{
-		DWORD listeningTimeout = 1000;
-		DWORD cbTransferred;
-		Session* keySession;
-		Overlapped* overlapped = NULL;
+		DWORD		cbTransferred;
+		Session*	keySession = NULL;
+		Overlapped*	overlapped = NULL;
 
-		while (1)
-		{
-			if ( IsState(THREAD_END) )
-				break;
 #ifdef    _WIN64
-			BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+		BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
 #else
-			BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+		BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
 #endif
-			if ( ! ret) {
-				Logger::LogWarning(_T("GetQueuedCompletionStatus Error.- &d"), GetLastError());
-				continue;
-			}
-
-			if ( keySession ) {
-				if ( overlapped->iotype == IO_SEND ) {
-					keySession->OnSendComplete(cbTransferred);
-				}
-				else if ( overlapped->iotype == IO_RECV ) {
-					keySession->OnRecvComplete(cbTransferred);
-				}
-			}
-			else {
-				//End() 가 호출되어 PostQueuedCompletionStatus() 가 호출된 경우.
-				Logger::Log(_T("IOCPThread"), _T("GetQueuedCompletionStatus() Break;"));
-				break;
-			}
+		if ( ! ret) {
+			Logger::LogWarning(_T("GetQueuedCompletionStatus Error.- %d"), GetLastError());
+			return 1;	//Keep Going Thread
 		}
-		return 0;
+
+		if ( ! keySession ) {
+			//End() 가 호출되어 PostQueuedCompletionStatus() 가 호출된 경우.
+			Logger::Log(_T("IOCPThread"), _T("GetQueuedCompletionStatus() Break;"));
+			return 0;	// End Thread
+		}
+
+		if ( overlapped->iotype == IO_SEND ) {
+			keySession->OnSendComplete(cbTransferred);
+		}
+		else if ( overlapped->iotype == IO_RECV ) {
+			keySession->OnRecvComplete(cbTransferred);
+		}
+
+		return 1;	//Keep Going Thread
 	}
 
-	virtual void End(bool bForceTerminate=false) 
+	virtual bool End() 
 	{
 		//Wakeup & Return Thrad
 		PostQueuedCompletionStatus(mIocp->GetIocpHandle(), 0, NULL, NULL);
 
-		__super::End();
+		//__super::End();
+		return true;
 	}
 
 	virtual void OnEnd(bool bTerminated=false) 
@@ -74,10 +69,10 @@ protected:
 };
 
 
-IOCP::IOCP(int threadCount, int sessionCount, bool bPrecacheSession, int sendBufferSize, int recvBufferSize)
+IOCP::IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
 	, mListener(NULL)
-	, mSessionCount(sessionCount)
+	, mSessionLimitCount(sessionLimitCount)
 	, mSendBufferSize(sendBufferSize)
 	, mRecvBufferSize(recvBufferSize)
 {
@@ -86,12 +81,11 @@ IOCP::IOCP(int threadCount, int sessionCount, bool bPrecacheSession, int sendBuf
 		Logger::LogError(_T("IOCP Creation Fail."));
 	}
 
-	mSessionVec.reserve(mSessionCount);
+	mSessionVec.reserve(reserveSessionCount);
 
 	int i = 0;
-	for(int i = 0; i < sessionCount; ++i) {
-		mSessionVec.push_back(bPrecacheSession ? (new Session(i, mSendBufferSize, mRecvBufferSize)) : NULL);
-		mSessionMap[i] = mSessionVec[i];
+	for(int i = 0; i < reserveSessionCount; ++i) {
+		mSessionVec.push_back(new Session(i, mSendBufferSize, mRecvBufferSize));
 	}
 
 	BeginIo(threadCount);
@@ -128,6 +122,7 @@ void IOCP::BeginIo(int threadCount)
 void IOCP::EndIo()
 {
 	for(auto &i : mThreadVec) {
+		i->End();
 		SAFE_DELETE(i);
 	}
 	mThreadVec.clear();
@@ -154,22 +149,30 @@ void IOCP::EndListen()
 
 Session* IOCP::GetNewSession()
 {
+	Session* newSession = NULL;
+
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
 		Session* s = mSessionVec[i];
 		if ( s == NULL ) {
 			s = new Session(i, mSendBufferSize, mRecvBufferSize);
 			mSessionVec[i] = s;
-			mSessionMap[i] = s;
-			return s;
+			newSession = s;
+			break;
 		}
 		else {
 			if ( s->IsState(SESSION_NONE) ) {
-				return s;
+				newSession = s;
+				break;
 			}
 		}
 	}
 
-	return NULL;
+	if ( ! newSession ) {
+		newSession = new Session(mSessionVec.size(), mSendBufferSize, mRecvBufferSize);
+		mSessionVec.push_back(newSession);
+	}
+
+	return newSession;
 }
 
 void IOCP::DeleteAllSessions()
@@ -195,5 +198,6 @@ void IOCP::Update()
 
 Session* IOCP::GetSession(int id)			
 { 
+	ASSERT(0 <= id && id < GetSessionCount() );
 	return mSessionVec[id]; 
 }

@@ -7,11 +7,14 @@
 
 namespace Core 
 {
-	class CoreSystem
+	static class CoreSystem
 	{
 	public:
 		static void			Init();
 		static void			Shutdown();
+
+	private:
+		static bool			msInit;
 	};
 }
 

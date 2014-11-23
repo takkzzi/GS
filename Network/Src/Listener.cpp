@@ -8,27 +8,6 @@
 using namespace Core;
 using namespace Network;
 
-/*
-unsigned __stdcall EventSelectThread( LPVOID param ) 
-{
-	Listener* listener = (Listener*)param;
-
-	while (1)
-	{
-		DWORD dwRet = WSAWaitForMultipleEvents(1, &listener->m_event, FALSE, INFINITE, FALSE);
-		if (dwRet == WSA_WAIT_TIMEOUT)
-			continue;
-
-		WSANETWORKEVENTS netEvt;
-		WSAEnumNetworkEvents (listener->m_sock, listener->m_event, &netEvt);
-
-		if (netEvt.lNetworkEvents & FD_ACCEPT)
-			listener->OnConnect();
-	}
-	return 0;
-}
-*/
-
 Listener::Listener(IOCP* iocp, UINT16 port)
 : mPort(port)
 , mSock(INVALID_SOCKET)
@@ -75,40 +54,33 @@ bool Listener::Begin(bool bSuspend/*=false*/)
 	return TRUE;
 }
 
-void Listener::End(bool bForceTerminate/*=false*/)
+bool Listener::End()
 {
-	Thread::End(true);
+	return Thread::End();
 }
 
-DWORD Listener::Run()
+DWORD Listener::ThreadTick()
 {
 	DWORD listeningTimeout = 1000;
 
-	while (1)
+	DWORD dwRet = ::WSAWaitForMultipleEvents(1, &mEvent, FALSE, listeningTimeout, FALSE);
+
+	if ( dwRet != WSA_WAIT_EVENT_0 )
+		return 1;
+
+	WSANETWORKEVENTS netEvt;
+	int netEvent = ::WSAEnumNetworkEvents(mSock, mEvent, &netEvt);
+	if ( netEvent != 0 ) 
 	{
-		//End Thread
-		if ( IsState(THREAD_END) ) {
-			break;
-		}
-
-		DWORD dwRet = ::WSAWaitForMultipleEvents(1, &mEvent, FALSE, listeningTimeout, FALSE);
-
-		if ( dwRet != WSA_WAIT_EVENT_0 )
-			continue;
-
-		WSANETWORKEVENTS netEvt;
-		int netEvent = ::WSAEnumNetworkEvents(mSock, mEvent, &netEvt);
-		if ( netEvent != 0 ) 
-		{
-			//ASSERT( netEvent != 0 && _T("Listner::WSAEnumNetworkEvents is non-zero.") );
-			Logger::LogWarning(_T("Network"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%d"), GetLastError());
-			continue;
-		}
-
-		if (netEvt.lNetworkEvents & FD_ACCEPT)
-			OnAccept();
+		//ASSERT( netEvent != 0 && _T("Listner::WSAEnumNetworkEvents is non-zero.") );
+		Logger::LogWarning(_T("Network"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%d"), GetLastError());
+		return 1;
 	}
-	return 0;
+
+	if (netEvt.lNetworkEvents & FD_ACCEPT)
+		OnAccept();
+
+	return 1;
 }
 
 void Listener::OnEnd(bool bTerminated)

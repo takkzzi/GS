@@ -13,15 +13,22 @@ using namespace std;
 
 TCHAR							Logger::msLogPath[MAX_PATH];
 map<const LPTSTR, FILE*>		Logger::msFileMap;
+bool							Logger::msInit = false;
 
 void Logger::Init()
 {
 	GetCurrentDirectory(MAX_PATH, msLogPath);
 	_sntprintf(msLogPath, MAX_PATH, _T("%s%s"), msLogPath, _T("\\Log\\"));
+
+	msInit = true;
 }
 
 void Logger::Shutdown() 
 {
+	msInit = false;
+
+	ThreadSync sync;
+	
 	for(auto &i : msFileMap)
 	{
 		FILE* file = i.second;
@@ -33,6 +40,9 @@ void Logger::Shutdown()
 
 void Logger::LogError(const LPTSTR logData, ...)
 {
+	if ( ! msInit ) return;
+	ThreadSync sync;
+
 	va_list		ap;
 	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 	va_start(ap, logData);
@@ -51,6 +61,9 @@ void Logger::LogError(const LPTSTR logData, ...)
 
 void Logger::LogError(const CHAR* logData, ...)
 {
+	if ( ! msInit ) return;
+	ThreadSync sync;
+
 	va_list		ap;
 	CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 	va_start(ap, logData);
@@ -70,6 +83,9 @@ void Logger::LogError(const CHAR* logData, ...)
 
 void Logger::LogWarning(const LPTSTR logData, ...)
 {
+	if ( ! msInit ) return;
+	ThreadSync sync;
+
 	va_list		ap;
 	TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 	va_start(ap, logData);
@@ -88,6 +104,9 @@ void Logger::LogWarning(const LPTSTR logData, ...)
 
 void Logger::LogWarning(const CHAR* logData, ...)
 {
+	if ( ! msInit  ) return;
+	ThreadSync sync;
+
 	va_list		ap;
 	CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 	va_start(ap, logData);
@@ -106,6 +125,9 @@ void Logger::LogWarning(const CHAR* logData, ...)
 
 void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 {
+	if ( ! msInit  ) return;
+	ThreadSync sync;
+
 	FILE* file = FindFile(category);
 	if ( ! file ) return;
 
@@ -133,6 +155,9 @@ void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 
 void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 {
+	if ( ! msInit  ) return;
+	ThreadSync sync;
+
 	FILE* file = FindFile(category);
 	if ( ! file ) return;
 
@@ -159,6 +184,9 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 
 void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 {
+	if ( ! msInit  ) return;
+	ThreadSync sync;
+
 	FILE* file = FindFile(category);
 	if ( ! file ) return;
 
@@ -188,6 +216,9 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 
 void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 {
+	if ( ! msInit ) return;
+	ThreadSync sync;
+
 	FILE* file = FindFile(category);
 	if ( ! file ) return;
 	
@@ -218,6 +249,9 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 
 FILE* Logger::FindFile(const LPTSTR name)
 {
+	if ( ! msInit  ) return NULL;
+	ThreadSync sync;
+
 	auto search = msFileMap.find(name);
     if(search != msFileMap.end()) {
 		return (FILE*)search->second;
@@ -230,7 +264,7 @@ FILE* Logger::FindFile(const LPTSTR name)
 	ASSERT(file && "Logger::FindFile() Failed");
 
 	if (!file)
-		return FALSE;
+		return NULL;
 
 	msFileMap[name] = file;
 	return file;
@@ -238,6 +272,9 @@ FILE* Logger::FindFile(const LPTSTR name)
 
 FILE* Logger::FindFile(const CHAR* name)
 {
+	if ( ! msInit  ) return NULL;
+	ThreadSync sync;
+
 	TCHAR nameTemp[128] = {0, };
 	StringUtil::CopyAnsi2TCHAR(nameTemp, name);
 

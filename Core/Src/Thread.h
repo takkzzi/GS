@@ -21,28 +21,30 @@ namespace Core
 		virtual ~Thread();
 
 		virtual bool	Begin(bool bSuspend=false);
-		virtual void	End(bool bForceTerminate=false);
+		virtual bool	End();
 
 		bool			Suspend();
 		bool			Resume();
-		
+		bool			Termainate();
+
 		TCHAR*			GetErrorString(DWORD errorCode);
 		ThreadState		GetState() { return mState; }
 
 		void			SetTerminateWaitTime(DWORD milliSec)		{ mTermWaitTime = milliSec; };
 		bool			IsState(ThreadState state) { return (mState == state); }
 
-	protected:
-		
-		static DWORD CALLBACK	ThreadRunner(LPVOID param);
-		virtual DWORD			Run();//			=	0;
+	private:
+		static	DWORD CALLBACK	ThreadRunner(LPVOID param);
 
-		virtual void			OnEnd(bool bTerminated=false);
+	protected:
+		virtual DWORD			ThreadTick()		= 0;	//if returns 0, Thread Loop breaks and thread func returns. not 0, Keep gonig loop.
+
+		virtual void			OnEnd(bool bTerminated);
 
 	protected:
 
 		HANDLE						mhThread;
-		//HANDLE					mhEndEvent;
+		DWORD						mThreadId;
 		volatile	ThreadState		mState;
 		DWORD						mTermWaitTime;
 	};
