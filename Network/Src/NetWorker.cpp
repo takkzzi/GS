@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include "IOCP.h"
+#include "Networker.h"
 #include "Listener.h"
 #include "Session.h"
 
@@ -7,13 +7,26 @@
 using namespace Core;
 using namespace Network;
 
+class EventSelectThread : Thread
+{
+public :
+	EventSelectThread()
+	{
+	}
+
+	virtual DWORD ThreadTick()
+	{
+		return 1;	//Keep Calling
+	}
+
+};
 
 class IOCPThread : public Thread
 {
 public :
 
-	IOCPThread(IOCP* iocp)
-		: mIocp(iocp)
+	IOCPThread(Networker* networker)
+		: mNetworker(networker)
 	{
 	}
 
@@ -24,13 +37,13 @@ public :
 		Overlapped*	overlapped = NULL;
 
 #ifdef    _WIN64
-		BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
 #else
-		BOOL ret = ::GetQueuedCompletionStatus(mIocp->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
+		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
 #endif
 		if ( ! ret) {
-			Logger::LogWarning(_T("GetQueuedCompletionStatus Error.- %d"), GetLastError());
-			return 1;	//Keep Going Thread
+			Logger::LogWarning(_T("IOCPThread GetQueuedCompletionStatus() Error (ErrorCode:%d)"), GetLastError());
+			return 1;	//Keep Calling This Function
 		}
 
 		if ( ! keySession ) {
@@ -46,13 +59,13 @@ public :
 			keySession->OnRecvComplete(cbTransferred);
 		}
 
-		return 1;	//Keep Going Thread
+		return 1;	//Keep Calling This Function
 	}
 
 	virtual bool End() 
 	{
 		//Wakeup & Return Thrad
-		PostQueuedCompletionStatus(mIocp->GetIocpHandle(), 0, NULL, NULL);
+		PostQueuedCompletionStatus(mNetworker->GetIocpHandle(), 0, NULL, NULL);
 
 		//__super::End();
 		return true;
@@ -64,12 +77,12 @@ public :
 	}
 
 protected:
-	IOCP*		mIocp;
+	Networker*		mNetworker;
 
 };
 
 
-IOCP::IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
+Networker::Networker(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
 	, mListener(NULL)
 	, mSessionLimitCount(sessionLimitCount)
@@ -81,6 +94,8 @@ IOCP::IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int 
 		Logger::LogError(_T("IOCP Creation Fail."));
 	}
 
+	Logger::GetLastErrorMsg(_T("IOCP Creation Fail."), 64);
+
 	mSessionVec.reserve(reserveSessionCount);
 
 	int i = 0;
@@ -91,7 +106,7 @@ IOCP::IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int 
 	BeginIo(threadCount);
 }
 
-IOCP::~IOCP(void)
+Networker::~Networker(void)
 {
 	EndListen();
 	EndIo();
@@ -103,7 +118,7 @@ IOCP::~IOCP(void)
 }
 
 //Thread Creation & Start Thread
-void IOCP::BeginIo(int threadCount)
+void Networker::BeginIo(int threadCount)
 {
 	mThreadVec.reserve(threadCount);
 
@@ -119,7 +134,7 @@ void IOCP::BeginIo(int threadCount)
 	}
 }
 
-void IOCP::EndIo()
+void Networker::EndIo()
 {
 	for(auto &i : mThreadVec) {
 		i->End();
@@ -130,7 +145,7 @@ void IOCP::EndIo()
 	DeleteAllSessions();
 }
 
-void IOCP::BeginListen(UINT16 port)
+void Networker::BeginListen(UINT16 port)
 {
 	EndListen();
 
@@ -139,7 +154,7 @@ void IOCP::BeginListen(UINT16 port)
 	//ASSERT(bListen);
 }
 
-void IOCP::EndListen()
+void Networker::EndListen()
 {
 	if ( mListener ) {
 		mListener->End();
@@ -147,7 +162,7 @@ void IOCP::EndListen()
 	}
 }
 
-Session* IOCP::GetNewSession()
+Session* Networker::GetNewSession()
 {
 	Session* newSession = NULL;
 
@@ -175,7 +190,7 @@ Session* IOCP::GetNewSession()
 	return newSession;
 }
 
-void IOCP::DeleteAllSessions()
+void Networker::DeleteAllSessions()
 {
 	for(auto &i : mSessionVec) {
 		SAFE_DELETE(i);
@@ -184,7 +199,7 @@ void IOCP::DeleteAllSessions()
 }
 
 //NOTE: Call in main thread.
-void IOCP::Update()
+void Networker::Update()
 {
 	for(auto &i : mSessionVec) {
 		Session* session = i;
@@ -196,7 +211,7 @@ void IOCP::Update()
 	}
 }
 
-Session* IOCP::GetSession(int id)			
+Session* Networker::GetSession(int id)			
 { 
 	ASSERT(0 <= id && id < GetSessionCount() );
 	return mSessionVec[id]; 

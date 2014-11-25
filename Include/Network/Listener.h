@@ -4,12 +4,12 @@
 
 namespace Network
 {
-	class IOCP;
+	class Networker;
 
 	class Listener : public Core::Thread
 	{
 	public:
-		Listener(IOCP* iocp, UINT16 port);
+		Listener(Networker* iocp, UINT16 port);
 		~Listener(void);
 
 		virtual bool		Begin(bool bSuspend=false);
@@ -26,6 +26,6 @@ namespace Network
 		UINT16			mPort;
 		SOCKET			mSock;
 		HANDLE			mEvent;
-		IOCP*			mIocp;
+		Networker*		mNetworker;
 	};
 }

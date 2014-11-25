@@ -99,10 +99,10 @@ const SYSTEMTIME* Time::GetSystemTime() {
 	return &msSystemTime;
 }
 
-const CHAR* Time::GetSystemTimeStr() {
-	static char strBuff[32];
+const TCHAR* Time::GetSystemTimeStr() {
+	static TCHAR strBuff[32];
 	GetSystemTime();
-	_snprintf(strBuff, 32, "%d/%d/%d %d:%d:%d", msSystemTime.wYear, msSystemTime.wMonth, msSystemTime.wDay, msSystemTime.wHour, msSystemTime.wMinute, msSystemTime.wSecond);
+	_sntprintf(strBuff, 32, _T("%d/%d/%d %d:%d:%d"), msSystemTime.wYear, msSystemTime.wMonth, msSystemTime.wDay, msSystemTime.wHour, msSystemTime.wMinute, msSystemTime.wSecond);
 	return strBuff;
 }
 

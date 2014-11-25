@@ -4,6 +4,14 @@
 #include <map>
 
 
+enum NetMethod {
+	//NET_EVENTSELECT,
+	NET_IOCP,
+};
+
+class EventSelectThread;
+class IOCPThread;
+
 namespace Network
 {
 	using namespace Core;
@@ -11,11 +19,11 @@ namespace Network
 	class Session;
 	class Listener;
 
-	class IOCP
+	class Networker
 	{
 	public:
-		IOCP(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize);
-		virtual ~IOCP(void);
+		Networker(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize);
+		virtual ~Networker(void);
 
 	public:
 

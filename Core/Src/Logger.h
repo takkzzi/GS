@@ -24,13 +24,18 @@ namespace Core
 		static		void			LogWithDate(const LPTSTR category, const LPTSTR log, ...);
 		static		void			LogWithDate(const CHAR* category, const CHAR* log, ...);
 
+		static		LPTSTR			GetLastErrorMsg(const LPTSTR funcName, const DWORD errorCode, bool bMsgBox=false);
+
+	private :
 		static		FILE*			FindFile(const LPTSTR name);
 		static		FILE*			FindFile(const CHAR* name);
+
+	private :
+
+		static		volatile	bool					msInit;
 
 		static		TCHAR								msLogPath[MAX_PATH];
 		static		std::map<const LPTSTR, FILE*>		msFileMap;
 
-	private :
-		static		bool			msInit;
 	};
 }

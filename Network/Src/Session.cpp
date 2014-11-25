@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "Session.h"
-#include "IOCP.h"
+#include "Networker.h"
 
 
 using namespace Core;
@@ -48,7 +48,8 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 
 	if ( WSAConnect(mSock, (LPSOCKADDR) &mRemoteAddr, sizeof(SOCKADDR_IN), NULL, NULL, NULL, NULL) == SOCKET_ERROR ) 
 	{
-		if (WSAGetLastError() != WSAEWOULDBLOCK)
+		DWORD errCode = WSAGetLastError();
+		if (errCode != WSAEWOULDBLOCK)
 		{
 			closesocket(mSock);
 			mSock = INVALID_SOCKET;
@@ -68,12 +69,15 @@ bool Session::Disconnect()
 		return TRUE;
 
 	//Cancel Sending, Receiving
-	shutdown( mSock, SD_BOTH );
-
-	int err = closesocket( mSock );
-	if( err == SOCKET_ERROR ) {
+	if ( SOCKET_ERROR == shutdown( mSock, SD_BOTH ) ) {
 		int lasterr = WSAGetLastError();
-		Logger::Log("Session", "Id : %d, close socket error(ErrorCode:%d)\n", mId, lasterr );
+		Logger::Log("Session", "Id : %d, shutdown() error (ErrorCode:%d)\n", mId, lasterr );
+	}
+
+	int err = ::closesocket( mSock );
+	if( err == SOCKET_ERROR ) {
+		int lasterr = GetLastError();
+		Logger::Log("Session", "Id : %d, closesocket error (ErrorCode:%d)\n", mId, lasterr );
 	}
 
 	mSock = INVALID_SOCKET;
@@ -92,7 +96,7 @@ bool Session::Send(BYTE* data, int dataLen)
 	return true;
 }
 
-void Session::OnAccept(IOCP* iocp, SOCKET listenSock)
+void Session::OnAccept(Networker* networker, SOCKET listenSock)
 {
 	int addrlen = sizeof(SOCKADDR);
 	mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
@@ -102,7 +106,7 @@ void Session::OnAccept(IOCP* iocp, SOCKET listenSock)
 	//mSock = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	//::AcceptEx(listenSock, mSock,
 
-	::CreateIoCompletionPort((HANDLE)mSock, iocp->GetIocpHandle(), (ULONG_PTR)this, 0);
+	::CreateIoCompletionPort((HANDLE)mSock, networker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
 	SAFE_DELETE(mOverlappedSend);
 	mOverlappedSend = new Overlapped(IO_SEND, mSock, MAX_BUFFER_LENGTH);

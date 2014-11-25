@@ -27,7 +27,6 @@ namespace Core
 		bool			Resume();
 		bool			Termainate();
 
-		TCHAR*			GetErrorString(DWORD errorCode);
 		ThreadState		GetState() { return mState; }
 
 		void			SetTerminateWaitTime(DWORD milliSec)		{ mTermWaitTime = milliSec; };

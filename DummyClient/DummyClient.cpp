@@ -21,20 +21,18 @@ const char* gServerIP = "127.0.0.1";
 const int	gServerPort = 42006;
 
 
-class SessionTester : public Thread 
+class SessionTester // : public Thread 
 {
 public :
-	SessionTester(IOCP* iocp, int connCount) 
+	SessionTester(Networker* iocp, int connCount) 
 	{
-		//mIocp = new IOCP(1, connCount, true, 1024, 1024);
-		mIocp = iocp;
+		mIocp = new Networker(1, connCount, true, 1024, 1024);
+		//mIocp = iocp;
 
 		for(int i = 0; i < connCount; ++i) {
 			Session* se = mIocp->GetNewSession();
 			se->Connect(gServerIP, gServerPort);
 		}
-		
-		Begin();
 	};
 
 	virtual ~SessionTester() 
@@ -44,12 +42,11 @@ public :
 			se->Disconnect();
 		}
 
-		//SAFE_DELETE(mIocp);
+		SAFE_DELETE(mIocp);
 	};
 
-	virtual DWORD ThreadTick()
+	void Update()
 	{
-
 		for(int i = 0; i < 50; ++i) {
 			int r = Core::Math::RandRange(0, mIocp->GetSessionCount());
 			Session* se = mIocp->GetSession(r);
@@ -58,14 +55,10 @@ public :
 			else if ( se->IsState(SESSION_NONE) )
 				se->Connect(gServerIP, gServerPort);
 		}
-
-		Sleep(100);
-
-		return 1;
 	}
 
 protected :
-	IOCP*						mIocp;
+	Networker*						mIocp;
 	std::vector<Session*>		mSessions;
 };
 
@@ -99,7 +92,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	NetworkSystem::Init();
 
 
-	IOCP* iocp = new IOCP(1, 1000, 10000, 1024, 1024);
+	Networker* iocp = NULL; //new Networker(1, 1000, 10000, 1024, 1024);
 
 	SessionTester* sessTester[5] = { 0, 0, 0, 0, 0 };
 	sessTester[0] = new SessionTester(iocp, 200);
@@ -125,6 +118,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				DispatchMessage(&msg);
 			}
 		}
+		else {
+			//Main Loop
+			for(int i = 0; i < 5; ++i) {
+				sessTester[i]->Update();
+			}
+		}
 	}
 
 	delete sessTester[0];
@@ -133,7 +132,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	delete sessTester[3];
 	delete sessTester[4];
 
-	SAFE_DELETE(iocp);
+	//SAFE_DELETE(iocp);
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

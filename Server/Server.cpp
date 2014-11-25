@@ -55,8 +55,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	int sendBufferSize = 5120;
 	int recvBufferSize = 5120;
 
-	Network::IOCP* iocp = new Network::IOCP(1, sessionCount, 10000, sendBufferSize, recvBufferSize);
-	iocp->BeginListen(port);
+	Networker* networker = new Networker(1, sessionCount, 10000, sendBufferSize, recvBufferSize);
+	networker->BeginListen(port);
+
+	Logger::LogWarning(_T("~~!@~!@~!@~!@~!@"));
 
 	// 기본 메시지 루프입니다.
 	while (1)
@@ -78,7 +80,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	SAFE_DELETE(iocp);
+	SAFE_DELETE(networker);
 
 	Network::NetworkSystem::Shutdown();
 	Core::CoreSystem::Shutdown();

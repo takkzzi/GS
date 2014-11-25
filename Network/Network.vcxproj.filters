@@ -14,7 +14,7 @@
     <ClCompile Include="Src\Network.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Src\IOCP.cpp">
+    <ClCompile Include="Src\NetWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,10 +33,10 @@
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Src\IOCP.h">
+    <ClInclude Include="Src\Defines.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Defines.h">
+    <ClInclude Include="Src\NetWorker.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>

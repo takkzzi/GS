@@ -3,7 +3,7 @@
 
 namespace Network
 {
-	class IOCP;
+	class Networker;
 	class Listener;
 
 	enum OverlappedIoType {
@@ -32,9 +32,7 @@ namespace Network
 
 	enum SessionState {
 		SESSION_NONE,
-		//SESSOIN_OCCUPIED,
 		SESSION_CONNECTED,
-		//SESSION_DISCONNECTING,
 	};
 
 	class Session
@@ -49,7 +47,7 @@ namespace Network
 		bool					Disconnect();
 		bool					Send(BYTE* data, int dataLen);
 
-		virtual void			OnAccept(IOCP* iocp, SOCKET listenSock);
+		virtual void			OnAccept(Networker* iocp, SOCKET listenSock);
 		virtual void			OnSendComplete(int sendSize);
 		virtual void			OnRecvComplete(int recvSize);
 		virtual void			OnDisconnect();

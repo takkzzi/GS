@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "Listener.h"
-#include "IOCP.h"
+#include "Networker.h"
 #include "Session.h"
 //#include <process.h>
 
@@ -8,11 +8,11 @@
 using namespace Core;
 using namespace Network;
 
-Listener::Listener(IOCP* iocp, UINT16 port)
+Listener::Listener(Networker* networker, UINT16 port)
 : mPort(port)
 , mSock(INVALID_SOCKET)
 , mEvent(WSA_INVALID_EVENT)
-, mIocp(iocp)
+, mNetworker(networker)
 {
 }
 
@@ -99,6 +99,6 @@ void Listener::OnEnd(bool bTerminated)
 
 void Listener::OnAccept()
 {
-	Session* se = mIocp->GetNewSession();
-	se->OnAccept(mIocp, mSock);
+	Session* se = mNetworker->GetNewSession();
+	se->OnAccept(mNetworker, mSock);
 }
