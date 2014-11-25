@@ -5,7 +5,7 @@
  - 각종 Interpolate Class.
 
 * Logger 
- - Thread-safe 하게 구현
+ - Log Directory Setting 할수 있도록
 
 * Dump
  - Mini Dump is Not Work In x64 !!!
