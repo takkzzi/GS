@@ -7,19 +7,6 @@
 using namespace Core;
 using namespace Network;
 
-class EventSelectThread : Thread
-{
-public :
-	EventSelectThread()
-	{
-	}
-
-	virtual DWORD ThreadTick()
-	{
-		return 1;	//Keep Calling
-	}
-
-};
 
 class IOCPThread : public Thread
 {

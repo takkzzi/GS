@@ -46,7 +46,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SERVER));
 
-	CoreSystem::Init();
+	CoreSystem::Init(_T("ServerLog"));
 	NetworkSystem::Init();
 	
 	int port			= 42006;
@@ -58,7 +58,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	Networker* networker = new Networker(1, sessionCount, 10000, sendBufferSize, recvBufferSize);
 	networker->BeginListen(port);
 
-	Logger::LogWarning(_T("~~!@~!@~!@~!@~!@"));
 
 	// 기본 메시지 루프입니다.
 	while (1)

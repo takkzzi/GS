@@ -88,18 +88,18 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DUMMYCLIENT));
 
 
-	CoreSystem::Init();
+	CoreSystem::Init(_T("ClientLog"));
 	NetworkSystem::Init();
 
 
 	Networker* iocp = NULL; //new Networker(1, 1000, 10000, 1024, 1024);
 
 	SessionTester* sessTester[5] = { 0, 0, 0, 0, 0 };
-	sessTester[0] = new SessionTester(iocp, 200);
-	sessTester[1] = new SessionTester(iocp, 200);
-	sessTester[2] = new SessionTester(iocp, 200);
-	sessTester[3] = new SessionTester(iocp, 200);
-	sessTester[4] = new SessionTester(iocp, 200);
+	sessTester[0] = new SessionTester(iocp, 1000);
+	sessTester[1] = new SessionTester(iocp, 1000);
+	sessTester[2] = new SessionTester(iocp, 1000);
+	sessTester[3] = new SessionTester(iocp, 1000);
+	sessTester[4] = new SessionTester(iocp, 1000);
 
 
 	// Main message loop:

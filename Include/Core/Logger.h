@@ -9,7 +9,7 @@ namespace Core
 	class Logger : public ThreadSyncStatic<Logger>
 	{
 	public :
-		static		void			Init();
+		static		void			Init(const TCHAR* logDir);
 		static		void			Shutdown();
 
 		static		void			LogError(const LPTSTR log, ...);
@@ -33,7 +33,6 @@ namespace Core
 	private :
 
 		static		volatile	bool					msInit;
-
 		static		TCHAR								msLogPath[MAX_PATH];
 		static		std::map<const LPTSTR, FILE*>		msFileMap;
 

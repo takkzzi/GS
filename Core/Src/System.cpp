@@ -102,7 +102,7 @@ const SYSTEMTIME* Time::GetSystemTime() {
 const TCHAR* Time::GetSystemTimeStr() {
 	static TCHAR strBuff[32];
 	GetSystemTime();
-	_sntprintf(strBuff, 32, _T("%d/%d/%d %d:%d:%d"), msSystemTime.wYear, msSystemTime.wMonth, msSystemTime.wDay, msSystemTime.wHour, msSystemTime.wMinute, msSystemTime.wSecond);
+	_sntprintf(strBuff, 32, _T("%d-%d-%d %d:%d:%d"), msSystemTime.wYear, msSystemTime.wMonth, msSystemTime.wDay, msSystemTime.wHour, msSystemTime.wMinute, msSystemTime.wSecond);
 	return strBuff;
 }
 

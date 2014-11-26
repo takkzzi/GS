@@ -9,7 +9,6 @@ enum NetMethod {
 	NET_IOCP,
 };
 
-class EventSelectThread;
 class IOCPThread;
 
 namespace Network
@@ -19,6 +18,7 @@ namespace Network
 	class Session;
 	class Listener;
 
+	//IOCP Only
 	class Networker
 	{
 	public:

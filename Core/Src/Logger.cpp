@@ -8,7 +8,6 @@
 
 
 #define				MAX_LOG_BUFFER		2048
-#define				LOG_DIR				_T("Log")
 
 using namespace Core;
 using namespace std;
@@ -18,10 +17,18 @@ TCHAR							Logger::msLogPath[MAX_PATH];
 map<const LPTSTR, FILE*>		Logger::msFileMap;
 
 
-void Logger::Init()
+void Logger::Init(const TCHAR* logDir)
 {
 	GetCurrentDirectory(MAX_PATH, msLogPath);
-	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s\\"), msLogPath, LOG_DIR);
+
+	TCHAR timeStr[32];
+	const SYSTEMTIME* sysTime = Time::GetSystemTime();
+	_sntprintf(timeStr, 32, _T("%d-%d-%d"), sysTime->wYear, sysTime->wMonth, sysTime->wDay);
+
+	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s\\"), msLogPath, logDir);
+	CreateDirectory(msLogPath, NULL);
+
+	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s\\"), msLogPath, timeStr);
 	CreateDirectory(msLogPath, NULL);
 
 	msInit = true;

@@ -4,9 +4,6 @@
 * Math
  - 각종 Interpolate Class.
 
-* Logger 
- - Log Directory Setting 할수 있도록
-
 * Dump
  - Mini Dump is Not Work In x64 !!!
  - Assert 없이 Dump 남기기
@@ -15,17 +12,20 @@
 
 ------------ Network ------------ 
 
-* Overlappped IO - Skip
-
 * IOCP
 	- Send, Recv Buffer 구현 ( Atlantica 참고 )
 	- AcceptEx : 연결 허용 처리 구현, Accept 시 함께 전송된 Data 처리 할것.
 
-* Server - 일단 Connection 처리 Echo Server 구현
+* Server - Echo Server 구현
 
 * Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.
 
 * EndUser(가칭) 구현 - DummyData 들을 주변 100 개 유저에 BroadCast 테스트
+
+
+------------ ClientSimulator -------------
+
+* Session Test - Thread 로 구현
 
 
 ------------ DB -------------

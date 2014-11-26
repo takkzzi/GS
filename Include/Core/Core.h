@@ -10,7 +10,7 @@ namespace Core
 	static class CoreSystem
 	{
 	public:
-		static void			Init();
+		static void			Init(const TCHAR* logDirName);
 		static void			Shutdown();
 
 	private:
