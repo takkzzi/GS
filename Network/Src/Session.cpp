@@ -9,7 +9,7 @@ using namespace Network;
 Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
 	: mNetworker(networker)
 	, mId(id)
-	, mState(SESSION_NONE)
+	, mState(SESSIONSTATE_NONE)
 	, mSock(INVALID_SOCKET)
 	, mEvent(WSA_INVALID_EVENT)
 	, mOverlappedSend(NULL)
@@ -23,7 +23,7 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 
 Session::~Session(void)
 {
-	if ( IsState(SESSION_CONNECTED) )
+	if ( IsState(SESSIONSTATE_CONNECTED) )
 		Disconnect();
 
 	SAFE_DELETE(mOverlappedSend);
@@ -37,7 +37,7 @@ void Session::SetState(SessionState state)
 
 bool Session::Connect(const CHAR* addr, USHORT port)
 {
-	if ( ! IsState(SESSION_NONE) ) 
+	if ( ! IsState(SESSIONSTATE_NONE) ) 
 		return FALSE;
 	
 	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
@@ -64,7 +64,7 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
-	SetState(SESSION_CONNECTED);
+	SetState(SESSIONSTATE_CONNECTED);
 
 	return true;
 }
@@ -87,7 +87,7 @@ bool Session::Disconnect()
 	}
 
 	mSock = INVALID_SOCKET;
-	SetState(SESSION_NONE);
+	SetState(SESSIONSTATE_NONE);
 
 	//TODO : Clear All Buffers
 	//mRecvBuffer->ClearBuffer();
@@ -122,7 +122,7 @@ void Session::OnAccept(SOCKET listenSock)
 	//mRecvBuffer->ClearBuffer();
 	//mSendBuffer->ClearBuffer();
 
-	SetState(SESSION_CONNECTED);
+	SetState(SESSIONSTATE_CONNECTED);
 
 	//First Reserve Receive
 	DWORD dwBytes, dwFlags = 0;

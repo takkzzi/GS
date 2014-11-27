@@ -37,8 +37,9 @@ namespace Network
 	};
 
 	enum SessionState {
-		SESSION_NONE,
-		SESSION_CONNECTED,
+		SESSIONSTATE_NONE,
+		SESSIONSTATE_LISTENING,
+		SESSIONSTATE_CONNECTED,
 	};
 
 	class Session : public IOKey

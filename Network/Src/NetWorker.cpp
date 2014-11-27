@@ -57,11 +57,8 @@ public :
 		IOKey*		ioKey = NULL;
 		Overlapped*	overlapped = NULL;
 
-#ifdef    _WIN64
 		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
-#else
-		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (LPDWORD)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
-#endif
+
 		if ( ! ret) {
 			Logger::LogError(_T("IOCPThread GetQueuedCompletionStatus() Error (ErrorCode:%l)"), GetLastError());
 			return 1;	//Keep Calling This Function
@@ -69,7 +66,7 @@ public :
 
 		if ( ! ioKey ) {
 			//End() 가 호출되어 PostQueuedCompletionStatus() 가 호출된 경우.
-			Logger::Log(_T("IOCPThread"), _T("GetQueuedCompletionStatus() Break;"));
+			Logger::Log(_T("IOCPThread"), _T("ThreadTick() return 0;"));
 			return 0;	// End Thread
 		}
 
@@ -78,7 +75,7 @@ public :
 			Listener* listen = (Listener*)(ioKey);
 			listen->OnAccept();
 		}
-		else if ( ioKey->mType == IOKey_Listener ) {
+		else if ( ioKey->mType == IOKey_Session ) {
 			Session* sess = (Session*)(ioKey);
 			if ( overlapped->iotype == IO_SEND ) {
 				sess->OnSendComplete(cbTransferred);
@@ -179,16 +176,11 @@ void Networker::BeginListen(UINT16 port)
 	EndListen();
 
 	mListener = new Listener(this, port);
-	bool bListen = mListener->Begin();
-	//ASSERT(bListen);
 }
 
 void Networker::EndListen()
 {
-	if ( mListener ) {
-		mListener->End();
-		SAFE_DELETE(mListener);
-	}
+	SAFE_DELETE(mListener);
 }
 
 Session* Networker::GetNewSession()
@@ -204,7 +196,7 @@ Session* Networker::GetNewSession()
 			break;
 		}
 		else {
-			if ( s->IsState(SESSION_NONE) ) {
+			if ( s->IsState(SESSIONSTATE_NONE) ) {
 				newSession = s;
 				break;
 			}

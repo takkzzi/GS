@@ -117,7 +117,9 @@ Listener::Listener(Networker* networker, UINT16 port)
 {
 	mType = IOKey_Listener;
 
-	Begin();
+	bool begin = Begin();
+	ASSERT(begin);
+
 }
 
 Listener::~Listener(void)

@@ -37,9 +37,11 @@ namespace Network
 		Listener(Networker* iocp, UINT16 port);
 		~Listener(void);
 
+		void				OnAccept();
+
+	private:
 		bool				Begin();
 		bool				End();
-		void				OnAccept();
 
 	private:
 	
@@ -47,6 +49,7 @@ namespace Network
 		UINT16			mPort;
 		SOCKET			mSock;
 		Networker*		mNetworker;
+
 	};
 	
 }
