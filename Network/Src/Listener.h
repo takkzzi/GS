@@ -6,6 +6,7 @@ namespace Network
 {
 	class Networker;
 
+	/*
 	class Listener : public Core::Thread
 	{
 	public:
@@ -19,13 +20,33 @@ namespace Network
 		virtual void		OnEnd(bool bTerminated=false);
 
 	private:
-		void			OnAccept();
+		void				OnAccept();
 
 	private:
 	
 		UINT16			mPort;
 		SOCKET			mSock;
-		HANDLE			mEvent;
+		HANDLE			mEvents[2];	//0 == Listen, 1 == End (Thread Return)
 		Networker*		mNetworker;
 	};
+	*/
+
+	class Listener : public IOKey
+	{
+	public:
+		Listener(Networker* iocp, UINT16 port);
+		~Listener(void);
+
+		bool				Begin();
+		bool				End();
+		void				OnAccept();
+
+	private:
+	
+		bool			mbBegan;
+		UINT16			mPort;
+		SOCKET			mSock;
+		Networker*		mNetworker;
+	};
+	
 }

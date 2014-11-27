@@ -17,6 +17,7 @@ public :
 	{
 	}
 
+	/*
 	virtual DWORD ThreadTick()
 	{
 		DWORD		cbTransferred;
@@ -29,7 +30,7 @@ public :
 		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (LPDWORD)&keySession, (LPOVERLAPPED*)&overlapped, INFINITE);
 #endif
 		if ( ! ret) {
-			Logger::LogWarning(_T("IOCPThread GetQueuedCompletionStatus() Error (ErrorCode:%d)"), GetLastError());
+			Logger::LogError(_T("IOCPThread GetQueuedCompletionStatus() Error (ErrorCode:%l)"), GetLastError());
 			return 1;	//Keep Calling This Function
 		}
 
@@ -48,7 +49,48 @@ public :
 
 		return 1;	//Keep Calling This Function
 	}
+	*/
 
+	virtual DWORD ThreadTick()
+	{
+		DWORD		cbTransferred;
+		IOKey*		ioKey = NULL;
+		Overlapped*	overlapped = NULL;
+
+#ifdef    _WIN64
+		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
+#else
+		BOOL ret = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (LPDWORD)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
+#endif
+		if ( ! ret) {
+			Logger::LogError(_T("IOCPThread GetQueuedCompletionStatus() Error (ErrorCode:%l)"), GetLastError());
+			return 1;	//Keep Calling This Function
+		}
+
+		if ( ! ioKey ) {
+			//End() 가 호출되어 PostQueuedCompletionStatus() 가 호출된 경우.
+			Logger::Log(_T("IOCPThread"), _T("GetQueuedCompletionStatus() Break;"));
+			return 0;	// End Thread
+		}
+
+
+		if ( ioKey->mType == IOKey_Listener ) {
+			Listener* listen = (Listener*)(ioKey);
+			listen->OnAccept();
+		}
+		else if ( ioKey->mType == IOKey_Listener ) {
+			Session* sess = (Session*)(ioKey);
+			if ( overlapped->iotype == IO_SEND ) {
+				sess->OnSendComplete(cbTransferred);
+			}
+			else if ( overlapped->iotype == IO_RECV ) {
+				sess->OnRecvComplete(cbTransferred);
+			}
+		}
+
+		return 1;	//Keep Calling This Function
+
+	}
 	virtual bool End() 
 	{
 		//Wakeup & Return Thrad
@@ -87,7 +129,7 @@ Networker::Networker(int threadCount, int reserveSessionCount, int sessionLimitC
 
 	int i = 0;
 	for(int i = 0; i < reserveSessionCount; ++i) {
-		mSessionVec.push_back(new Session(i, mSendBufferSize, mRecvBufferSize));
+		mSessionVec.push_back(new Session(this, i, mSendBufferSize, mRecvBufferSize));
 	}
 
 	BeginIo(threadCount);
@@ -156,7 +198,7 @@ Session* Networker::GetNewSession()
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
 		Session* s = mSessionVec[i];
 		if ( s == NULL ) {
-			s = new Session(i, mSendBufferSize, mRecvBufferSize);
+			s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
 			mSessionVec[i] = s;
 			newSession = s;
 			break;
@@ -170,7 +212,7 @@ Session* Networker::GetNewSession()
 	}
 
 	if ( ! newSession ) {
-		newSession = new Session(mSessionVec.size(), mSendBufferSize, mRecvBufferSize);
+		newSession = new Session(this, mSessionVec.size(), mSendBufferSize, mRecvBufferSize);
 		mSessionVec.push_back(newSession);
 	}
 

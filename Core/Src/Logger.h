@@ -1,12 +1,14 @@
 #pragma once
 
 #include <map>
-#include "ThreadSync.h"
+//#include "ThreadSync.h"
 
 
 namespace Core
 {
-	class Logger : public ThreadSyncStatic<Logger>
+	class CriticalSection;
+
+	class Logger// : public ThreadSyncStatic<Logger>
 	{
 	public :
 		static		void			Init(const TCHAR* logDir);
@@ -35,6 +37,6 @@ namespace Core
 		static		volatile	bool					msInit;
 		static		TCHAR								msLogPath[MAX_PATH];
 		static		std::map<const LPTSTR, FILE*>		msFileMap;
-
+		static		CriticalSection*					mCS;
 	};
 }

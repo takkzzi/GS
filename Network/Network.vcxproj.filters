@@ -5,9 +5,6 @@
     <ClCompile Include="Src\Session.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Src\SessionMgr.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Listener.cpp">
       <Filter>Src</Filter>
     </ClCompile>
@@ -24,9 +21,6 @@
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\Session.h">
-      <Filter>Src</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\SessionMgr.h">
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\Listener.h">

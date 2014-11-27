@@ -73,6 +73,7 @@ bool Thread::End()
 		Resume();
 
 	mState = THREAD_END;
+	Sleep(10);
 
 	DWORD waitRes = ::WaitForSingleObject(mhThread, mTermWaitTime);		//Waiting For Thread Return.
 	bool bEnded = (waitRes == WAIT_OBJECT_0);
@@ -120,7 +121,7 @@ bool Thread::Resume()
 
 bool Thread::Termainate() 
 {
-	if ( ! IsState(THREAD_RUNNING) )
+	if ( IsState(THREAD_NONE) )
 		return false;
 
 	if ( TerminateThread(mhThread, 0) ) {

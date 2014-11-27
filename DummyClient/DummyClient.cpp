@@ -27,12 +27,6 @@ public :
 	SessionTester(Networker* iocp, int connCount) 
 	{
 		mIocp = new Networker(1, connCount, true, 1024, 1024);
-		//mIocp = iocp;
-
-		for(int i = 0; i < connCount; ++i) {
-			Session* se = mIocp->GetNewSession();
-			se->Connect(gServerIP, gServerPort);
-		}
 	};
 
 	virtual ~SessionTester() 

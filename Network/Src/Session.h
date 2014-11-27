@@ -12,7 +12,7 @@ namespace Network
 	};
 
 	struct Overlapped {
-		Overlapped(OverlappedIoType type, SOCKET s, int bufLen) 
+		Overlapped(OverlappedIoType type, int bufLen) 
 		{ 
 			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
 			iotype = type;
@@ -21,13 +21,19 @@ namespace Network
 		}
 
 		~Overlapped() {
-			delete wsaBuf.buf;
+			delete[] wsaBuf.buf;
+		}
+
+		void Reset()
+		{
+			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
+			ZeroMemory(wsaBuf.buf, wsaBuf.len);
 		}
 
 		WSAOVERLAPPED		ov;
 		OverlappedIoType	iotype;		
 		WSABUF				wsaBuf;
-		SOCKET				sock;
+		//SOCKET				sock;
 	};
 
 	enum SessionState {
@@ -35,10 +41,10 @@ namespace Network
 		SESSION_CONNECTED,
 	};
 
-	class Session
+	class Session : public IOKey
 	{
 	public:
-		Session(int id, int sendBufferSize, int recvBufferSize);
+		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize);
 		~Session(void);
 
 	public:
@@ -47,7 +53,7 @@ namespace Network
 		bool					Disconnect();
 		bool					Send(BYTE* data, int dataLen);
 
-		virtual void			OnAccept(Networker* iocp, SOCKET listenSock);
+		virtual void			OnAccept(SOCKET listenSock);
 		virtual void			OnSendComplete(int sendSize);
 		virtual void			OnRecvComplete(int recvSize);
 		virtual void			OnDisconnect();
@@ -58,6 +64,7 @@ namespace Network
 		bool					IsState(SessionState state)			{ return (mState == state); }
 
 	protected:
+		Networker*				mNetworker;
 		int						mId;
 		SessionState			mState;
 

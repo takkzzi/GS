@@ -6,15 +6,19 @@
 using namespace Core;
 using namespace Network;
 
-Session::Session(int id, int sendBufferSize, int recvBufferSize)
-	: mId(id)
+Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
+	: mNetworker(networker)
+	, mId(id)
 	, mState(SESSION_NONE)
 	, mSock(INVALID_SOCKET)
 	, mEvent(WSA_INVALID_EVENT)
 	, mOverlappedSend(NULL)
 	, mOverlappedRecv(NULL)
 {
+	mType = IOKey_Session;
 	//TODO : Buffer Create
+	//mSendBuffer->Init();
+	//mRecvBuffer->Init();
 }
 
 Session::~Session(void)
@@ -58,6 +62,8 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 		}
 	}
 
+	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
+
 	SetState(SESSION_CONNECTED);
 
 	return true;
@@ -96,22 +102,22 @@ bool Session::Send(BYTE* data, int dataLen)
 	return true;
 }
 
-void Session::OnAccept(Networker* networker, SOCKET listenSock)
+void Session::OnAccept(SOCKET listenSock)
 {
 	int addrlen = sizeof(SOCKADDR);
 	mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
+
+	if ( mOverlappedSend )
+		mOverlappedSend->Reset();
+	else 
+		mOverlappedSend = new Overlapped(IO_SEND, MAX_BUFFER_LENGTH);
 	
-	//TODO : Pre-Accepting with AcceptEx()
+	if ( mOverlappedRecv )
+		mOverlappedRecv->Reset();
+	else
+		mOverlappedRecv = new Overlapped(IO_RECV, MAX_BUFFER_LENGTH);
 
-	//mSock = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	//::AcceptEx(listenSock, mSock,
-
-	::CreateIoCompletionPort((HANDLE)mSock, networker->GetIocpHandle(), (ULONG_PTR)this, 0);
-
-	SAFE_DELETE(mOverlappedSend);
-	mOverlappedSend = new Overlapped(IO_SEND, mSock, MAX_BUFFER_LENGTH);
-	SAFE_DELETE(mOverlappedRecv);
-	mOverlappedRecv = new Overlapped(IO_RECV, mSock, MAX_BUFFER_LENGTH);
+	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
 	//mRecvBuffer->ClearBuffer();
 	//mSendBuffer->ClearBuffer();
@@ -123,7 +129,6 @@ void Session::OnAccept(Networker* networker, SOCKET listenSock)
 	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
 	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 		Disconnect();
-		
 	}
 }
 
