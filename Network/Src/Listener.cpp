@@ -38,9 +38,12 @@ bool SelectListener::BeginListen()
 	if (mSock != INVALID_SOCKET || ! IsState(THREAD_NONE) )
 		return FALSE;
 
-	mSock = WSASocket (PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
+	mSock = ::WSASocket (PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
 	if (mSock == INVALID_SOCKET)
 		return false;
+
+	BOOL bOptVal = TRUE;
+	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
 	SOCKADDR_IN addr;
 	addr.sin_family		= AF_INET;
@@ -145,6 +148,9 @@ bool IocpListener::BeginListen()
 	mSock = WSASocket (PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
 	if (mSock == INVALID_SOCKET)
 		return false;
+
+	BOOL bOptVal = TRUE;
+	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
 	SOCKADDR_IN			addr;
 	addr.sin_family		= AF_INET;

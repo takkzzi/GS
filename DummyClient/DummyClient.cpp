@@ -63,15 +63,22 @@ public :
 
 	virtual DWORD ThreadTick()
 	{
-		for(int i = 0; i < 100; ++i) {
-			int r = Core::Math::RandRange(0, mIocp->GetSessionCount());
-			Session* se = mIocp->GetSession(r);
-			if ( se->IsState(SESSIONSTATE_CONNECTED) )
-				se->Disconnect();
-			else if ( se->IsState(SESSIONSTATE_NONE) )
-				se->Connect(gServerIP, gServerPort);
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se->IsState(SESSIONSTATE_CONNECTED) ) {
+				bool bDisconn = se->Disconnect();
+				if ( ! bDisconn )
+					Logger::Log("SessionTester", "Disconnect() Failed.");
+			}
+			else if ( se->IsState(SESSIONSTATE_NONE) ) {
+				bool bConn = se->Connect(gServerIP, gServerPort);
+				//if ( ! bConn )
+				//	Logger::Log("SessionTester", "Connect() Failed.");
+			}
+			Sleep(5);
 		}
 
+		//Sleep(5);
 		return 1;
 	}
 
@@ -117,7 +124,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	sessTester[1] = new SessionTester(1000);
 	sessTester[1]->Begin(false);
 
-	/*
 	sessTester[2] = new SessionTester(1000);
 	sessTester[2]->Begin(false);
 
@@ -126,7 +132,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	sessTester[4] = new SessionTester(1000);
 	sessTester[4]->Begin(false);
-	*/
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();
@@ -154,7 +159,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	sessTester[1]->End();
 	delete sessTester[1];
 
-	/*
 	sessTester[2]->End();
 	delete sessTester[2];
 
@@ -163,7 +167,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	sessTester[4]->End();
 	delete sessTester[4];
-	*/
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

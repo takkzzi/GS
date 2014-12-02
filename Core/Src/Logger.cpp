@@ -319,7 +319,7 @@ LPTSTR Logger::GetLastErrorMsg(const TCHAR* userMsg, bool bMsgBox/*=false*/)
 		::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
 			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&errorMsg, 0, NULL );
 	
-		::_sntprintf((LPTSTR)totalMsg, sizeof(totalMsg) / sizeof(TCHAR), TEXT("%s\n %s (ErrorCode:%d)"), userMsg, errorMsg, errorCode);
+		::_sntprintf((LPTSTR)totalMsg, sizeof(totalMsg) / sizeof(TCHAR), TEXT("%s (Code:%d) %s "), userMsg, errorCode, errorMsg);
 
 		if ( bMsgBox )
 			::MessageBox(NULL, (LPCTSTR)totalMsg, TEXT("Error"), MB_OK);

@@ -52,6 +52,9 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 	if (mSock == INVALID_SOCKET)
 		return false;
 
+	BOOL bOptVal = TRUE;
+	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
+
 	memset(&mRemoteAddr, 0, sizeof(mRemoteAddr));
 
 	mRemoteAddr.sin_family				= AF_INET;
@@ -63,7 +66,7 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 		DWORD errCode = WSAGetLastError();
 		if (errCode != WSAEWOULDBLOCK)
 		{
-			Logger::LogWarning(_T("Session::Connect() Error(%s)"), Logger::GetLastErrorMsg(_T(" ")) );
+			Logger::Log(_T("Session"), _T("%d Connect() Error(%s)"), mId, Logger::GetLastErrorMsg(NULL) );
 
 			closesocket(mSock);
 			mSock = INVALID_SOCKET;
@@ -87,6 +90,9 @@ bool Session::Accept(SOCKET listenSock) {
 	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	if (mSock == INVALID_SOCKET)
 		return false;
+
+	BOOL bOptVal = TRUE;
+	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
 	BOOL bPreAccept = AcceptEx(listenSock, mSock, mOverlappedRecv->wsaBuf.buf, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, (WSAOVERLAPPED*)&(mOverlappedAccept->ov));
 	
@@ -155,8 +161,6 @@ void Session::OnConnect()
 	//mRecvBuffer->ClearBuffer();
 	//mSendBuffer->ClearBuffer();
 
-	Logger::Log("Session", "OnConnect() : %d", mId);
-
 	//First Reserve Receive
 	DWORD dwBytes, dwFlags = 0;
 	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
@@ -183,6 +187,8 @@ void Session::OnAccept(SOCKET listenSock)
 
 	if ( mOverlappedRecv )
 		mOverlappedRecv->Reset();
+
+	Logger::Log("Session", "OnAccept() : %d", mId);
 
 	OnConnect();
 }
