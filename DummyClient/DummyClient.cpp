@@ -21,38 +21,62 @@ const char* gServerIP = "127.0.0.1";
 const int	gServerPort = 42006;
 
 
-class SessionTester // : public Thread 
+class SessionTester : public Thread 
 {
 public :
-	SessionTester(Networker* iocp, int connCount) 
+
+	SessionTester(int connCount) 
+		: Thread()
 	{
-		mIocp = new Networker(1, connCount, true, 1024, 1024);
+		mIocp = new Networker(1, connCount, 1000000, 1024, 1024);
 	};
 
 	virtual ~SessionTester() 
 	{
+		SAFE_DELETE(mIocp);
+	};
+
+	virtual bool Begin(bool bSuspend=false)
+	{
+		//ConnectAll
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			bool bConn = se->Connect(gServerIP, gServerPort);
+			Logger::Log("Session", "Session Connect %s %d", bConn ? "Success" : "Failed", se->GetId());
+		}
+
+		return __super::Begin(bSuspend);
+	}
+
+	virtual bool End()
+	{
+		//DisconnectAll
+
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			se->Disconnect();
 		}
 
-		SAFE_DELETE(mIocp);
-	};
+		return __super::End();
+	}
 
-	void Update()
+
+	virtual DWORD ThreadTick()
 	{
-		for(int i = 0; i < 50; ++i) {
+		for(int i = 0; i < 100; ++i) {
 			int r = Core::Math::RandRange(0, mIocp->GetSessionCount());
 			Session* se = mIocp->GetSession(r);
-			if ( se->IsState(SESSION_CONNECTED) )
+			if ( se->IsState(SESSIONSTATE_CONNECTED) )
 				se->Disconnect();
-			else if ( se->IsState(SESSION_NONE) )
+			else if ( se->IsState(SESSIONSTATE_NONE) )
 				se->Connect(gServerIP, gServerPort);
 		}
+
+		return 1;
 	}
 
 protected :
-	Networker*						mIocp;
+	Networker*					mIocp;
 	std::vector<Session*>		mSessions;
 };
 
@@ -85,16 +109,24 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	CoreSystem::Init(_T("ClientLog"));
 	NetworkSystem::Init();
 
-
-	Networker* iocp = NULL; //new Networker(1, 1000, 10000, 1024, 1024);
-
+	
 	SessionTester* sessTester[5] = { 0, 0, 0, 0, 0 };
-	sessTester[0] = new SessionTester(iocp, 1000);
-	sessTester[1] = new SessionTester(iocp, 1000);
-	sessTester[2] = new SessionTester(iocp, 1000);
-	sessTester[3] = new SessionTester(iocp, 1000);
-	sessTester[4] = new SessionTester(iocp, 1000);
+	sessTester[0] = new SessionTester(1000);
+	sessTester[0]->Begin(false);
 
+	sessTester[1] = new SessionTester(1000);
+	sessTester[1]->Begin(false);
+
+	/*
+	sessTester[2] = new SessionTester(1000);
+	sessTester[2]->Begin(false);
+
+	sessTester[3] = new SessionTester(1000);
+	sessTester[3]->Begin(false);
+
+	sessTester[4] = new SessionTester(1000);
+	sessTester[4]->Begin(false);
+	*/
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();
@@ -113,20 +145,25 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 		else {
-			//Main Loop
-			for(int i = 0; i < 5; ++i) {
-				sessTester[i]->Update();
-			}
 		}
 	}
 
+	sessTester[0]->End();
 	delete sessTester[0];
-	delete sessTester[1];
-	delete sessTester[2];
-	delete sessTester[3];
-	delete sessTester[4];
 
-	//SAFE_DELETE(iocp);
+	sessTester[1]->End();
+	delete sessTester[1];
+
+	/*
+	sessTester[2]->End();
+	delete sessTester[2];
+
+	sessTester[3]->End();
+	delete sessTester[3];
+
+	sessTester[4]->End();
+	delete sessTester[4];
+	*/
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

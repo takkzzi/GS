@@ -56,7 +56,7 @@ void Logger::Shutdown()
 	}
 	CS_UNLOCK
 
-	delete mCS;
+	SAFE_DELETE(mCS);
 }
 
 void Logger::LogError(const LPTSTR logData, ...)
@@ -64,18 +64,16 @@ void Logger::LogError(const LPTSTR logData, ...)
 	if ( ! msInit ) return;
 
 	CS_LOCK
-	{
 		va_list		ap;
 		TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 		va_start(ap, logData);
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
-
-		LogWithDate(_T("[Error]"), logData);
-
-		ASSERT(0);
-	}
 	CS_UNLOCK
+
+	LogWithDate(_T("[Error]"), logData);
+	ASSERT(0);
+	
 }
 
 void Logger::LogError(const CHAR* logData, ...)
@@ -83,18 +81,16 @@ void Logger::LogError(const CHAR* logData, ...)
 	if ( ! msInit ) return;
 	
 	CS_LOCK
-	{
 		va_list		ap;
 		CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 		va_start(ap, logData);
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		LogWithDate("[Error]", logData);
-
-		ASSERT(0);
-	}
 	CS_UNLOCK
+
+	LogWithDate("[Error]", logData);
+	ASSERT(0);
 }
 
 
@@ -103,16 +99,14 @@ void Logger::LogWarning(const LPTSTR logData, ...)
 	if ( ! msInit ) return;
 	
 	CS_LOCK
-	{
 		va_list		ap;
 		TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 		va_start(ap, logData);
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
-
-		LogWithDate(_T("[Warning]"), logData);
-	}
 	CS_UNLOCK
+
+	LogWithDate(_T("[Warning]"), logBuff);
 }
 
 void Logger::LogWarning(const CHAR* logData, ...)
@@ -120,27 +114,26 @@ void Logger::LogWarning(const CHAR* logData, ...)
 	if ( ! msInit  ) return;
 	
 	CS_LOCK
-	{
 		va_list		ap;
 		CHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 		va_start(ap, logData);
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
-
-		LogWithDate("[Warning]", logData);
-	}
 	CS_UNLOCK
+
+	LogWithDate("[Warning]", logBuff);
+	
 }
 
 void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 {
 	if ( ! msInit  ) return;
 	
+	FILE* file = FindFile(category);
+	if ( ! file ) return;
+
 	CS_LOCK
 	{
-		FILE* file = FindFile(category);
-		if ( ! file ) return;
-
 		TCHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
 		TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
 
@@ -169,11 +162,11 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 {
 	if ( ! msInit  ) return;
 	
+	FILE* file = FindFile(category);
+	if ( ! file ) return;
+
 	CS_LOCK
 	{
-		FILE* file = FindFile(category);
-		if ( ! file ) return;
-
 		CHAR		debugLogBuff[MAX_LOG_BUFFER]		= {0,};
 		CHAR		logBuff[MAX_LOG_BUFFER]				= {0,};
 
@@ -203,11 +196,11 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 {
 	if ( ! msInit  ) return;
 	
+	FILE* file = FindFile(category);
+	if ( ! file ) return;
+
 	CS_LOCK
 	{
-		FILE* file = FindFile(category);
-		if ( ! file ) return;
-
 		const TCHAR* timeStr = Time::GetSystemTimeStr();
 
 		TCHAR		debugBuff[MAX_LOG_BUFFER]		= {0,};
@@ -218,11 +211,11 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		_ftprintf(file, _T("[%s] %s (%s - %d line)\n"), timeStr, logBuff, _T(__FILE__), __LINE__);
+		_ftprintf(file, _T("[%s] %s \n"), timeStr, logBuff);
 		fflush(file);
 
 		if ( IsDebuggerPresent() ) {
-			_sntprintf(debugBuff, MAX_LOG_BUFFER, _T("[%s] %s (%s - %d line)\n"), timeStr, logBuff, _T(__FILE__), __LINE__);
+			_sntprintf(debugBuff, MAX_LOG_BUFFER, _T("[%s] %s \n"), timeStr, logBuff);
 			OutputDebugString(debugBuff);
 
 	#ifdef _CONSOLE
@@ -237,11 +230,12 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 {
 	if ( ! msInit ) return;
 	
+	
+	FILE* file = FindFile(category);
+	if ( ! file ) return;
+	
 	CS_LOCK
 	{
-		FILE* file = FindFile(category);
-		if ( ! file ) return;
-	
 		const TCHAR* currTime = Time::GetSystemTimeStr();
 		const CHAR* currTimeA = StringUtil::AnsiFromTCHAR(currTime);
 
@@ -253,13 +247,13 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		fprintf(file, "[%s] %s (%s - %d line)\n", currTimeA, logBuff, __FILE__, __LINE__);
+		fprintf(file, "[%s] %s \n", currTimeA, logBuff);
 		fflush(file);
 
 		//fclose(FilePtr);
 
 		if ( IsDebuggerPresent() ) {
-			_snprintf(debugBuff, MAX_LOG_BUFFER, "[%s] %s (%s - %d line)\n", currTimeA, logBuff, __FILE__, __LINE__);
+			_snprintf(debugBuff, MAX_LOG_BUFFER, "[%s] %s \n", currTimeA, logBuff);
 			OutputDebugStringA(debugBuff);
 
 	#ifdef _CONSOLE
@@ -278,6 +272,7 @@ FILE* Logger::FindFile(const LPTSTR name)
 
 		auto search = msFileMap.find(name);
 		if(search != msFileMap.end()) {
+			CS_UNLOCK
 			return (FILE*)search->second;
 		}
 
@@ -287,8 +282,10 @@ FILE* Logger::FindFile(const LPTSTR name)
 		FILE* file = _tfopen(fileName, _T("w+"));
 		ASSERT(file && "Logger::FindFile() Failed");
 
-		if (!file)
+		if (! file) {
+			CS_UNLOCK
 			return NULL;
+		}
 
 		msFileMap[name] = file;
 
@@ -301,34 +298,32 @@ FILE* Logger::FindFile(const CHAR* name)
 {
 	if ( ! msInit  ) return NULL;
 	
-	TCHAR nameTemp[128] = {0, };
-
 	CS_LOCK
-	{
-		StringUtil::CopyAnsi2TCHAR(nameTemp, name);
-	}
+	static TCHAR nameTemp[128] = {0, };	
+	StringUtil::CopyAnsi2TCHAR(nameTemp, name);
 	CS_UNLOCK
 
 	return FindFile(nameTemp);
 }
 
-LPTSTR Logger::GetLastErrorMsg(const LPTSTR funcName, const DWORD errorCode, bool bMsgBox/*=false*/)
+LPTSTR Logger::GetLastErrorMsg(const TCHAR* userMsg, bool bMsgBox/*=false*/)
 {
 	if ( ! msInit  ) return NULL;
 	
-	static TCHAR totalMsg[256];
-	TCHAR* errorMsg = NULL;
-
 	CS_LOCK
-	{
+
+		static TCHAR totalMsg[256];	
+		TCHAR* errorMsg = NULL;
+		const DWORD errorCode = ::GetLastError();
+
 		::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
 			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&errorMsg, 0, NULL );
 	
-		::_sntprintf((LPTSTR)totalMsg, sizeof(totalMsg) / sizeof(TCHAR), TEXT("Failed with error %d: %s"), errorCode, errorMsg);
+		::_sntprintf((LPTSTR)totalMsg, sizeof(totalMsg) / sizeof(TCHAR), TEXT("%s\n %s (ErrorCode:%d)"), userMsg, errorMsg, errorCode);
 
 		if ( bMsgBox )
 			::MessageBox(NULL, (LPCTSTR)totalMsg, TEXT("Error"), MB_OK);
-	}
+
 	CS_UNLOCK
 
 

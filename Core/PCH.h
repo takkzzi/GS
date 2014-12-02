@@ -29,5 +29,5 @@
 #include <map>
 //#include <WinSock2.h>
 
-
 #include "Src/Assert.h"
+#include "Src/Macro.h"

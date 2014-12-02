@@ -10,14 +10,16 @@
  - Full Dumping
 
 * Logger 
- - Thread Sync 를 Template 상속 없이 일반 Static 변수로 처리
+ - LogDebug 구현 (File, Line 출력)
 
 ------------ Network ------------ 
 
 * Networker(IOCP)
 	- Listener 를 쓰레드 없이 IOCP 에 포함 시켜 단순화&최적화
 	- Send, Recv Buffer 구현 ( Atlantica 참고 )
-	- AcceptEx : 연결 허용 처리 구현, Accept 시 함께 전송된 Data 처리 할것.
+	- AcceptEx 시 함께 전송된 Data 처리 할것.
+* Session 
+	- Connect 에러 Disconnect 후 다시 Connect 시 에러 추정
 
 * Server - Echo Server 구현
 

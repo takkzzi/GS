@@ -27,7 +27,7 @@ namespace Network
 
 	public:
 
-		void			BeginListen(UINT16 port);
+		void			BeginListen(UINT16 port, bool bPreAccept);
 		void			EndListen();
 
 		Session*		GetNewSession();
@@ -41,12 +41,15 @@ namespace Network
 	protected:
 		void			BeginIo(int threadCount);
 		void			EndIo();
+
+		void			PreacceptAll();
 		void			DeleteAllSessions();
 
 	private:
 
 		HANDLE							mIocp;
 		class Listener*					mListener;
+		bool							mbPreAccept;
 
 		int								mSessionLimitCount;
 		int								mSendBufferSize;
@@ -54,6 +57,7 @@ namespace Network
 
 		std::vector<Core::Thread*>				mThreadVec;
 		std::vector<Session*>					mSessionVec;
-		//std::map<int, Session*>					mSessionMap;
+
+		CriticalSection					mCriticalSec;
 	};
 }

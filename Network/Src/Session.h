@@ -7,17 +7,19 @@ namespace Network
 	class Listener;
 
 	enum OverlappedIoType {
+		IO_ACCEPT,
 		IO_SEND,
 		IO_RECV,
 	};
 
 	struct Overlapped {
-		Overlapped(OverlappedIoType type, int bufLen) 
+		Overlapped(void* ownSession, OverlappedIoType type, int bufLen) 
 		{ 
 			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
 			iotype = type;
 			wsaBuf.buf = new CHAR[bufLen];
 			wsaBuf.len = bufLen;
+			owner = ownSession;
 		}
 
 		~Overlapped() {
@@ -33,16 +35,16 @@ namespace Network
 		WSAOVERLAPPED		ov;
 		OverlappedIoType	iotype;		
 		WSABUF				wsaBuf;
-		//SOCKET				sock;
+		void*				owner;
 	};
 
 	enum SessionState {
 		SESSIONSTATE_NONE,
-		SESSIONSTATE_LISTENING,
+		SESSIONSTATE_ACCEPTING,
 		SESSIONSTATE_CONNECTED,
 	};
 
-	class Session : public IOKey
+	class Session
 	{
 	public:
 		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize);
@@ -51,12 +53,19 @@ namespace Network
 	public:
 
 		bool					Connect(const CHAR* addr, USHORT port);
-		bool					Disconnect();
+		bool					Accept(SOCKET listenSock);
+		bool					Disconnect(bool bAccept=false);
 		bool					Send(BYTE* data, int dataLen);
 
+		void					OnCompletionStatus(Overlapped* overlapped, DWORD transferSize);
+		
+	public :
 		virtual void			OnAccept(SOCKET listenSock);
-		virtual void			OnSendComplete(int sendSize);
-		virtual void			OnRecvComplete(int recvSize);
+
+	protected:
+		void					OnConnect();
+		virtual void			OnSendComplete(DWORD sendSize);
+		virtual void			OnRecvComplete(DWORD recvSize);
 		virtual void			OnDisconnect();
 
 	public:
@@ -68,17 +77,22 @@ namespace Network
 		Networker*				mNetworker;
 		int						mId;
 		SessionState			mState;
-
+		
 		SOCKET					mSock;
 		HANDLE					mEvent;
 		SOCKADDR_IN				mRemoteAddr;
 
+		Overlapped*				mOverlappedAccept;
 		Overlapped*				mOverlappedSend;
 		Overlapped*				mOverlappedRecv;
 		
+		SOCKET					mListenSock;
+		BOOL					mIsAccepter;
+		WSAOVERLAPPED			mAcceptOverlapped;		//For AcceptEx()
+
 		//TODO : Implement 'Send Buffer', 'Recv Buffer'
-		//NetBuffer				mSendBuffer;
-		//NetBuffer				mRecvBuffer;
+		BYTE*					mSendBuffer;
+		BYTE*					mRecvBuffer;
 	};
 
 }

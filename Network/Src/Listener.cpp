@@ -8,32 +8,39 @@
 using namespace Core;
 using namespace Network;
 
-/*
-Listener::Listener(Networker* networker, UINT16 port)
-: mPort(port)
-, mSock(INVALID_SOCKET)
-, mNetworker(networker)
+
+bool Listener::EndListen()
+{
+	if ( mSock == INVALID_SOCKET )
+		return false;
+
+	closesocket(mSock);
+	mSock = INVALID_SOCKET;
+	return true;
+}
+
+//////////////// End of Listener ///////////////////////
+
+
+SelectListener::SelectListener(Networker* networker, UINT16 port)
+	: Listener(networker, port)
 {
 	mEvents[0] = WSA_INVALID_EVENT;
 	mEvents[1] = WSA_INVALID_EVENT;
 }
 
-Listener::~Listener(void)
+SelectListener::~SelectListener(void)
 {
 }
 
-
-bool Listener::Begin(bool bSuspend) 
-{	
+bool SelectListener::BeginListen()
+{
 	if (mSock != INVALID_SOCKET || ! IsState(THREAD_NONE) )
 		return FALSE;
 
 	mSock = WSASocket (PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
 	if (mSock == INVALID_SOCKET)
 		return false;
-
-	//Important : For Quit Listening
-	mEvents[0] = CreateEvent(NULL, true, false, NULL);
 
 	SOCKADDR_IN addr;
 	addr.sin_family		= AF_INET;
@@ -43,7 +50,9 @@ bool Listener::Begin(bool bSuspend)
 	if ( ::bind (mSock, (struct sockaddr*) &addr, sizeof(addr)) == SOCKET_ERROR )
 		return false;
 	
+	mEvents[0] = CreateEvent(NULL, true, false, NULL);		//Important : For Quit Listening
 	mEvents[1] = WSACreateEvent();
+
 	if (mEvents[1] == WSA_INVALID_EVENT)
 		return false;
 
@@ -53,17 +62,24 @@ bool Listener::Begin(bool bSuspend)
 	if ( ::listen (mSock, SOMAXCONN) == SOCKET_ERROR )
 		return false;
 
-	return __super::Begin();
+	Logger::Log(_T("Listener"), TEXT("SelectListener::Begin()"));
+	return __super::Begin(false);
 }
 
-bool Listener::End()
+bool SelectListener::EndListen()
 {
-	SetEvent(mEvents[0]);	//For Quit Thread Loop
+	SetEvent(mEvents[0]);						//For Quit Thread Loop
+	::WaitForSingleObject(mhThread, INFINITE);	//Waiting For Thread Return.
 
-	return __super::End();
+	CloseHandle(mEvents[0]);
+	CloseHandle(mEvents[1]);
+
+	__super::EndListen();
+
+	return true;
 }
 
-DWORD Listener::ThreadTick()
+DWORD SelectListener::ThreadTick()
 {
 	DWORD dwRet = ::WSAWaitForMultipleEvents(2, mEvents, FALSE, INFINITE, FALSE);
 	int eventIndex = dwRet - WSA_WAIT_EVENT_0;
@@ -72,7 +88,7 @@ DWORD Listener::ThreadTick()
 
 	WSANETWORKEVENTS netEvt;
 	int netEvent = ::WSAEnumNetworkEvents(mSock, mEvents[1], &netEvt);
-	if ( netEvent != 0 ) 
+	if ( netEvent != 0 )
 	{
 		//ASSERT( netEvent != 0 && _T("Listner::WSAEnumNetworkEvents is non-zero.") );
 		Logger::LogWarning(_T("Listener"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%l"), GetLastError());
@@ -85,7 +101,7 @@ DWORD Listener::ThreadTick()
 	return 1;
 }
 
-void Listener::OnEnd(bool bTerminated)
+void SelectListener::OnEnd(bool bTerminated)
 {
 	Thread::OnEnd(bTerminated);
 
@@ -98,37 +114,31 @@ void Listener::OnEnd(bool bTerminated)
 	mEvents[0] = WSA_INVALID_EVENT;
 	mEvents[1] = WSA_INVALID_EVENT;
 
-	Logger::Log(_T("Listener"), TEXT("Listener::OnEnd"));
+	Logger::Log(_T("Listener"), TEXT("SelectListener::OnEnd"));
 	
 }
 
-void Listener::OnAccept()
+void SelectListener::OnAccept()
 {
 	Session* se = mNetworker->GetNewSession();
 	se->OnAccept(mSock);
 }
-*/
 
-Listener::Listener(Networker* networker, UINT16 port)
-: mbBegan(false)
-, mPort(port)
-, mSock(INVALID_SOCKET)
-, mNetworker(networker)
+///////////////////// End of SelectListener ////////////////////////////////////////
+
+
+
+IocpListener::IocpListener(Networker* networker, UINT16 port)
+	: Listener(networker, port)
 {
-	mType = IOKey_Listener;
-
-	bool begin = Begin();
-	ASSERT(begin);
-
 }
 
-Listener::~Listener(void)
+IocpListener::~IocpListener(void)
 {
-	End();
 }
 
-bool Listener::Begin() 
-{	
+bool IocpListener::BeginListen() 
+{
 	if (mSock != INVALID_SOCKET)
 		return FALSE;
 
@@ -136,38 +146,29 @@ bool Listener::Begin()
 	if (mSock == INVALID_SOCKET)
 		return false;
 
-	SOCKADDR_IN addr;
+	SOCKADDR_IN			addr;
 	addr.sin_family		= AF_INET;
 	addr.sin_port		= htons (mPort);
 	addr.sin_addr.s_addr= htonl (INADDR_ANY);	
 
-	if ( ::bind (mSock, (struct sockaddr*) &addr, sizeof(addr)) == SOCKET_ERROR )
+	if ( ::bind (mSock, (struct sockaddr*) &addr, sizeof(addr)) == SOCKET_ERROR ) {
+		Logger::GetLastErrorMsg(NULL, true);
 		return false;
+	}
 
-	if ( ::listen (mSock, SOMAXCONN) == SOCKET_ERROR )
+	if ( ::listen (mSock, SOMAXCONN) == SOCKET_ERROR ) {
+		Logger::GetLastErrorMsg(NULL, true);
 		return false;
+	}
 
-	CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
-	mbBegan = true;
+	CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (DWORD)mSock, 0);
 
-	Logger::Log(_T("Listener"), TEXT("Listener::Begin()"));
+	Logger::Log(_T("Listener"), TEXT("IocpListener::BeginListen()"));
 	return true;
 }
 
-bool Listener::End()
+bool IocpListener::EndListen()
 {
-	if ( ! mbBegan )
-		return false;
-
-	closesocket(mSock);
-	mSock = INVALID_SOCKET;
-
-	Logger::Log(_T("Listener"), TEXT("Listener::End()"));
-	return true;
-}
-
-void Listener::OnAccept()
-{
-	Session* se = mNetworker->GetNewSession();
-	se->OnAccept(mSock);
+	Logger::LogWarning(_T("Listener %s"), TEXT("IocpListener::EndListen()"));
+	return __super::EndListen();
 }

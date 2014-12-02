@@ -7,7 +7,7 @@
 
 namespace Core 
 {
-	static class CoreSystem
+	class CoreSystem
 	{
 	public:
 		static void			Init(const TCHAR* logDirName);

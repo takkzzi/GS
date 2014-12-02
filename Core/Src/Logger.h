@@ -26,7 +26,7 @@ namespace Core
 		static		void			LogWithDate(const LPTSTR category, const LPTSTR log, ...);
 		static		void			LogWithDate(const CHAR* category, const CHAR* log, ...);
 
-		static		LPTSTR			GetLastErrorMsg(const LPTSTR funcName, const DWORD errorCode, bool bMsgBox=false);
+		static		LPTSTR			GetLastErrorMsg(const TCHAR* userMsg, bool bMsgBox=false);
 
 	private :
 		static		FILE*			FindFile(const LPTSTR name);

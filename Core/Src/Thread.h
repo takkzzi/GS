@@ -20,12 +20,14 @@ namespace Core
 		Thread();
 		virtual ~Thread();
 
+		//START--- Don't Call In Own Thread
 		virtual bool	Begin(bool bSuspend=false);
 		virtual bool	End();
 
 		bool			Suspend();
 		bool			Resume();
 		bool			Termainate();
+		//End--- Don't Call In Own Thread
 
 		ThreadState		GetState() { return mState; }
 

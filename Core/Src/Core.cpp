@@ -1,6 +1,8 @@
 #include "PCH.h"
 #include "Core.h"
 
+using namespace Core;
+
 bool	CoreSystem::msInit = false;
 
 void CoreSystem::Init(const TCHAR* logDirName)

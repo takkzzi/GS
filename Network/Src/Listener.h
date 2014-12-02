@@ -6,15 +6,40 @@ namespace Network
 {
 	class Networker;
 
-	/*
-	class Listener : public Core::Thread
+
+	class Listener 
+	{
+	public :
+
+		Listener(Networker* networker, UINT16 port) 
+			: mNetworker(networker), mPort(port), mSock(INVALID_SOCKET)		
+		{};
+
+		virtual ~Listener()
+		{};
+
+		virtual bool			BeginListen()	=	0;
+		virtual bool			EndListen();
+
+		SOCKET					GetSocket()		{ return mSock; }
+
+	protected:
+		UINT16					mPort;
+		SOCKET					mSock;
+		Networker*				mNetworker;
+
+	};
+
+
+	//Using Event-Select (Separate Thread)
+	class SelectListener : public Listener, public Core::Thread
 	{
 	public:
-		Listener(Networker* iocp, UINT16 port);
-		~Listener(void);
+		SelectListener(Networker* networker, UINT16 port);
+		~SelectListener(void);
 
-		virtual bool		Begin(bool bSuspend=false);
-		virtual bool		End();
+		virtual bool		BeginListen();
+		virtual bool		EndListen();
 
 		virtual DWORD		ThreadTick();
 		virtual void		OnEnd(bool bTerminated=false);
@@ -23,33 +48,22 @@ namespace Network
 		void				OnAccept();
 
 	private:
-	
-		UINT16			mPort;
-		SOCKET			mSock;
-		HANDLE			mEvents[2];	//0 == Listen, 1 == End (Thread Return)
-		Networker*		mNetworker;
+		HANDLE				mEvents[2];	//0 == Listen, 1 == End (Thread Return)
 	};
-	*/
 
-	class Listener : public IOKey
+
+	//Using IOCP
+	class IocpListener : public Listener
 	{
 	public:
-		Listener(Networker* iocp, UINT16 port);
-		~Listener(void);
-
-		void				OnAccept();
+		IocpListener(Networker* networker, UINT16 port);
+		~IocpListener(void);
 
 	private:
-		bool				Begin();
-		bool				End();
-
-	private:
-	
-		bool			mbBegan;
-		UINT16			mPort;
-		SOCKET			mSock;
-		Networker*		mNetworker;
-
+		virtual bool		BeginListen();
+		virtual	bool		EndListen();
+		
+	protected:
 	};
 	
 }

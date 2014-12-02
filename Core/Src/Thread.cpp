@@ -6,7 +6,8 @@
 using namespace Core;
 using namespace std;
 
-#define		ThreadLog			_T("ThreadLog")
+#define		ThreadLog				_T("ThreadLog")
+#define		TerminateWaitTime		INFINITE		//2000
 
 DWORD CALLBACK Thread::ThreadRunner(LPVOID param)
 {
@@ -31,17 +32,14 @@ Thread::Thread()
 	: mhThread(INVALID_HANDLE_VALUE)
 	, mThreadId(0)
 	, mState(THREAD_NONE)
-	, mTermWaitTime(1000)
+	, mTermWaitTime(TerminateWaitTime)
 {	
 }
 
 Thread::~Thread()
 {
 	if ( mState != THREAD_NONE ) {
-		//bool ended = End();
-		//if ( ! ended ) {
-			Termainate();
-		//}
+		Termainate();
 	}
 }
 
@@ -66,17 +64,21 @@ bool Thread::Begin(bool bSuspend)
 
 bool Thread::End() 
 {
-	if ( IsState(THREAD_END) )
+	if ( IsState(THREAD_NONE) || IsState(THREAD_END) )
 		return false;
 
 	if ( IsState(THREAD_SUSPEND) )
 		Resume();
 
 	mState = THREAD_END;
-	Sleep(10);
 
 	DWORD waitRes = ::WaitForSingleObject(mhThread, mTermWaitTime);		//Waiting For Thread Return.
 	bool bEnded = (waitRes == WAIT_OBJECT_0);
+
+	BOOL bClose = CloseHandle(mhThread);
+	ASSERT(bClose);
+	mhThread = INVALID_HANDLE_VALUE;
+	mState = THREAD_NONE;
 
 	return bEnded;
 }
@@ -134,12 +136,5 @@ bool Thread::Termainate()
 }
 
 void Thread::OnEnd(bool bTerminated) 
-{
-	if ( ! IsState(THREAD_END) )
-		return;
-
-	BOOL bClose = CloseHandle(mhThread);
-	ASSERT(bClose);
-	mhThread = INVALID_HANDLE_VALUE;
-	mState = THREAD_NONE;
+{	
 }

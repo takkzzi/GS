@@ -50,13 +50,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	NetworkSystem::Init();
 	
 	int port			= 42006;
-	int sessionCount	= 5000;
-	
+	const int sessionCount	= 5000;
+	const int sessionLimit	= 50000;
+
 	int sendBufferSize = 5120;
 	int recvBufferSize = 5120;
 
-	Networker* networker = new Networker(1, sessionCount, 10000, sendBufferSize, recvBufferSize);
-	networker->BeginListen(port);
+	Networker* networker = new Networker(1, sessionCount, sessionLimit, sendBufferSize, recvBufferSize);
+	networker->BeginListen(port, true);
 
 
 	// 기본 메시지 루프입니다.
@@ -76,6 +77,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		else
 		{
 			//Main Loop
+			networker->Update();
 		}
 	}
 
