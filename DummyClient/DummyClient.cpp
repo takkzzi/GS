@@ -51,11 +51,12 @@ public :
 	virtual bool End()
 	{
 		//DisconnectAll
-
+		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			se->Disconnect();
 		}
+		*/
 
 		return __super::End();
 	}
@@ -63,6 +64,7 @@ public :
 
 	virtual DWORD ThreadTick()
 	{
+		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se->IsState(SESSIONSTATE_CONNECTED) ) {
@@ -77,6 +79,7 @@ public :
 			}
 			Sleep(5);
 		}
+		*/
 
 		//Sleep(5);
 		return 1;

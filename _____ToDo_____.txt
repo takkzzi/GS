@@ -20,6 +20,7 @@
 	- AcceptEx 시 함께 전송된 Data 처리 할것.
 * Session 
 	- Connect 에러 Disconnect 후 다시 Connect 시 에러 추정
+	= ioctlsocket() ??? 알아둘것
 
 * Server - Echo Server 구현
 
@@ -37,4 +38,8 @@
 
 * DB 연결 객체 래핑 구현
 * DB 연결 및 쿼리 테스트
+* DB Session 은 7개 생성 (Atlantica 의 경우 용도에 따라 달리 생성 : Common, Login, Sub, Letter, System, PcRoom, PersonCopy)
+  한가한 Session을 선택하여 Sending 하는 다른 방법도 강구해볼것.
+* 
+
 

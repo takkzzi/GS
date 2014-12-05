@@ -137,6 +137,8 @@ bool Session::Disconnect(bool bAccept)
 bool Session::Send(BYTE* data, int dataLen)
 {
 	//TODO : Sending
+	//::WSASend(mSock, data
+
 	return true;
 }
 
@@ -201,7 +203,7 @@ void Session::OnSendComplete(DWORD sendSize)
 	}
 
 	//TODO : Send Complete
-	//mSendBuffer->Complete(sendSize)
+	//mSendBuffer->Pop(sendSize)
 }
 
 void Session::OnRecvComplete(DWORD recvSize)
@@ -212,11 +214,11 @@ void Session::OnRecvComplete(DWORD recvSize)
 	}
 	
 	//TODO : Receive Complete
-	//mRecvBuffer->Complete(recvSize)
+	//mRecvBuffer->Push(recvSize)
 
 	//Recv Again
 	DWORD dwBytes, dwFlags = 0;
-	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
+	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, &(mOverlappedRecv->ov), NULL);
 	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 		OnDisconnect();
 		return;
