@@ -1,48 +1,18 @@
 #pragma once
 
+#include "SessionBuffer.h"
 
 namespace Network
 {
 	class Networker;
 	class Listener;
-
-	enum OverlappedIoType {
-		IO_ACCEPT,
-		IO_SEND,
-		IO_RECV,
-	};
-
-	struct Overlapped {
-		Overlapped(void* ownSession, OverlappedIoType type, int bufLen) 
-		{ 
-			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
-			iotype = type;
-			wsaBuf.buf = new CHAR[bufLen];
-			wsaBuf.len = bufLen;
-			owner = ownSession;
-		}
-
-		~Overlapped() {
-			delete[] wsaBuf.buf;
-		}
-
-		void Reset()
-		{
-			ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
-			ZeroMemory(wsaBuf.buf, wsaBuf.len);
-		}
-
-		WSAOVERLAPPED		ov;
-		OverlappedIoType	iotype;		
-		WSABUF				wsaBuf;
-		void*				owner;
-	};
-
+	
 	enum SessionState {
 		SESSIONSTATE_NONE,
 		SESSIONSTATE_ACCEPTING,
 		SESSIONSTATE_CONNECTED,
 	};
+
 
 	class Session
 	{
@@ -83,16 +53,11 @@ namespace Network
 		SOCKADDR_IN				mRemoteAddr;
 
 		Overlapped*				mOverlappedAccept;
-		Overlapped*				mOverlappedSend;
-		Overlapped*				mOverlappedRecv;
-		
+		SessionBuffer*			mSendBuffer;
+		SessionBuffer*			mRecvBuffer;
+
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;
-		WSAOVERLAPPED			mAcceptOverlapped;		//For AcceptEx()
-
-		//TODO : Implement 'Send Buffer', 'Recv Buffer'
-		BYTE*					mSendBuffer;
-		BYTE*					mRecvBuffer;
 	};
 
 }

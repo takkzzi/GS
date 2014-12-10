@@ -2,7 +2,6 @@
 #include "Session.h"
 #include "Networker.h"
 
-
 using namespace Core;
 using namespace Network;
 
@@ -12,19 +11,15 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	, mState(SESSIONSTATE_NONE)
 	, mSock(INVALID_SOCKET)
 	, mEvent(WSA_INVALID_EVENT)
-	, mOverlappedAccept(NULL)
-	, mOverlappedSend(NULL)
-	, mOverlappedRecv(NULL)
+	, mOverlappedAccept(new Overlapped(this, IO_ACCEPT))
+	, mSendBuffer(new SessionBuffer())
+	, mRecvBuffer(new SessionBuffer())
 	, mListenSock(INVALID_SOCKET)
 	, mIsAccepter(false)
 {	
-	mOverlappedAccept = new Overlapped(this, IO_ACCEPT, 0);
-	mOverlappedSend = new Overlapped(this, IO_SEND, IOBUFFER_LENGTH);
-	mOverlappedRecv = new Overlapped(this, IO_RECV, IOBUFFER_LENGTH);
-
-	//TODO : Buffer Create
-	//mSendBuffer->Init();
-	//mRecvBuffer->Init();
+	//I/O Buffer Init
+	mSendBuffer->Init(this, 32, sendBufferSize);
+	mRecvBuffer->Init(this, 32, recvBufferSize);
 }
 
 Session::~Session(void)
@@ -33,8 +28,8 @@ Session::~Session(void)
 		Disconnect();
 
 	SAFE_DELETE(mOverlappedAccept);
-	SAFE_DELETE(mOverlappedSend);
-	SAFE_DELETE(mOverlappedRecv);
+	SAFE_DELETE(mRecvBuffer);
+	SAFE_DELETE(mSendBuffer);
 
 }
 
@@ -94,10 +89,11 @@ bool Session::Accept(SOCKET listenSock) {
 	BOOL bOptVal = TRUE;
 	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
-	BOOL bPreAccept = AcceptEx(listenSock, mSock, mOverlappedRecv->wsaBuf.buf, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, (WSAOVERLAPPED*)&(mOverlappedAccept->ov));
+	BOOL bPreAccept = AcceptEx(listenSock, mSock, , 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, (WSAOVERLAPPED*)&(mOverlappedAccept->ov));
 	
 	if ( ! bPreAccept ){
-		if (WSAGetLastError() != ERROR_IO_PENDING && WSAGetLastError() != WSAEWOULDBLOCK)	// Erro Condition
+		DWORD err = WSAGetLastError();
+		if (err != ERROR_IO_PENDING && err != WSAEWOULDBLOCK)	// Erro Condition
 			return false;
 	}
 
@@ -123,9 +119,8 @@ bool Session::Disconnect(bool bAccept)
 	mSock = INVALID_SOCKET;
 	SetState(SESSIONSTATE_NONE);
 
-	//TODO : Clear All Buffers
-	//mRecvBuffer->ClearBuffer();
-	//mSendBuffer->ClearBuffer();
+	mRecvBuffer->Clear();
+	mSendBuffer->Clear();
 
 	if ( bAccept && mIsAccepter ) {
 		Accept(mListenSock);
@@ -144,11 +139,11 @@ bool Session::Send(BYTE* data, int dataLen)
 
 void Session::OnCompletionStatus(Overlapped* overlapped, DWORD transferSize)
 {
-	if ( overlapped->iotype == IO_ACCEPT )
+	if ( overlapped->mIoType == IO_ACCEPT )
 		OnAccept(0);
-	else if ( overlapped->iotype == IO_SEND )
+	else if ( overlapped->mIoType == IO_SEND )
 		OnSendComplete(transferSize);
-	else if ( overlapped->iotype == IO_RECV )
+	else if ( overlapped->mIoType == IO_RECV )
 		OnRecvComplete(transferSize);
 	else
 		ASSERT(0);
@@ -160,13 +155,20 @@ void Session::OnConnect()
 
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
-	//mRecvBuffer->ClearBuffer();
-	//mSendBuffer->ClearBuffer();
+	mRecvBuffer->Clear();
+	mSendBuffer->Clear();
 
 	//First Reserve Receive
 	DWORD dwBytes, dwFlags = 0;
-	int res = ::WSARecv(mSock, &mOverlappedRecv->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
-	if ( res == SOCKET_ERROR && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
+	
+	SessionBuffer::BufferItem* buf = mRecvBuffer->GetEmptyBuffer();
+
+	int res = ::WSARecv(mSock, &buf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(mOverlappedRecv->ov), NULL);
+
+	if ( res == 0 ) {
+		//TODO : Received Now
+	}
+	else if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 		Disconnect();
 	}
 }
@@ -183,12 +185,6 @@ void Session::OnAccept(SOCKET listenSock)
 		int addrlen = sizeof(SOCKADDR);
 		mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
 	}
-
-	if ( mOverlappedSend )
-		mOverlappedSend->Reset();
-
-	if ( mOverlappedRecv )
-		mOverlappedRecv->Reset();
 
 	Logger::Log("Session", "OnAccept() : %d", mId);
 

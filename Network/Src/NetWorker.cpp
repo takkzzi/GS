@@ -30,9 +30,8 @@ public :
 
 		if ( ioKey && overlapped ) 
 		{
-			Session* sess = (Session*)overlapped->owner;
-			ASSERT(overlapped->owner);
-			sess->OnCompletionStatus(overlapped, cbTransferred);
+			ASSERT(overlapped->mSession);
+			overlapped->mSession->OnCompletionStatus(overlapped, cbTransferred);
 		}
 
 		return 1;	//Keep Calling This Function

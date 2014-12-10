@@ -8,14 +8,21 @@
 #include "Network/Network.h"
 
 
+struct BuffItem {
+public :
+	BuffItem() {
+	}
+	~BuffItem() {
+	}
+
+	
+};
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	CoreSystem::Init();
+	CoreSystem::Init(_T("TestLog"));
 	NetworkSystem::Init();
-
-	Session *s = new Session(0, 10, 10);
-	SAFE_DELETE(s);
-
+	
 
 	CoreSystem::Shutdown();
 	NetworkSystem::Shutdown();

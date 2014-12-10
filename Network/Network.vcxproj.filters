@@ -14,6 +14,9 @@
     <ClCompile Include="Src\NetWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="Src\SessionBuffer.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -31,6 +34,9 @@
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\NetWorker.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SessionBuffer.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
