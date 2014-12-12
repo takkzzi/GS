@@ -203,14 +203,12 @@ void Networker::DeleteAllSessions()
 }
 
 //NOTE: Call in main thread.
-void Networker::Update()
+void Networker::UpdateSend()
 {
 	mCriticalSec.Enter();
 
-	for(auto &i : mSessionVec) {
-		Session* session = i;
-		if ( session ) {
-			//TODO : Send
+	for(auto &sess : mSessionVec) {
+		if ( sess ) {
 
 			//TODO : Processing Received Packet
 		}

@@ -36,7 +36,8 @@ namespace Network
 		int				GetSessionCount()				{ return mSessionVec.size(); }
 		HANDLE			GetIocpHandle()					{ return mIocp; }
 
-		void			Update();
+		void			UpdateSend();
+		void			UpdateRecv();
 
 	protected:
 		void			BeginIo(int threadCount);

@@ -17,7 +17,7 @@ SessionBuffer::~SessionBuffer()
 		delete[] i;
 }
 
-void SessionBuffer::Init(Session* sess, int bufferCount, int bufferSize)
+void SessionBuffer::Init(Session* sess, OverlappedIoType ioType, int bufferCount, int bufferSize)
 {
 	Clear();
 
@@ -25,48 +25,77 @@ void SessionBuffer::Init(Session* sess, int bufferCount, int bufferSize)
 		return;
 
 	mSession = sess;
+	mIOType = ioType;
 	mBufferSize = bufferSize;
 
 	mBuffers.reserve(bufferCount);
-	for(int i = 0; i < bufferCount; ++i)
-		mBuffers.push_back(new char[bufferSize]);
-
-	mBufferIndexList.clear();;
+	for(int i = 0; i < bufferCount; ++i) {
+		BufferItem* newBuf = new BufferItem(sess, ioType, bufferSize, i);
+		mBuffers.push_back(newBuf);
+		//mBufferMap[newBuf->mOverlapped] = newBuf;
+	}
 }
 
-int SessionBuffer::Clear()
+void SessionBuffer::Clear()
 {
 	for(auto &i : mBuffers) {
-		::ZeroMemory(i, mBufferSize);
+		i->Clear();
+	}
+}
+
+bool SessionBuffer::PushCopy(char* data)
+{
+	BufferItem* newBuffer = GetEmptyBuffer();
+	newBuffer->Push(data);
+	return true;
+}
+
+BufferItem*	SessionBuffer::GetEmptyBuffer()
+{
+	for(auto &i : mBuffers) {
+		if ( i->mWsaBuf.len == 0 )
+			return i;
 	}
 
-	int count = mBufferIndexList.size();
-	mBufferIndexList.clear();
-
-	return count;
+	Logger::Log("SessionBuffer", "SessionBuffer::GetEmptyBuffer() -- No Empty Buffer. Create New One.");
+	BufferItem* newBuffer = new BufferItem(mSession, mIOType, mBufferSize, mBuffers.size());
+	mBuffers.push_back(newBuffer);
+	return newBuffer;
 }
 
-bool SessionBuffer::Push(char* data)
+void SessionBuffer::OnSend(Overlapped* overlapped, int byteCount)
 {
-	return false;
+	ASSERT(overlapped);
+	BufferItem* buff = (BufferItem*)overlapped;
+	ASSERT(buff->mWsaBuf.len == byteCount);
+	if ( buff->mWsaBuf.len == byteCount ) {
+		buff->Clear();
+	}
 }
 
-char* SessionBuffer::GetBuffer(int idx)
+void SessionBuffer::OnRecv(Overlapped* overlapped, int byteCount)
 {
+	//Just Check
+	ASSERT(overlapped);
+	BufferItem* buff = (BufferItem*)overlapped;
+	if ( buff->mWsaBuf.len != byteCount ) {
+		Logger::Log("SessionBuffer", "OnRecv() -- Data Lenth Different");
+	}
+}
+
+BufferItem* SessionBuffer::GetFilledBuffer()
+{
+	for(auto &i : mBuffers) {
+		if ( i->mWsaBuf.len > 0 )
+			return i;
+	}
+
 	return NULL;
 }
 
-bool SessionBuffer::RemoveData(int idx)
+void SessionBuffer::ClearBuffer(BufferItem* item)
 {
-	ASSERT(mBuffers.size() > idx);
-
-	::ZeroMemory(mBuffers[idx], mBufferSize);
-
-	return false;
-}
-
-SessionBuffer::BufferItem*	SessionBuffer::GetEmptyBuffer()
-{
-	return NULL;
+	ASSERT(item);
+	mBuffers[item->mIndex]->Clear();
 }
 

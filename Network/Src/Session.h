@@ -22,26 +22,29 @@ namespace Network
 
 	public:
 
-		bool					Connect(const CHAR* addr, USHORT port);
-		bool					Accept(SOCKET listenSock);
-		bool					Disconnect(bool bAccept=false);
-		bool					Send(BYTE* data, int dataLen);
+		int						GetId()		{ return mId; }
+		void					SetState(SessionState state);
+		bool					IsState(SessionState state)			{ return (mState == state); }
 
-		void					OnCompletionStatus(Overlapped* overlapped, DWORD transferSize);
-		
+		bool					Connect(const CHAR* addr, USHORT port);
+		bool					PreAccept(SOCKET listenSock);
+		bool					Disconnect(bool bAccept=false);
+		bool					Send(char* data, int dataLen);
+
+	//Start Event Callback
 	public :
+		void					OnCompletionStatus(Overlapped* overlapped, DWORD transferSize);
 		virtual void			OnAccept(SOCKET listenSock);
 
 	protected:
 		void					OnConnect();
-		virtual void			OnSendComplete(DWORD sendSize);
-		virtual void			OnRecvComplete(DWORD recvSize);
+		virtual void			OnSendComplete(Overlapped* overlapped, DWORD sendSize);
+		virtual void			OnRecvComplete(Overlapped* overlapped, DWORD recvSize);
 		virtual void			OnDisconnect();
+	//End Event Callback
 
-	public:
-		int						GetId()		{ return mId; }
-		void					SetState(SessionState state);
-		bool					IsState(SessionState state)			{ return (mState == state); }
+	protected:
+		void					PreReceive();	
 
 	protected:
 		Networker*				mNetworker;
@@ -52,7 +55,7 @@ namespace Network
 		HANDLE					mEvent;
 		SOCKADDR_IN				mRemoteAddr;
 
-		Overlapped*				mOverlappedAccept;
+		BufferItem*				mAcceptBufferItem;
 		SessionBuffer*			mSendBuffer;
 		SessionBuffer*			mRecvBuffer;
 
