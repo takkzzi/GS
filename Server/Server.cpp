@@ -77,7 +77,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		else
 		{
 			//Main Loop
-			networker->Update();
+			//GameUpdate();
+			networker->UpdateSend();
+			networker->UpdateRecv();
 		}
 	}
 

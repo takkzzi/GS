@@ -36,9 +36,6 @@ using namespace Core;
 #endif // _DEBUG
 
 #include <tchar.h>
-#include <vector>
-#include <list>
-#include <map>
 
 #include "MemLeakDetect.h"
 #include "Macro.h"

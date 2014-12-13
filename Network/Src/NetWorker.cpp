@@ -21,7 +21,7 @@ public :
 	{
 		DWORD		cbTransferred;
 		void*		ioKey		= NULL;
-		Overlapped*	overlapped	= NULL;
+		OverlappedData*	overlapped	= NULL;
 
 		BOOL result = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
 
@@ -30,8 +30,8 @@ public :
 
 		if ( ioKey && overlapped ) 
 		{
-			ASSERT(overlapped->mSession);
-			overlapped->mSession->OnCompletionStatus(overlapped, cbTransferred);
+			ASSERT(overlapped->session);
+			overlapped->session->OnCompletionStatus(overlapped, cbTransferred);
 		}
 
 		return 1;	//Keep Calling This Function
@@ -153,7 +153,7 @@ Session* Networker::GetNewSession()
 		if ( s == NULL ) {
 			s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
 			if ( mbPreAccept )
-				s->Accept(mListener->GetSocket());
+				s->PreAccept(mListener->GetSocket());
 
 			mSessionVec[i] = s;
 			newSession = s;
@@ -168,7 +168,7 @@ Session* Networker::GetNewSession()
 	if ( ! newSession ) {
 		newSession = new Session(this, mSessionVec.size(), mSendBufferSize, mRecvBufferSize);
 		if ( mbPreAccept ) {
-			newSession->Accept(mListener->GetSocket());
+			newSession->PreAccept(mListener->GetSocket());
 		}
 
 		mSessionVec.push_back(newSession);
@@ -184,7 +184,7 @@ void Networker::PreacceptAll()
 	mCriticalSec.Enter();
 
 	for(unsigned int i = 0; i < mSessionVec.size(); ++i) {
-		mSessionVec[i]->Accept(mListener->GetSocket());
+		mSessionVec[i]->PreAccept(mListener->GetSocket());
 	}
 
 	mCriticalSec.Leave();
@@ -215,6 +215,10 @@ void Networker::UpdateSend()
 	}
 
 	mCriticalSec.Leave();
+}
+
+void Networker::UpdateRecv()
+{
 }
 
 Session* Networker::GetSession(int id)			

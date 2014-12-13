@@ -23,6 +23,11 @@ namespace Network
 #include <WinSock2.h>
 #include <mswsock.h>
 
+#include <vector>
+#include <list>
+#include <map>
+#include <queue>
+
 using namespace Network;
 
 #include "Defines.h"

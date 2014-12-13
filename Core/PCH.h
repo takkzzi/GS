@@ -22,12 +22,9 @@
 #include <cassert>
 #include <stddef.h>  // For ptrdiff_t
 */
+#include <stdlib.h>
 #include <tchar.h>
 
-#include <vector>
-#include <list>
-#include <map>
-//#include <WinSock2.h>
 
 #include "Src/Assert.h"
 #include "Src/Macro.h"

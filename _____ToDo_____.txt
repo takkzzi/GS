@@ -18,15 +18,13 @@
 	- Listener 를 쓰레드 없이 IOCP 에 포함 시켜 단순화&최적화
 	- Send, Recv Buffer 구현 ( Atlantica 참고 )
 	- AcceptEx 시 함께 전송된 Data 처리 할것.
-* Session 
-	- Connect 에러 Disconnect 후 다시 Connect 시 에러 추정
-	= ioctlsocket() ??? 알아둘것
+* Session
+	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
+	
 
-* Server - Echo Server 구현
+* Server - Echo Server 구현 (EndUser(가칭) 구현 - DummyData 들을 주변 100 개 유저에 BroadCast 테스트)
 
 * Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.
-
-* EndUser(가칭) 구현 - DummyData 들을 주변 100 개 유저에 BroadCast 테스트
 
 
 ------------ ClientSimulator -------------

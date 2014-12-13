@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SessionBuffer.h"
+#include "SessionDataQueue.h"
 
 namespace Network
 {
@@ -33,13 +33,13 @@ namespace Network
 
 	//Start Event Callback
 	public :
-		void					OnCompletionStatus(Overlapped* overlapped, DWORD transferSize);
+		void					OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize);
 		virtual void			OnAccept(SOCKET listenSock);
 
 	protected:
 		void					OnConnect();
-		virtual void			OnSendComplete(Overlapped* overlapped, DWORD sendSize);
-		virtual void			OnRecvComplete(Overlapped* overlapped, DWORD recvSize);
+		virtual void			OnSendComplete(OverlappedData* overlapped, DWORD sendSize);
+		virtual void			OnRecvComplete(OverlappedData* overlapped, DWORD recvSize);
 		virtual void			OnDisconnect();
 	//End Event Callback
 
@@ -55,9 +55,9 @@ namespace Network
 		HANDLE					mEvent;
 		SOCKADDR_IN				mRemoteAddr;
 
-		BufferItem*				mAcceptBufferItem;
-		SessionBuffer*			mSendBuffer;
-		SessionBuffer*			mRecvBuffer;
+		OverlappedData*			mAcceptData;
+		SessionDataQueue*		mSendBuffer;
+		SessionDataQueue*		mRecvBuffer;
 
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;
