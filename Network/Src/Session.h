@@ -56,8 +56,8 @@ namespace Network
 		SOCKADDR_IN				mRemoteAddr;
 
 		OverlappedData*			mAcceptData;
-		SessionDataQueue*		mSendBuffer;
-		SessionDataQueue*		mRecvBuffer;
+		SessionDataQueue		mSendBuffer;
+		SessionDataQueue		mRecvBuffer;
 
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;

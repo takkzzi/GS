@@ -53,8 +53,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	const int sessionCount	= 5000;
 	const int sessionLimit	= 50000;
 
-	int sendBufferSize = 5120;
-	int recvBufferSize = 5120;
+	int sendBufferSize = 1024;
+	int recvBufferSize = 1024;
 
 	Networker* networker = new Networker(1, sessionCount, sessionLimit, sendBufferSize, recvBufferSize);
 	networker->BeginListen(port, true);

@@ -11,15 +11,17 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	, mState(SESSIONSTATE_NONE)
 	, mSock(INVALID_SOCKET)
 	, mEvent(WSA_INVALID_EVENT)
-	, mAcceptData(new OverlappedData(this, IO_ACCEPT, recvBufferSize, 0))
-	, mSendBuffer(new SessionDataQueue())
-	, mRecvBuffer(new SessionDataQueue())
+	//, mAcceptData(new OverlappedData(this, IO_ACCEPT, recvBufferSize, 0))
+	//, mSendBuffer(new SessionDataQueue())
+	//, mRecvBuffer(new SessionDataQueue())
 	, mListenSock(INVALID_SOCKET)
 	, mIsAccepter(false)
 {	
+	mAcceptData = new OverlappedData(this, IO_ACCEPT, recvBufferSize, 0);
+
 	//I/O Buffer Init
-	mSendBuffer->Init(this, IO_SEND, 32, sendBufferSize);
-	mRecvBuffer->Init(this, IO_RECV, 32, recvBufferSize);
+	mSendBuffer.Init(this, IO_SEND, 32, sendBufferSize);
+	mRecvBuffer.Init(this, IO_RECV, 32, recvBufferSize);
 }
 
 Session::~Session(void)
@@ -28,8 +30,8 @@ Session::~Session(void)
 		Disconnect();
 
 	SAFE_DELETE(mAcceptData);
-	SAFE_DELETE(mRecvBuffer);
-	SAFE_DELETE(mSendBuffer);
+	//SAFE_DELETE(mRecvBuffer);
+	//SAFE_DELETE(mSendBuffer);
 }
 
 void Session::SetState(SessionState state) 
@@ -118,8 +120,8 @@ bool Session::Disconnect(bool bAccept)
 	mSock = INVALID_SOCKET;
 	SetState(SESSIONSTATE_NONE);
 
-	mRecvBuffer->Clear();
-	mSendBuffer->Clear();
+	mRecvBuffer.Clear();
+	mSendBuffer.Clear();
 
 	if ( bAccept && mIsAccepter ) {
 		PreAccept(mListenSock);
@@ -130,7 +132,7 @@ bool Session::Disconnect(bool bAccept)
 
 bool Session::Send(char* data, int dataLen)
 {
-	mSendBuffer->Push(data, dataLen);
+	mSendBuffer.Push(data, dataLen);
 
 	return true;
 }
@@ -153,8 +155,8 @@ void Session::OnConnect()
 
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
-	mRecvBuffer->Clear();
-	mSendBuffer->Clear();
+	mRecvBuffer.Clear();
+	mSendBuffer.Clear();
 
 	//Start Overlapped Receive
 	PreReceive();
@@ -186,7 +188,7 @@ void Session::OnSendComplete(OverlappedData* overlapped, DWORD sendSize)
 	}
 
 	//TODO : Send Complete
-	mSendBuffer->OnSendComplete(overlapped, sendSize);
+	mSendBuffer.OnSendComplete(overlapped, sendSize);
 }
 
 void Session::OnRecvComplete(OverlappedData* overlapped, DWORD recvSize)
@@ -196,7 +198,7 @@ void Session::OnRecvComplete(OverlappedData* overlapped, DWORD recvSize)
 		return;
 	}
 	//TODO : Receive Complete
-	mRecvBuffer->OnRecvComplete(overlapped, recvSize);
+	mRecvBuffer.OnRecvComplete(overlapped, recvSize);
 
 	PreReceive();	
 }
@@ -205,7 +207,7 @@ void Session::PreReceive()
 {
 	DWORD dwBytes, dwFlags = 0;
 	
-	OverlappedData* data = mRecvBuffer->GetEmptyData();
+	OverlappedData* data = mRecvBuffer.GetEmptyData();
 	int res = ::WSARecv(mSock, &data->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(data), NULL);
 
 	if ( res == 0 ) {

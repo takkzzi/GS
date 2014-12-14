@@ -21,18 +21,20 @@ public :
 	{
 		DWORD		cbTransferred;
 		void*		ioKey		= NULL;
-		OverlappedData*	overlapped	= NULL;
-
+		//OverlappedData*	overlapped	= NULL;
+		WSAOVERLAPPED* overlapped = NULL;
 		BOOL result = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
 
 		if ( result && ! ioKey && ! overlapped )	//End() 의 PostQueuedCompletionStatus() 가 호출된 경우.
 			return 0;	// End Thread
 
+		/*
 		if ( ioKey && overlapped ) 
 		{
 			ASSERT(overlapped->session);
 			overlapped->session->OnCompletionStatus(overlapped, cbTransferred);
 		}
+		*/
 
 		return 1;	//Keep Calling This Function
 	}
