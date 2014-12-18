@@ -39,4 +39,8 @@ namespace Core
 		static		std::map<const LPTSTR, FILE*>		msFileMap;
 		static		CriticalSection*					mCS;
 	};
+
+	
+#define		LogLastError(categName, bMsgBox)	Logger::Log(categName, _T("%s (File : %s , Line : %d)"), Logger::GetLastErrorMsg(NULL, bMsgBox), _CRT_WIDE(__FILE__), __LINE__)
+
 }

@@ -158,7 +158,7 @@ bool IocpListener::BeginListen()
 	addr.sin_addr.s_addr= htonl (INADDR_ANY);	
 
 	if ( ::bind (mSock, (struct sockaddr*) &addr, sizeof(addr)) == SOCKET_ERROR ) {
-		Logger::GetLastErrorMsg(NULL, true);
+		LogLastError(_T("Listener"), _T("Bind() Error"), true);
 		return false;
 	}
 

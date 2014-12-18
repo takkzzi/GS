@@ -3,118 +3,126 @@
 #include "Listener.h"
 #include "Session.h"
 
+#include <process.h>
 
 using namespace Core;
 using namespace Network;
 
 
-class IOCPThread : public Thread
+
+unsigned __stdcall IOCPWorker (void* arg)
 {
-public :
-
-	IOCPThread(Networker* networker)
-		: mNetworker(networker)
+	Networker* networker = (Networker*)arg;
+	while(1) 
 	{
-	}
+		DWORD				transferBytes;
+		void*				ioKey		= NULL;
+		OverlappedIoData*	overlapped	= NULL;
 
-	virtual DWORD ThreadTick()
-	{
-		DWORD		cbTransferred;
-		void*		ioKey		= NULL;
-		//OverlappedData*	overlapped	= NULL;
-		WSAOVERLAPPED* overlapped = NULL;
-		BOOL result = ::GetQueuedCompletionStatus(mNetworker->GetIocpHandle(), &cbTransferred, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
+		BOOL result = ::GetQueuedCompletionStatus(networker->GetIocpHandle(), &transferBytes, (PULONG_PTR)&ioKey, (LPOVERLAPPED*)&overlapped, INFINITE);
 
-		if ( result && ! ioKey && ! overlapped )	//End() 의 PostQueuedCompletionStatus() 가 호출된 경우.
-			return 0;	// End Thread
+		//PostQueuedCompletionStatus() 가 호출된 경우.
+		if ( ! ioKey && ! overlapped )
+			break;
 
-		/*
-		if ( ioKey && overlapped ) 
-		{
-			ASSERT(overlapped->session);
-			overlapped->session->OnCompletionStatus(overlapped, cbTransferred);
+		if ( ioKey && overlapped && overlapped->session ) {
+
+			Session* sess = overlapped->session;
+			OverlappedIoType io = overlapped->ioType;
+			if ( result ) {
+				if ( io == IO_ACCEPT ) {
+					sess->OnAccept(INVALID_SOCKET);
+				}
+				else if ( io == IO_SEND ) {
+					sess->OnSendComplete(overlapped->sessBuf, transferBytes);
+				}
+				else if ( io == IO_RECV ) {
+					sess->OnRecvComplete(overlapped->sessBuf, transferBytes);
+				}
+			}
+			else {
+				//Socket Closed
+				sess->ResetState(true);
+			}
 		}
-		*/
-
-		return 1;	//Keep Calling This Function
 	}
-	
-	virtual bool End() 
-	{
-		//Wakeup & Return Thrad
-		PostQueuedCompletionStatus(mNetworker->GetIocpHandle(), 0, NULL, NULL);
-		return __super::End();
-	}
+	networker->OnEndIoThread();
+	return 0;
+}
 
-	virtual void OnEnd(bool bTerminated=false) 
-	{
-		Logger::LogWarning(_T("IOCPThread %s"), _T("OnEnd()"));
-		__super::OnEnd(bTerminated);
-	}
 
-protected:
-	Networker*		mNetworker;
-
-};
 
 
 Networker::Networker(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
+	, mThreadCount(threadCount)
 	, mListener(NULL)
+	, mbPreAccept(false)
 	, mSessionLimitCount(sessionLimitCount)
 	, mSendBufferSize(sendBufferSize)
 	, mRecvBufferSize(recvBufferSize)
 {
-	mIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-	if (mIocp == NULL) {
-		Logger::LogError(_T("IOCP Creation Fail."));
-	}
+	if ( mSessionLimitCount <= 0 )
+		mSessionLimitCount = 1;
 
-	mSessionVec.reserve(reserveSessionCount);
+	if ( reserveSessionCount <= 0 )
+		reserveSessionCount = 1;
 
-	int i = 0;
+	mSessionVec.reserve(mSessionLimitCount);
+
 	for(int i = 0; i < reserveSessionCount; ++i) {
 		mSessionVec.push_back(new Session(this, i, mSendBufferSize, mRecvBufferSize));
 	}
 
-	BeginIo(threadCount);
+	BeginIo();
 }
 
 Networker::~Networker(void)
 {
 	EndListen();
 	EndIo();
+}
+
+//Thread Creation & Start Thread
+void Networker::BeginIo()
+{
+	mCriticalSec.Enter();
+	
+	mIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
+	if (mIocp == NULL) {
+		Logger::LogError(_T("IOCP Creation Fail."));
+	}
+
+	if (mThreadCount <= 0 ) {
+		DWORD processors = System::GetProcessorCount();
+		mThreadCount = processors * 2 + 1; //optimized count for processors
+	}
+
+	mWorkingcCount = mThreadCount;
+	for (UINT i = 0; i < mThreadCount; i++)
+	{
+		HANDLE hThread = (HANDLE) ::_beginthreadex(NULL, 0, IOCPWorker, this, 0, NULL);
+		CloseHandle (hThread);
+	}
+	
+	mCriticalSec.Leave();
+}
+
+void Networker::EndIo()
+{	
+	mCriticalSec.Enter();
+	for (UINT i = 0; i < mThreadCount; i++) {
+		PostQueuedCompletionStatus(GetIocpHandle(), 0, NULL, NULL);
+	}
+
+	while ( mWorkingcCount > 0) {
+	}
 
 	if ( mIocp != INVALID_HANDLE_VALUE) {
 		CloseHandle(mIocp);
 		mIocp = INVALID_HANDLE_VALUE;
 	}
-}
-
-//Thread Creation & Start Thread
-void Networker::BeginIo(int threadCount)
-{
-	mThreadVec.reserve(threadCount);
-
-	if (threadCount <= 0 ) {
-		DWORD processors = System::GetProcessorCount();
-		threadCount = processors * 2 + 1; //optimized count for processors
-	}
-
-	for(int i = 0; i < threadCount; ++i) {
-		IOCPThread* th = new IOCPThread(this);
-		mThreadVec.push_back(th);
-		th->Begin();
-	}
-}
-
-void Networker::EndIo()
-{
-	for(auto &i : mThreadVec) {
-		i->End();
-		SAFE_DELETE(i);
-	}
-	mThreadVec.clear();
+	mCriticalSec.Leave();
 
 	DeleteAllSessions();
 }
@@ -123,6 +131,7 @@ void Networker::BeginListen(UINT16 port, bool bPreAccept)
 {
 	EndListen();
 
+	mCriticalSec.Enter();
 	mbPreAccept = bPreAccept;
 
 	if ( bPreAccept ) {
@@ -134,29 +143,33 @@ void Networker::BeginListen(UINT16 port, bool bPreAccept)
 		mListener = new SelectListener(this, port);
 		mListener->BeginListen();
 	}
+	mCriticalSec.Leave();
 }
 
 void Networker::EndListen()
 {
+	mCriticalSec.Enter();
 	if ( mListener )
 		mListener->EndListen();
 	SAFE_DELETE(mListener);
+	mCriticalSec.Leave();
 }
 
+Session* Networker::GetSession(int id)			
+{ 
+	ASSERT(0 <= id && id < GetSessionCount() );
+	return mSessionVec[id]; 
+}
 
 Session* Networker::GetNewSession()
 {
 	mCriticalSec.Enter();
 
 	Session* newSession = NULL;
-
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
 		Session* s = mSessionVec[i];
 		if ( s == NULL ) {
 			s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
-			if ( mbPreAccept )
-				s->PreAccept(mListener->GetSocket());
-
 			mSessionVec[i] = s;
 			newSession = s;
 			break;
@@ -166,19 +179,24 @@ Session* Networker::GetNewSession()
 			break;
 		}
 	}
-
+	
 	if ( ! newSession ) {
-		newSession = new Session(this, mSessionVec.size(), mSendBufferSize, mRecvBufferSize);
-		if ( mbPreAccept ) {
-			newSession->PreAccept(mListener->GetSocket());
-		}
-
-		mSessionVec.push_back(newSession);
+		newSession = AddSession();
 	}
 
 	mCriticalSec.Leave();
 
 	return newSession;
+}
+
+Session* Networker::AddSession()
+{
+	Session* newSess = NULL;
+	if ( mSessionVec.size() < (std::size_t)mSessionLimitCount ) {
+		newSess = new Session(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
+		mSessionVec.push_back(newSess);
+	}
+	return newSess;
 }
 
 void Networker::PreacceptAll()
@@ -195,36 +213,45 @@ void Networker::PreacceptAll()
 void Networker::DeleteAllSessions()
 {
 	mCriticalSec.Enter();
-
 	for(auto &i : mSessionVec) {
 		SAFE_DELETE(i);
 	}
 	mSessionVec.clear();
-
 	mCriticalSec.Leave();
 }
 
-//NOTE: Call in main thread.
-void Networker::UpdateSend()
+void Networker::OnEndIoThread()
+{
+	::InterlockedDecrement(&mWorkingcCount);
+	ASSERT(mWorkingcCount >= 0);
+}
+
+void Networker::Update()
 {
 	mCriticalSec.Enter();
-
+	Session* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
 		if ( sess ) {
+			if ( sess->IsState(SESSIONSTATE_CONNECTED) ) {
+				sess->Send();		// Send Data Packet One-by-One
+			}
+		}
 
-			//TODO : Processing Received Packet
+		if ( mbPreAccept ) {
+			switch (sess->GetState()) {
+			case SESSIONSTATE_NONE :
+				sess->PreAccept(mListener->GetSocket());
+			case SESSIONSTATE_ACCEPTING :
+				acceptingSession = sess;
+			}
 		}
 	}
-
+	
+	if ( ! acceptingSession && mbPreAccept ) {
+		acceptingSession = AddSession();
+		if ( acceptingSession)
+			acceptingSession->PreAccept(mListener->GetSocket());
+	}
 	mCriticalSec.Leave();
 }
 
-void Networker::UpdateRecv()
-{
-}
-
-Session* Networker::GetSession(int id)			
-{ 
-	ASSERT(0 <= id && id < GetSessionCount() );
-	return mSessionVec[id]; 
-}

@@ -5,6 +5,8 @@
 #include "Server.h"
 #include "stdio.h"
 
+using namespace Core;
+using namespace Network;
 
 #define MAX_LOADSTRING 100
 
@@ -20,11 +22,98 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
+const int port			= 42006;
+const int sessionCount	= 100;
+const int sessionLimit	= 50000;
 
-int APIENTRY _tWinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPTSTR    lpCmdLine,
-                     int       nCmdShow)
+class EchoServer : public Thread 
+{
+public :
+
+	EchoServer() : Thread()
+	{
+		mIocp = new Networker(2, sessionCount, sessionLimit, 1024, 1024);
+		
+		::ZeroMemory(mEchoCount, 5000*sizeof(UINT64));
+	};
+
+	virtual ~EchoServer() 
+	{
+		SAFE_DELETE(mIocp);
+	};
+
+	virtual bool Begin(bool bSuspend=false)
+	{
+		mIocp->BeginListen(port, true);
+
+		return __super::Begin(bSuspend);
+	}
+
+	virtual bool End()
+	{
+		//DisconnectAll
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			se->Disconnect();
+		}
+
+		return __super::End();
+	}
+
+	void Update() {
+		
+		
+
+		if ( IsState(THREAD_END) )
+			return;
+
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
+			{
+				//ECHO !
+				while( SessionBuffer* buf = se->PopRecv() )	
+				{
+					if ( buf->len != 27 )
+						PrintDebugString(buf);
+
+					se->PushSend(buf->buf, buf->len);
+					buf->Clear();
+
+					++mEchoCount[se->GetId()];
+				}
+			}
+		}
+
+		mIocp->Update();
+	}
+
+	void PrintDebugString(SessionBuffer* buf) {
+		char msg[2048];
+		::ZeroMemory(msg, 2048);
+
+		memcpy(msg, buf->buf, buf->len-1);
+		sprintf_s(msg, "%s(size:%d),(idx:%d)\n", msg, buf->len, buf->index);
+		OutputDebugStringA(msg);
+	}
+
+	virtual DWORD ThreadTick()
+	{
+		Update();
+		Update();
+
+		return 1;
+	}
+
+protected :
+	Networker*					mIocp;
+	std::vector<Session*>		mSessions;
+
+	UINT64						mEchoCount[5000];
+};
+
+
+int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
@@ -49,15 +138,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	CoreSystem::Init(_T("ServerLog"));
 	NetworkSystem::Init();
 	
-	int port			= 42006;
-	const int sessionCount	= 5000;
-	const int sessionLimit	= 50000;
-
-	int sendBufferSize = 1024;
-	int recvBufferSize = 1024;
-
-	Networker* networker = new Networker(1, sessionCount, sessionLimit, sendBufferSize, recvBufferSize);
-	networker->BeginListen(port, true);
+	
+	EchoServer* server = new EchoServer();
+	server->Begin();
 
 
 	// 기본 메시지 루프입니다.
@@ -76,17 +159,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 		else
 		{
-			//Main Loop
-			//GameUpdate();
-			networker->UpdateSend();
-			networker->UpdateRecv();
 		}
 	}
 
-	SAFE_DELETE(networker);
+	server->End();
+	SAFE_DELETE(server);
 
-	Network::NetworkSystem::Shutdown();
-	Core::CoreSystem::Shutdown();
+	NetworkSystem::Shutdown();
+	CoreSystem::Shutdown();
 
 	return (int) msg.wParam;
 }

@@ -3,18 +3,13 @@
 #include <vector>
 #include <map>
 
-
-enum NetMethod {
-	//NET_EVENTSELECT,
-	NET_IOCP,
-};
-
 class IOCPThread;
 
 namespace Network
 {
 	using namespace Core;
 
+	struct OverlappedIoData;
 	class Session;
 	class Listener;
 
@@ -27,38 +22,40 @@ namespace Network
 
 	public:
 
-		void			BeginListen(UINT16 port, bool bPreAccept);
-		void			EndListen();
+		void					BeginListen(UINT16 port, bool bPreAccept);
+		void					EndListen();
 
-		Session*		GetNewSession();
-		Session*		GetSession(int id);
-		void			ClearSession(int id);
-		int				GetSessionCount()				{ return mSessionVec.size(); }
-		HANDLE			GetIocpHandle()					{ return mIocp; }
+		Session*				GetSession(int id);
+		Session*				GetNewSession();
+		void					ClearSession(int id);
+		int						GetSessionCount()				{ return mSessionVec.size(); }
+		HANDLE					GetIocpHandle()					{ return mIocp; }
 
-		void			UpdateSend();
-		void			UpdateRecv();
+		void					OnEndIoThread();
+		void					Update();
 
 	protected:
-		void			BeginIo(int threadCount);
-		void			EndIo();
+		void					BeginIo();
+		void					EndIo();
 
-		void			PreacceptAll();
-		void			DeleteAllSessions();
+		Session*				AddSession();
+
+		void					PreacceptAll();
+		void					DeleteAllSessions();
 
 	private:
 
 		HANDLE							mIocp;
+		UINT							mThreadCount;
+		UINT							mWorkingcCount;
 		class Listener*					mListener;
 		bool							mbPreAccept;
 
-		int								mSessionLimitCount;
-		int								mSendBufferSize;
-		int								mRecvBufferSize;
+		INT								mSessionLimitCount;
+		INT								mSendBufferSize;
+		INT								mRecvBufferSize;
 
-		std::vector<Core::Thread*>				mThreadVec;
-		std::vector<Session*>					mSessionVec;
-
+		std::vector<Session*>			mSessionVec;
 		CriticalSection					mCriticalSec;
 	};
 }

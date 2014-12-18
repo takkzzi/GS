@@ -11,27 +11,30 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	, mState(SESSIONSTATE_NONE)
 	, mSock(INVALID_SOCKET)
 	, mEvent(WSA_INVALID_EVENT)
-	//, mAcceptData(new OverlappedData(this, IO_ACCEPT, recvBufferSize, 0))
-	//, mSendBuffer(new SessionDataQueue())
-	//, mRecvBuffer(new SessionDataQueue())
 	, mListenSock(INVALID_SOCKET)
 	, mIsAccepter(false)
+	, mIsPendingSend(false)
 {	
-	mAcceptData = new OverlappedData(this, IO_ACCEPT, recvBufferSize, 0);
-
 	//I/O Buffer Init
-	mSendBuffer.Init(this, IO_SEND, 32, sendBufferSize);
-	mRecvBuffer.Init(this, IO_RECV, 32, recvBufferSize);
+	mAcceptIoData.Init(IO_ACCEPT, this);
+	mSendIoData.Init(IO_SEND, this);
+	mRecvIoData.Init(IO_RECV, this);
+
+	mAcceptBuffer = new char[recvBufferSize];
+	mSendBufferQ.Init(SESSION_BUFFER_Q_SIZE, sendBufferSize);
+	mRecvBufferQ.Init(SESSION_BUFFER_Q_SIZE, recvBufferSize);
 }
 
 Session::~Session(void)
 {
 	if ( IsState(SESSIONSTATE_CONNECTED) )
-		Disconnect();
+		Disconnect(false);
+	else
+		ResetState(false);
 
-	SAFE_DELETE(mAcceptData);
-	//SAFE_DELETE(mRecvBuffer);
-	//SAFE_DELETE(mSendBuffer);
+	mCriticalSec.Enter();
+	delete[] mAcceptBuffer;
+	mCriticalSec.Leave();
 }
 
 void Session::SetState(SessionState state) 
@@ -39,11 +42,32 @@ void Session::SetState(SessionState state)
 	::InterlockedExchange((LONG*)&mState, (LONG)state);
 }
 
+void Session::ResetState(bool bClearDataQ) 
+{
+	mCriticalSec.Enter();
+
+	if ( mSock != INVALID_SOCKET ) {
+		closesocket(mSock);
+		mSock = INVALID_SOCKET;
+	}
+
+	SetState(SESSIONSTATE_NONE);
+	mIsPendingSend = false;
+
+	if ( bClearDataQ ) {
+		mRecvBufferQ.Clear();
+		mSendBufferQ.Clear();
+	}
+
+	mCriticalSec.Leave();
+}
+
 bool Session::Connect(const CHAR* addr, USHORT port)
 {
 	if ( ! IsState(SESSIONSTATE_NONE) ) 
 		return FALSE;
 	
+
 	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	if (mSock == INVALID_SOCKET)
 		return false;
@@ -62,16 +86,31 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 		DWORD errCode = WSAGetLastError();
 		if (errCode != WSAEWOULDBLOCK)
 		{
-			Logger::Log(_T("Session"), _T("%d Connect() Error(%s)"), mId, Logger::GetLastErrorMsg(NULL) );
-
-			closesocket(mSock);
-			mSock = INVALID_SOCKET;
-
+			LogLastError(_T("Session"), _T("Connect() Error"), false);
+			ResetState(true);
 			return FALSE;
 		}
 	}
 
 	OnConnect();
+	return true;
+}
+
+bool Session::Disconnect(bool bReAccept)
+{
+	if ( mSock == INVALID_SOCKET)
+		return false;
+
+	mCriticalSec.Enter();
+	::shutdown( mSock, SD_BOTH );
+	mCriticalSec.Leave();
+
+	ResetState(true);
+
+	if ( bReAccept && mIsAccepter ) {
+		PreAccept(mListenSock);
+	}
+
 	return true;
 }
 
@@ -83,70 +122,102 @@ bool Session::PreAccept(SOCKET listenSock) {
 	if ( ! IsState(SESSIONSTATE_NONE) )
 		return false;
 
+	mCriticalSec.Enter();
+
 	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
-	if (mSock == INVALID_SOCKET)
+	if (mSock == INVALID_SOCKET) {
+		mCriticalSec.Leave();
 		return false;
+	}
 
 	BOOL bOptVal = TRUE;
 	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
-	BOOL bPreAccept = AcceptEx(listenSock, mSock, mAcceptData->wsaBuf.buf, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, (WSAOVERLAPPED*)&(mAcceptData));
+	BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
 	
 	if ( ! bPreAccept ){
 		DWORD err = WSAGetLastError();
-		if (err != ERROR_IO_PENDING && err != WSAEWOULDBLOCK)	// Erro Condition
+		if (err != ERROR_IO_PENDING && err != WSAEWOULDBLOCK) {	// Erro Condition 
+			LogLastError(_T("Session"), _T("AcceptEx() Error!"), true);
+			mCriticalSec.Leave();
 			return false;
+		}
 	}
 
 	SetState(SESSIONSTATE_ACCEPTING);
 	mListenSock = listenSock;
 	mIsAccepter = true;
+
+	mCriticalSec.Leave();
 	return true;
 }
 
-bool Session::Disconnect(bool bAccept)
+void Session::PreReceive()
 {
-	if ( mSock == INVALID_SOCKET)
-		return TRUE;
+	mCriticalSec.Enter();
 
-	shutdown( mSock, SD_BOTH );
+	SessionBuffer* recvBuff = mRecvBufferQ.GetEmpty();
+	mRecvIoData.Reset(recvBuff);
 
-	int err = ::closesocket( mSock );
-	if( err == SOCKET_ERROR ) {
-		int lasterr = GetLastError();
-		//Logger::Log("Session", "Id : %d, closesocket error (ErrorCode:%d)\n", mId, lasterr );
+	WSABUF wsabuf;
+	wsabuf.buf = recvBuff->buf;
+	wsabuf.len = recvBuff->len;
+
+	DWORD transferBytes;
+	DWORD dwFlags = 0;
+
+	int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData.ov), NULL);
+
+	if ( res == 0 ) {
+		//Received Immediately
+		//OnRecvComplete(recvBuff, dwBytes);
+	}
+	else if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
+		Disconnect(true);
 	}
 
-	mSock = INVALID_SOCKET;
-	SetState(SESSIONSTATE_NONE);
+	mCriticalSec.Leave();
+}
 
-	mRecvBuffer.Clear();
-	mSendBuffer.Clear();
+bool Session::Send()
+{
+	if ( mIsPendingSend )
+		return false;
 
-	if ( bAccept && mIsAccepter ) {
-		PreAccept(mListenSock);
+	mCriticalSec.Enter();
+
+	bool bResult = false;
+	SessionBuffer* sendBuf = mSendBufferQ.GetFront();
+	if ( sendBuf )
+	{
+		WSABUF wsabuf;
+		wsabuf.buf = sendBuf->buf;
+		wsabuf.len = sendBuf->len;
+
+		mSendIoData.Reset(sendBuf);
+
+		DWORD transferBytes;
+		int res = ::WSASend(mSock, &(wsabuf), 1, &transferBytes, 0, &(mSendIoData.ov), NULL);
+
+		if ( res == 0 ) {
+			mIsPendingSend = bResult = true;
+			OnSendComplete(sendBuf, transferBytes);
+		}
+		else if ( res == SOCKET_ERROR ){
+			if ( WSAGetLastError() != ERROR_IO_PENDING ) {
+				//LogLastError(_T("Session"), _T("Session:Send Error"), true);
+				Disconnect(true);
+				bResult = false;
+			}
+			else {
+				mIsPendingSend = bResult = true;
+			}
+		}
 	}
+	
+	mCriticalSec.Leave();
 
-	return true;
-}
-
-bool Session::Send(char* data, int dataLen)
-{
-	mSendBuffer.Push(data, dataLen);
-
-	return true;
-}
-
-void Session::OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize)
-{
-	if ( overlapped->ioType == IO_ACCEPT )
-		OnAccept(INVALID_SOCKET);
-	else if ( overlapped->ioType == IO_SEND )
-		OnSendComplete(overlapped, transferSize);
-	else if ( overlapped->ioType == IO_RECV )
-		OnRecvComplete(overlapped, transferSize);
-	else
-		ASSERT(0);
+	return true;;
 }
 
 void Session::OnConnect() 
@@ -155,8 +226,8 @@ void Session::OnConnect()
 
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
-	mRecvBuffer.Clear();
-	mSendBuffer.Clear();
+	mSendBufferQ.Clear();
+	mRecvBufferQ.Clear();
 
 	//Start Overlapped Receive
 	PreReceive();
@@ -170,51 +241,58 @@ void Session::OnDisconnect()
 
 void Session::OnAccept(SOCKET listenSock)
 {
+	mCriticalSec.Enter();
+
 	if ( IsState(SESSIONSTATE_NONE) ){
 		int addrlen = sizeof(SOCKADDR);
 		mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
 	}
-
 	Logger::Log("Session", "OnAccept() : %d", mId);
+
+	mCriticalSec.Leave();
 
 	OnConnect();
 }
 
-void Session::OnSendComplete(OverlappedData* overlapped, DWORD sendSize)
+void Session::OnSendComplete(SessionBuffer* buf, DWORD sendSize)
 {
-	if ( sendSize == 0 ) {
-		OnDisconnect();
-		return;
+	if ( sendSize > 0 ) {
+		mCriticalSec.Enter();
+		if ( mIsPendingSend && mSendBufferQ.OnIoComplete(buf, sendSize) ) {
+			mIsPendingSend = false;
+		}
+		mCriticalSec.Leave();
 	}
-
-	//TODO : Send Complete
-	mSendBuffer.OnSendComplete(overlapped, sendSize);
+	else {
+		Disconnect(true);
+	}
 }
 
-void Session::OnRecvComplete(OverlappedData* overlapped, DWORD recvSize)
+void Session::OnRecvComplete(SessionBuffer* buf, DWORD recvSize)
 {
-	if ( recvSize == 0 ) { //Close At Remote Session
-		OnDisconnect();
-		return;
+	if ( recvSize > 0 ) { 
+		mRecvBufferQ.OnIoComplete(buf, recvSize);
+		PreReceive();
 	}
-	//TODO : Receive Complete
-	mRecvBuffer.OnRecvComplete(overlapped, recvSize);
-
-	PreReceive();	
+	else {
+	//Remote Session Closed
+		Disconnect(true);
+	}
 }
 
-void Session::PreReceive()
+bool Session::PushSend(char* data, int dataLen)
 {
-	DWORD dwBytes, dwFlags = 0;
-	
-	OverlappedData* data = mRecvBuffer.GetEmptyData();
-	int res = ::WSARecv(mSock, &data->wsaBuf, 1, &dwBytes, &dwFlags, (WSAOVERLAPPED*)&(data), NULL);
+	mCriticalSec.Enter();
+	mSendBufferQ.Push(data, dataLen);
+	mCriticalSec.Leave();
+	return true;
+}
 
-	if ( res == 0 ) {
-		//Received Immediately
-		OnRecvComplete(data, dwBytes);
-	}
-	else if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-		Disconnect();
-	}
+//Note : Returned Buffer Must be "Clear()" after Use.
+SessionBuffer* Session::PopRecv()
+{
+	mCriticalSec.Enter();
+	SessionBuffer* buf = mRecvBufferQ.Pop(false);	//No Clear
+	mCriticalSec.Leave();
+	return buf;
 }

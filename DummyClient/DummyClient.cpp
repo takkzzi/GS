@@ -21,17 +21,21 @@ const char* gServerIP = "127.0.0.1";
 const int	gServerPort = 42006;
 
 
-class SessionTester : public Thread 
+char gTestSendData[] = "abcdefghijklmnopqrstuvwxyz";
+
+class PingPongClient : public Thread 
 {
 public :
 
-	SessionTester(int connCount) 
-		: Thread()
+	PingPongClient(int connCount) : Thread()
 	{
 		mIocp = new Networker(1, connCount, 1000000, 1024, 1024);
+
+		ZeroMemory(mSendCounters, 5000*sizeof(UINT64));
+		ZeroMemory(mRecvCounters, 5000*sizeof(UINT64));
 	};
 
-	virtual ~SessionTester() 
+	virtual ~PingPongClient() 
 	{
 		SAFE_DELETE(mIocp);
 	};
@@ -51,14 +55,15 @@ public :
 	virtual bool End()
 	{
 		//DisconnectAll
-		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			se->Disconnect();
 		}
-		*/
 
 		return __super::End();
+	}
+
+	void Update() {
 	}
 
 
@@ -81,13 +86,40 @@ public :
 		}
 		*/
 
-		//Sleep(5);
+		mIocp->Update();
+		mIocp->Update();
+		mIocp->Update();
+
+
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
+				se->PushSend(gTestSendData, sizeof(gTestSendData));
+				++mSendCounters[se->GetId()];
+				
+				while(SessionBuffer* buf = se->PopRecv()){
+					buf->Clear();
+					++mRecvCounters[se->GetId()];
+					/*
+					char msg[64];
+					sprintf_s(msg, "Recv Data: %s (Buffer Index:%d) \n", buf->buf, buf->index);
+					OutputDebugStringA(msg);
+					*/
+				}
+			}
+		}
+
+		Sleep(10);
+
 		return 1;
 	}
 
 protected :
 	Networker*					mIocp;
 	std::vector<Session*>		mSessions;
+
+	UINT64						mSendCounters[5000];
+	UINT64						mRecvCounters[5000];
 };
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -120,21 +152,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	NetworkSystem::Init();
 
 	
-	SessionTester* sessTester[5] = { 0, 0, 0, 0, 0 };
-	sessTester[0] = new SessionTester(1000);
-	sessTester[0]->Begin(false);
+	PingPongClient* sessTester[5] = { 0, 0, 0, 0, 0 };
 
-	sessTester[1] = new SessionTester(1000);
+	sessTester[0] = new PingPongClient(10);
+	sessTester[0]->Begin(false);
+	
+	sessTester[1] = new PingPongClient(10);
 	sessTester[1]->Begin(false);
 
-	sessTester[2] = new SessionTester(1000);
+	sessTester[2] = new PingPongClient(10);
 	sessTester[2]->Begin(false);
 
-	sessTester[3] = new SessionTester(1000);
-	sessTester[3]->Begin(false);
+	sessTester[3] = new PingPongClient(1000);
+	//sessTester[3]->Begin(false);
 
-	sessTester[4] = new SessionTester(1000);
-	sessTester[4]->Begin(false);
+	sessTester[4] = new PingPongClient(1000);
+	//sessTester[4]->Begin(false);
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();
@@ -153,6 +186,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 		else {
+			//sessTester[0]->Update();
 		}
 	}
 
@@ -161,7 +195,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	sessTester[1]->End();
 	delete sessTester[1];
-
+	
 	sessTester[2]->End();
 	delete sessTester[2];
 
