@@ -81,7 +81,11 @@ public :
 					buf->Clear();
 
 					++mEchoCount[se->GetId()];
+
+					Logger::Log("Test", buf->buf);
 				}
+				
+				
 			}
 		}
 

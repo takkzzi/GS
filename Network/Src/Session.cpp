@@ -86,7 +86,7 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 		DWORD errCode = WSAGetLastError();
 		if (errCode != WSAEWOULDBLOCK)
 		{
-			LogLastError(_T("Session"), _T("Connect() Error"), false);
+			LOG_LASTERROR_A("Session", false);
 			ResetState(true);
 			return FALSE;
 		}
@@ -138,7 +138,7 @@ bool Session::PreAccept(SOCKET listenSock) {
 	if ( ! bPreAccept ){
 		DWORD err = WSAGetLastError();
 		if (err != ERROR_IO_PENDING && err != WSAEWOULDBLOCK) {	// Erro Condition 
-			LogLastError(_T("Session"), _T("AcceptEx() Error!"), true);
+			LOG_LASTERROR_A("Session",  true);
 			mCriticalSec.Leave();
 			return false;
 		}

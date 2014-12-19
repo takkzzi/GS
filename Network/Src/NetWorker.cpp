@@ -90,7 +90,7 @@ void Networker::BeginIo()
 	
 	mIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 	if (mIocp == NULL) {
-		Logger::LogError(_T("IOCP Creation Fail."));
+		LOG_ERROR(_T("IOCP Creation Fail."));
 	}
 
 	if (mThreadCount <= 0 ) {

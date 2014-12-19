@@ -17,7 +17,7 @@ using namespace std;
 
 volatile	bool				Logger::msInit = false;
 TCHAR							Logger::msLogPath[MAX_PATH];
-map<const LPTSTR, FILE*>		Logger::msFileMap;
+std::map<std::string, FILE*>	Logger::msFileMap;
 CriticalSection*				Logger::mCS = NULL;
 
 
@@ -59,6 +59,7 @@ void Logger::Shutdown()
 	SAFE_DELETE(mCS);
 }
 
+/*
 void Logger::LogError(const LPTSTR logData, ...)
 {
 	if ( ! msInit ) return;
@@ -124,6 +125,7 @@ void Logger::LogWarning(const CHAR* logData, ...)
 	LogWithDate("[Warning]", logBuff);
 	
 }
+*/
 
 void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 {
@@ -134,14 +136,14 @@ void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 
 	CS_LOCK
 	{
-		TCHAR		logBuff[MAX_LOG_BUFFER]	= {0,};
+		static TCHAR logBuff[MAX_LOG_BUFFER]	= {0,};
 
 		va_list		ap;
 		va_start(ap, logData);
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		_tprintf(logBuff, _T("%s\n"), logBuff);
+		_stprintf_s(logBuff, _T("%s%s"), logBuff, _T("\n"));
 
 		_ftprintf(file, logBuff);
 		fflush(file);
@@ -166,7 +168,7 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 
 	CS_LOCK
 	{
-		CHAR		logBuff[MAX_LOG_BUFFER]				= {0,};
+		static CHAR logBuff[MAX_LOG_BUFFER]				= {0,};
 
 		va_list		ap;
 		va_start(ap, logData);
@@ -202,14 +204,16 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 	{
 		const TCHAR* timeStr = Time::GetSystemTimeStr();
 
-		TCHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
+		static TCHAR logBuff[MAX_LOG_BUFFER]			= {0,};
 
 		va_list		ap;
 		va_start(ap, logData);
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		_ftprintf(file, _T("[%s] %s \n"), timeStr, logBuff);
+		_tprintf_s(logBuff, _T("[%s] %s\n"), timeStr, logBuff);
+
+		_ftprintf(file, logBuff);
 		fflush(file);
 
 		if ( IsDebuggerPresent() ) {
@@ -236,14 +240,15 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		const TCHAR* currTime = Time::GetSystemTimeStr();
 		const CHAR* currTimeA = StringUtil::AnsiFromTCHAR(currTime);
 
-		CHAR		logBuff[MAX_LOG_BUFFER]			= {0,};
+		static CHAR logBuff[MAX_LOG_BUFFER]			= {0,};
 
 		va_list		ap;
 		va_start(ap, logData);
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		fprintf(file, "[%s] %s \n", currTimeA, logBuff);
+		sprintf_s(logBuff, "[%s] %s\n", currTimeA, logBuff);
+		fprintf(file, logBuff);
 		fflush(file);
 
 		//fclose(FilePtr);
@@ -264,41 +269,41 @@ FILE* Logger::FindFile(const LPTSTR name)
 	if ( ! msInit  ) return NULL;
 	
 	CS_LOCK
-
-		auto search = msFileMap.find(name);
-		if(search != msFileMap.end()) {
-			CS_UNLOCK
-			return (FILE*)search->second;
-		}
-
-		TCHAR		fileName[MAX_PATH]		= {0,};
-		_sntprintf(fileName, MAX_PATH, _T("%s%s.log"), msLogPath, name);
-
-		FILE* file = _tfopen(fileName, _T("w+"));
-		ASSERT(file && "Logger::FindFile() Failed");
-
-		if (! file) {
-			CS_UNLOCK
-			return NULL;
-		}
-
-		msFileMap[name] = file;
-
+		static CHAR nameTemp[128] = {0, };	
+		StringUtil::CopyTCHAR2Ansi(nameTemp, name);
 	CS_UNLOCK
 
-	return file;
+	return FindFile(nameTemp);
 }
 
 FILE* Logger::FindFile(const CHAR* name)
 {
 	if ( ! msInit  ) return NULL;
-	
+
 	CS_LOCK
-	static TCHAR nameTemp[128] = {0, };	
-	StringUtil::CopyAnsi2TCHAR(nameTemp, name);
+		
+	auto itor = msFileMap.find(name);
+	if(itor != msFileMap.end()) {
+		CS_UNLOCK
+		return (FILE*)itor->second;
+	}
+
+	static CHAR	fileName[MAX_PATH]		= {0,};
+	StringUtil::CopyTCHAR2Ansi(fileName, msLogPath);
+	_snprintf(fileName, MAX_PATH, "%s%s.log", fileName, name);
+
+	FILE* file = fopen(fileName, "w+");
+	ASSERT(file && "Logger::FindFile() Failed");
+
+	if (! file) {
+		CS_UNLOCK
+		return NULL;
+	}
+	msFileMap[name] = file;
+
 	CS_UNLOCK
 
-	return FindFile(nameTemp);
+	return file;
 }
 
 LPTSTR Logger::GetLastErrorMsg(const TCHAR* userMsg, bool bMsgBox/*=false*/)
@@ -306,21 +311,42 @@ LPTSTR Logger::GetLastErrorMsg(const TCHAR* userMsg, bool bMsgBox/*=false*/)
 	if ( ! msInit  ) return NULL;
 	
 	CS_LOCK
-
 		static TCHAR totalMsg[256];	
 		TCHAR* errorMsg = NULL;
 		const DWORD errorCode = ::GetLastError();
 
 		::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
-			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&errorMsg, 0, NULL );
+			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMsg, 0, NULL );
 	
 		::_sntprintf((LPTSTR)totalMsg, sizeof(totalMsg) / sizeof(TCHAR), _T("%s [Code:%d] %s "), userMsg, errorCode, errorMsg);
 
 		if ( bMsgBox )
 			::MessageBox(NULL, (LPCTSTR)totalMsg, TEXT("Error"), MB_OK);
-
 	CS_UNLOCK
 
+
+	return totalMsg;
+}
+
+LPSTR Logger::GetLastErrorMsg(const CHAR* userMsg, bool bMsgBox/*=false*/)
+{
+	if ( ! msInit  ) return NULL;
+	
+	CS_LOCK
+
+		static CHAR totalMsg[256];	
+		CHAR* errorMsg = NULL;
+		const DWORD errorCode = ::GetLastError();
+
+		::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&errorMsg, 0, NULL );
+	
+		::_snprintf(totalMsg, sizeof(totalMsg) / sizeof(CHAR), "%s [Code:%d] %s ", userMsg, errorCode, errorMsg);
+
+		if ( bMsgBox )
+			::MessageBoxA(NULL, (LPCSTR)totalMsg, "Error", MB_OK);
+
+	CS_UNLOCK
 
 	return totalMsg;
 }

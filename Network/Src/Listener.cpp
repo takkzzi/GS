@@ -93,8 +93,7 @@ DWORD SelectListener::ThreadTick()
 	int netEvent = ::WSAEnumNetworkEvents(mSock, mEvents[1], &netEvt);
 	if ( netEvent != 0 )
 	{
-		//ASSERT( netEvent != 0 && _T("Listner::WSAEnumNetworkEvents is non-zero.") );
-		Logger::LogWarning(_T("Listener"), _T("Listner::WSAEnumNetworkEvents is non-zero. Error:%l"), GetLastError());
+		LOG_LASTERROR(_T("SelectListener"), false);
 		return 1;
 	}
 
@@ -158,12 +157,12 @@ bool IocpListener::BeginListen()
 	addr.sin_addr.s_addr= htonl (INADDR_ANY);	
 
 	if ( ::bind (mSock, (struct sockaddr*) &addr, sizeof(addr)) == SOCKET_ERROR ) {
-		LogLastError(_T("Listener"), _T("Bind() Error"), true);
+		LOG_LASTERROR(_T("IocpListener"), true);
 		return false;
 	}
 
 	if ( ::listen (mSock, SOMAXCONN) == SOCKET_ERROR ) {
-		Logger::GetLastErrorMsg(NULL, true);
+		LOG_LASTERROR(NULL, true);
 		return false;
 	}
 
@@ -175,6 +174,6 @@ bool IocpListener::BeginListen()
 
 bool IocpListener::EndListen()
 {
-	Logger::LogWarning(_T("Listener %s"), TEXT("IocpListener::EndListen()"));
+	LOG_WARNING_A("IocpListener::EndListen()");
 	return __super::EndListen();
 }
