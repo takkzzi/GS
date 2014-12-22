@@ -6,143 +6,126 @@ using namespace Network;
 
 SessionBufferQueue::SessionBufferQueue()
 	: mBufferLen(0)
+	, mBuffer(NULL)
 {
 }
 
 SessionBufferQueue::~SessionBufferQueue()
 {
 	mCriticalSec.Enter();
-	for(auto &i : mBufferVec)
-		delete i;
-
+	delete[] mBuffer;
 	mCriticalSec.Leave();
 }
 
 void SessionBufferQueue::Init(int bufferCount, int bufferLength)
 {
-	Clear();
-
 	mCriticalSec.Enter();
-	if ( mBufferVec.size() > 0 ) {
-		mCriticalSec.Leave();
-		return;
+
+	int newBufferLen = bufferCount*bufferLength;
+	//Ring buffer
+	if(mBuffer && (newBufferLen != mBufferLen)) {
+		delete[] mBuffer;
+		mBuffer = NULL;
 	}
-
-	mBufferLen = bufferLength;
-
-	mBufferVec.reserve(bufferCount * 1.2f);
-	for(int i = 0; i < bufferCount; ++i) {
-		SessionBuffer* newBuf = new SessionBuffer(bufferLength, i);
-		mBufferVec.push_back(newBuf);
-	}
-
-	mCriticalSec.Leave();
-}
-
-void SessionBufferQueue::Clear()
-{
-	mCriticalSec.Enter();
-	for(auto &i : mBufferVec) {
-		i->Clear();
-	}
-	mCriticalSec.Leave();
-}
-
-void SessionBufferQueue::Push(char* data, int length)
-{
-	SessionBuffer* buf = GetEmpty();
-
-	mCriticalSec.Enter();
-
-	::CopyMemory(buf->buf, data, length);
-	buf->len = length;
-	mBufferQ.push_back(buf);
-
-	mCriticalSec.Leave();
-}
-
-
-SessionBuffer* SessionBufferQueue::Pop(bool bClearBuffer)
-{
-	mCriticalSec.Enter();
-	SessionBuffer* buf = NULL;
 	
-	if (mBufferQ.size() > 0) {
-		buf = mBufferQ.front();
-		mBufferQ.pop_front();
-		if ( bClearBuffer )
-			buf->Clear();
+	if ( !mBuffer) {
+		mBuffer = new char[mBufferLen];
 	}
+	mBufferLen = newBufferLen;
+
+	mBufferStart = &mBuffer[0];
+	mBufferEnd = mBufferStart + mBufferLen;
+
 	mCriticalSec.Leave();
-	return buf;
+
+	ClearAll();
 }
 
-SessionBuffer* SessionBufferQueue::GetFront()
+void SessionBufferQueue::ClearAll()
 {
 	mCriticalSec.Enter();
-	SessionBuffer* frontbuf = NULL;
-	if (mBufferQ.size() > 0)
-		frontbuf = mBufferQ.front();
+	mDataHead = mDataTail = mBufferStart;
 	mCriticalSec.Leave();
-	return frontbuf;
 }
 
-SessionBuffer* SessionBufferQueue::GetEmpty()
+bool SessionBufferQueue::Push(char* data, int size)
 {
 	mCriticalSec.Enter();
-	SessionBuffer* newBuf = NULL;
-	for(auto &i : mBufferVec) {
-		if ( i->len == 0 ) {
-			newBuf = i;
-			break;
+	
+	bool bLinear = (mDataHead <= mDataTail);
+	char* emptyStart = mDataTail;
+	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
+
+	bool bEnough = (emptyEnd - emptyStart) >= size;
+
+	if ( bEnough ) {
+		memcpy(emptyStart, data, size);
+		mDataTail += size;
+	}
+	else if ( bLinear ) {    //Separating Situation
+		int tail_end = (mBufferEnd - mDataTail);
+		int start_head = (mDataHead - mBufferStart);
+		bEnough = ( tail_end + start_head ) >= size;
+
+		if ( bEnough ) {   //Separate Tail-End, Start-Head
+			memcpy(mDataTail, data, tail_end);
+			memcpy(mBufferStart, data + tail_end, start_head);
+			mDataTail = mBufferStart + start_head;
 		}
 	}
 
-	if ( ! newBuf ) {
-		Logger::Log("SessionBuffer", "GetEmpty() Create New One.(%d)", mBufferVec.size());
-
-		newBuf = new SessionBuffer(mBufferLen, mBufferVec.size());
-		mBufferVec.push_back(newBuf);
-	}
 	mCriticalSec.Leave();
-	return newBuf;
+	return bEnough;
+}
+
+int SessionBufferQueue::GetData(char** bufPtr)
+{
+	bool bCircualrSeparate = (mDataHead > mDataTail);
+	char* dataHead = mDataHead;
+	char* dataTail = bCircualrSeparate ? mBufferEnd : mDataTail;
+	*bufPtr = dataHead;
+	int size = (dataTail - dataHead);
+	return size;
+}
+
+//
+bool SessionBufferQueue::GetEmpty(char** bufPtr, int* size)
+{
+	bool bLinear = (mDataHead <= mDataTail);
+	char* emptyStart = mDataTail;
+	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
+	bool bEnough = (emptyEnd - emptyStart) >= *size;
+	
+	if ( bEnough ) {
+		*bufPtr = emptyStart;
+	}
+	return bEnough;
+}
+
+bool SessionBufferQueue::ClearData(int len)
+{
+	bool bCircualrSeparate = (mDataHead > mDataTail);
+	char* dataHead = mDataHead;
+	char* dataTail = bCircualrSeparate ? mBufferEnd : mDataTail;
+
+	return true;
 }
 
 
+
 //SendBufferQueue ///////////////////////////////////////////////////////////////////////////////////
-bool SendBufferQueue::OnIoComplete(SessionBuffer* buffer, DWORD transferBytes)
+bool SendBufferQueue::OnIoComplete(char* bufPtr, DWORD transferBytes)
 {
 	mCriticalSec.Enter();
-	ASSERT((mBufferQ.front() == buffer) && (buffer->len == transferBytes));
-	bool bValid = (mBufferQ.front() == buffer) && (buffer->len == transferBytes);
-	if ( bValid ) {
-		SessionBuffer* popBuffer = Pop(true);
-	}
 	mCriticalSec.Leave();
-	return bValid;
+	return true;
 }
 
 
 //RecvBufferQueue ///////////////////////////////////////////////////////////////////////////////////
-bool RecvBufferQueue::OnIoComplete(SessionBuffer* buffer, DWORD transferBytes)
+bool RecvBufferQueue::OnIoComplete(char* bufPtr, DWORD transferBytes)
 {
 	mCriticalSec.Enter();
-	ASSERT(mBufferVec[buffer->index] == buffer);
-
-	bool bValid = (mBufferVec[buffer->index] == buffer);
-	if ( bValid ) {
-		buffer->len = transferBytes;
-		mBufferQ.push_back(buffer);
-	}
 	mCriticalSec.Leave();
-	return bValid;
-}
-
-SessionBuffer* RecvBufferQueue::GetEmpty()
-{
-	SessionBuffer* emptyBuff = SessionBufferQueue::GetEmpty();
-	mCriticalSec.Enter();
-	emptyBuff->len = mBufferLen;	//Reserve Receiving
-	mCriticalSec.Leave();
-	return emptyBuff;
+	return true;
 }

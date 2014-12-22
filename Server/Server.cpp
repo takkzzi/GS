@@ -32,7 +32,7 @@ public :
 
 	EchoServer() : Thread()
 	{
-		mIocp = new Networker(2, sessionCount, sessionLimit, 1024, 1024);
+		mIocp = new Networker(4, sessionCount, sessionLimit, 1024, 1024);
 		
 		::ZeroMemory(mEchoCount, 5000*sizeof(UINT64));
 	};
@@ -77,7 +77,7 @@ public :
 					if ( buf->len != 27 )
 						PrintDebugString(buf);
 
-					se->PushSend(buf->buf, buf->len);
+					//se->PushSend(buf->buf, buf->len);
 					buf->Clear();
 
 					++mEchoCount[se->GetId()];
@@ -89,6 +89,8 @@ public :
 			}
 		}
 
+		mIocp->Update();
+		mIocp->Update();
 		mIocp->Update();
 	}
 

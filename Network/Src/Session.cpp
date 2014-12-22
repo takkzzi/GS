@@ -5,6 +5,7 @@
 using namespace Core;
 using namespace Network;
 
+
 Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
 	: mNetworker(networker)
 	, mId(id)
@@ -31,9 +32,10 @@ Session::~Session(void)
 		Disconnect(false);
 	else
 		ResetState(false);
-
+	
 	mCriticalSec.Enter();
-	delete[] mAcceptBuffer;
+	if ( mAcceptBuffer )
+		delete[] mAcceptBuffer;
 	mCriticalSec.Leave();
 }
 
@@ -133,7 +135,8 @@ bool Session::PreAccept(SOCKET listenSock) {
 	BOOL bOptVal = TRUE;
 	setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
-	BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
+	int bufferLen ((sizeof(sockaddr_in) + 16) * 2);
+	BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, bufferLen, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
 	
 	if ( ! bPreAccept ){
 		DWORD err = WSAGetLastError();
@@ -248,6 +251,13 @@ void Session::OnAccept(SOCKET listenSock)
 		mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
 	}
 	Logger::Log("Session", "OnAccept() : %d", mId);
+
+	if ( IsState(SESSIONSTATE_ACCEPTING) ) {
+		/*TODO : Remote Session Info
+		GetAcceptExSockaddrs(mAcceptBuffer, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16,
+		(sockaddr **) &Local, &LocalLength, (sockaddr **) &Remote,&RemoteLength);
+		*/
+	}
 
 	mCriticalSec.Leave();
 

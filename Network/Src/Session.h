@@ -80,6 +80,7 @@ namespace Network
 		void					PreReceive();		//Receive Using Overlapped
 
 	protected:
+		static	bool			msUseAcceptBuffer;
 		Networker*				mNetworker;
 		int						mId;
 		SessionState			mState;
