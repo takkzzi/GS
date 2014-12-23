@@ -23,15 +23,15 @@ namespace Network
 			session = ownSession;
 		}
 
-		void Reset(SessionBuffer* buf) {
+		void Reset(char* buf) {
 			::ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
-			sessBuf = buf;
+			bufPtr = buf;
 		}
 
 		WSAOVERLAPPED		ov;
 		OverlappedIoType	ioType;
 		Session*			session;
-		SessionBuffer*		sessBuf;
+		char*				bufPtr;
 	};
 
 	enum SessionState {
@@ -62,14 +62,14 @@ namespace Network
 
 		bool					PushSend(char* data, int dataLen);
 		//Note : Returned Buffer Must be "Clear()" after Use.
-		SessionBuffer*			PopRecv();		
+		char*					PopRecv();
 
 	//Start Event Callback
 	public :
 		//void					OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize);
 		void					OnAccept(SOCKET listenSock);
-		void					OnSendComplete(SessionBuffer* overlapped, DWORD sendSize);
-		void					OnRecvComplete(SessionBuffer* overlapped, DWORD recvSize);
+		void					OnSendComplete(OverlappedIoData* overlapIoData, DWORD sendSize);
+		void					OnRecvComplete(OverlappedIoData* overlapIoData, DWORD recvSize);
 
 	protected:
 		void					OnConnect();
@@ -94,8 +94,8 @@ namespace Network
 		OverlappedIoData		mRecvIoData;
 
 		char*					mAcceptBuffer;
-		SendBufferQueue			mSendBufferQ;
-		RecvBufferQueue			mRecvBufferQ;
+		CircularBuffer			mSendBuffer;
+		CircularBuffer			mRecvBuffer;
 
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;

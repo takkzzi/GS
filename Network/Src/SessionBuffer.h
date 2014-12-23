@@ -15,16 +15,20 @@ namespace Network
 
 		bool						Push(char* data, int size);
 		int							GetData(char** bufPtr);		//Linear Whole Size
-		bool						GetData(char** bufPtr, int reqSize, bool bCombineSeparate);
+		bool						GetData(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge);
 
-		bool						GetEmpty(char** bufPtr, int* size);
-		bool						Clear(int size);
+		bool						GetEmpty(char** bufPtr, int* size);		//If Size 0, musch as possible;
+		bool						ClearData(int size);
 		
+		int							GetDataSize();
+
 	protected:
 		bool						DoPushSeparate(char* data, int size);
-		bool						DoGetAndMergeData(char** bufPtr, int size);		//Use Only Separated Data.
-		bool						IsUsingExtraBuffer()			{ return (mDataHead < mBufferStart); }
+		bool						DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize);		//Use Only Separated Data.
 
+		bool						IsCircularData()				{ return (mDataTail < mDataHead); }
+		bool						IsUsingExtraBuffer()			{ return (mDataHead < mBufferStart); }
+		
 	protected:
 
 		int							mBufferSize;
@@ -41,13 +45,33 @@ namespace Network
 	};
 
 
+	class SendBuffer : public CircularBuffer
+	{
+	public :
+		SendBuffer();
+		virtual ~SendBuffer();
+
+		bool					OnIoComplete(char* dataPtr, int completeSize);
+
+	};
+
+	class RecvBuffer : public CircularBuffer
+	{
+	public :
+		RecvBuffer();
+		virtual ~RecvBuffer();
+
+		bool					OnIoComplete(char* dataPtr, int completeSize);
+	}
+
+
+	/*
 	class SessionBufferQueue
 	{
 	public:
 		SessionBufferQueue();
 		virtual ~SessionBufferQueue();
-
-		//IOCP Event Callback
+					
 		virtual		bool			OnIoComplete(char* bufPtr, DWORD transferBytes)	=	0;
 
 	protected:
@@ -70,5 +94,5 @@ namespace Network
 
 		virtual		bool				OnIoComplete(char* bufPtr, DWORD transferBytes);
 	};
-
+	*/
 }

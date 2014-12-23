@@ -22,8 +22,8 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	mRecvIoData.Init(IO_RECV, this);
 
 	mAcceptBuffer = new char[recvBufferSize];
-	mSendBufferQ.Init(SESSION_BUFFER_Q_SIZE, sendBufferSize);
-	mRecvBufferQ.Init(SESSION_BUFFER_Q_SIZE, recvBufferSize);
+	mSendBuffer.Init(sendBufferSize, 0x0000ffff);
+	mRecvBuffer.Init(recvBufferSize, 0x0000ffff);
 }
 
 Session::~Session(void)
@@ -57,8 +57,8 @@ void Session::ResetState(bool bClearDataQ)
 	mIsPendingSend = false;
 
 	if ( bClearDataQ ) {
-		mRecvBufferQ.Clear();
-		mSendBufferQ.Clear();
+		mRecvBuffer.ClearAll();
+		mSendBuffer.ClearAll();
 	}
 
 	mCriticalSec.Leave();
@@ -159,24 +159,28 @@ void Session::PreReceive()
 {
 	mCriticalSec.Enter();
 
-	SessionBuffer* recvBuff = mRecvBufferQ.GetEmpty();
-	mRecvIoData.Reset(recvBuff);
+	char* emptyBuf = NULL;
+	int emptySize = 0;		//Much as Possible
+	if ( mRecvBuffer.GetEmpty(&emptyBuf, &emptySize) ) {
 
-	WSABUF wsabuf;
-	wsabuf.buf = recvBuff->buf;
-	wsabuf.len = recvBuff->len;
+		mRecvIoData.Reset(emptyBuf);
 
-	DWORD transferBytes;
-	DWORD dwFlags = 0;
+		WSABUF wsabuf;
+		wsabuf.buf = emptyBuf;
+		wsabuf.len = emptySize;
 
-	int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData.ov), NULL);
+		DWORD transferBytes;
+		DWORD dwFlags = 0;
 
-	if ( res == 0 ) {
-		//Received Immediately
-		//OnRecvComplete(recvBuff, dwBytes);
-	}
-	else if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-		Disconnect(true);
+		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData.ov), NULL);
+
+		if ( res == 0 ) {
+			//Received Immediately
+			//OnRecvComplete(recvBuff, dwBytes);
+		}
+		else if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
+			Disconnect(true);
+		}
 	}
 
 	mCriticalSec.Leave();
@@ -190,21 +194,23 @@ bool Session::Send()
 	mCriticalSec.Enter();
 
 	bool bResult = false;
-	SessionBuffer* sendBuf = mSendBufferQ.GetFront();
-	if ( sendBuf )
+	char* dataBuf = NULL;
+	int dataSize = 0x0000ffff;	//== Max TCP/IP Packet Size
+
+	if ( mSendBuffer.GetData(&dataBuf, &dataSize, true, true) )
 	{
 		WSABUF wsabuf;
-		wsabuf.buf = sendBuf->buf;
-		wsabuf.len = sendBuf->len;
+		wsabuf.buf = dataBuf;
+		wsabuf.len = dataSize;
 
-		mSendIoData.Reset(sendBuf);
+		mSendIoData.Reset(dataBuf);
 
 		DWORD transferBytes;
 		int res = ::WSASend(mSock, &(wsabuf), 1, &transferBytes, 0, &(mSendIoData.ov), NULL);
 
 		if ( res == 0 ) {
 			mIsPendingSend = bResult = true;
-			OnSendComplete(sendBuf, transferBytes);
+			OnSendComplete(&mSendIoData, transferBytes);
 		}
 		else if ( res == SOCKET_ERROR ){
 			if ( WSAGetLastError() != ERROR_IO_PENDING ) {
@@ -220,7 +226,7 @@ bool Session::Send()
 	
 	mCriticalSec.Leave();
 
-	return true;;
+	return bResult;;
 }
 
 void Session::OnConnect() 
@@ -229,8 +235,8 @@ void Session::OnConnect()
 
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
-	mSendBufferQ.Clear();
-	mRecvBufferQ.Clear();
+	mSendBuffer.ClearAll();
+	mRecvBuffer.ClearAll();
 
 	//Start Overlapped Receive
 	PreReceive();
@@ -264,11 +270,11 @@ void Session::OnAccept(SOCKET listenSock)
 	OnConnect();
 }
 
-void Session::OnSendComplete(SessionBuffer* buf, DWORD sendSize)
+void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {
 	if ( sendSize > 0 ) {
 		mCriticalSec.Enter();
-		if ( mIsPendingSend && mSendBufferQ.OnIoComplete(buf, sendSize) ) {
+		if ( mIsPendingSend && mSendBuffer.OnIoComplete(ioData->dataPtr, sendSize) ) {
 			mIsPendingSend = false;
 		}
 		mCriticalSec.Leave();
@@ -278,7 +284,7 @@ void Session::OnSendComplete(SessionBuffer* buf, DWORD sendSize)
 	}
 }
 
-void Session::OnRecvComplete(SessionBuffer* buf, DWORD recvSize)
+void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
 	if ( recvSize > 0 ) { 
 		mRecvBufferQ.OnIoComplete(buf, recvSize);
@@ -293,9 +299,9 @@ void Session::OnRecvComplete(SessionBuffer* buf, DWORD recvSize)
 bool Session::PushSend(char* data, int dataLen)
 {
 	mCriticalSec.Enter();
-	mSendBufferQ.Push(data, dataLen);
+	bool bResult = mSendBuffer.Push(data, dataLen);
 	mCriticalSec.Leave();
-	return true;
+	return bResult;
 }
 
 //Note : Returned Buffer Must be "Clear()" after Use.
