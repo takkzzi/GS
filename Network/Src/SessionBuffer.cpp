@@ -4,54 +4,49 @@
 using namespace Network;
 
 
-SessionBufferQueue::SessionBufferQueue()
-	: mBufferLen(0)
+CircularBuffer::CircularBuffer()
+	: mBufferSize(0)
+	, mBufferExtraSize(0)
 	, mBuffer(NULL)
 {
 }
 
-SessionBufferQueue::~SessionBufferQueue()
+CircularBuffer::~CircularBuffer()
 {
-	mCriticalSec.Enter();
 	delete[] mBuffer;
-	mCriticalSec.Leave();
 }
 
-void SessionBufferQueue::Init(int bufferCount, int bufferLength)
+void CircularBuffer::Init(int size, int dataMaxSize)
 {
-	mCriticalSec.Enter();
-
-	int newBufferLen = bufferCount*bufferLength;
+	int newBufferTotal = dataMaxSize + size;
+	int oldBufferTotal = mBufferSize + mBufferExtraSize;
+	
 	//Ring buffer
-	if(mBuffer && (newBufferLen != mBufferLen)) {
+	if(mBuffer && (oldBufferTotal != newBufferTotal)) {
 		delete[] mBuffer;
 		mBuffer = NULL;
 	}
 	
 	if ( !mBuffer) {
-		mBuffer = new char[mBufferLen];
+		mBuffer = new char[newBufferTotal];
 	}
-	mBufferLen = newBufferLen;
 
-	mBufferStart = &mBuffer[0];
-	mBufferEnd = mBufferStart + mBufferLen;
+	mBufferSize = size;
+	mBufferExtraSize = dataMaxSize;
 
-	mCriticalSec.Leave();
+	mBufferStart = mBuffer + dataMaxSize;
+	mBufferEnd = mBufferStart + mBufferSize;
 
 	ClearAll();
 }
 
-void SessionBufferQueue::ClearAll()
+void CircularBuffer::ClearAll()
 {
-	mCriticalSec.Enter();
 	mDataHead = mDataTail = mBufferStart;
-	mCriticalSec.Leave();
 }
 
-bool SessionBufferQueue::Push(char* data, int size)
-{
-	mCriticalSec.Enter();
-	
+bool CircularBuffer::Push(char* data, int size)
+{	
 	bool bLinear = (mDataHead <= mDataTail);
 	char* emptyStart = mDataTail;
 	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
@@ -62,23 +57,29 @@ bool SessionBufferQueue::Push(char* data, int size)
 		memcpy(emptyStart, data, size);
 		mDataTail += size;
 	}
-	else if ( bLinear ) {    //Separating Situation
-		int tail_end = (mBufferEnd - mDataTail);
-		int start_head = (mDataHead - mBufferStart);
-		bEnough = ( tail_end + start_head ) >= size;
-
-		if ( bEnough ) {   //Separate Tail-End, Start-Head
-			memcpy(mDataTail, data, tail_end);
-			memcpy(mBufferStart, data + tail_end, start_head);
-			mDataTail = mBufferStart + start_head;
-		}
+	else if ( bLinear && ! IsUsingExtraBuffer() ) {
+		bEnough = DoPushSeparate(data, size);
 	}
 
-	mCriticalSec.Leave();
 	return bEnough;
 }
 
-int SessionBufferQueue::GetData(char** bufPtr)
+bool CircularBuffer::DoPushSeparate(char* data, int size)
+{
+	int tail_end = (mBufferEnd - mDataTail);
+	int start_head = (mDataHead - mBufferStart);
+	bool bEnough = ( tail_end + start_head ) >= size;
+
+	if ( bEnough ) {   //Separate Tail-End, Start-Head
+		memcpy(mDataTail, data, tail_end);
+		memcpy(mBufferStart, data + tail_end, start_head);
+		mDataTail = mBufferStart + start_head;
+	}
+
+	return bEnough;
+}
+
+int CircularBuffer::GetData(char** bufPtr)
 {
 	bool bCircualrSeparate = (mDataHead > mDataTail);
 	char* dataHead = mDataHead;
@@ -88,8 +89,44 @@ int SessionBufferQueue::GetData(char** bufPtr)
 	return size;
 }
 
+bool CircularBuffer::GetData(char** bufPtr, int reqSize, bool bCombineSeparate)
+{
+	bool bLinear = (mDataHead <= mDataTail);
+	bool bResult = false;
+
+	if ( bLinear ) {
+		bool bDataEnough = (mDataTail - mDataHead) >= reqSize;
+		if ( bDataEnough ) {
+			*bufPtr = mDataHead;
+			bResult = true;
+		}
+	}
+	else if ( bCombineSeparate ) {    //Separate End-Start. Merg it! (Make it Linear Using Extra Buffer)
+		bResult = DoGetAndMergeData(bufPtr, reqSize);
+	}
+
+	return bResult;
+}
+
+//Use Only Separated Data.
+bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int size)
+{
+	int head_end_size = (mDataHead - mBufferEnd);
+	int start_tail_size = (mBufferStart - mDataTail);
+	bool bDataEnough = (head_end_size + start_tail_size) >= size;
+
+	if ( bDataEnough && head_end_size <= mBufferExtraSize ) {
+		char* newHeadPos = (mBufferStart - head_end_size);
+		memcpy(newHeadPos, mDataHead, head_end_size);
+		*bufPtr = mDataHead = newHeadPos;	//Set New Head Position in Extra Buffer
+		return true;
+	}
+
+	return false;
+}
+
 //
-bool SessionBufferQueue::GetEmpty(char** bufPtr, int* size)
+bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
 {
 	bool bLinear = (mDataHead <= mDataTail);
 	char* emptyStart = mDataTail;
@@ -102,15 +139,27 @@ bool SessionBufferQueue::GetEmpty(char** bufPtr, int* size)
 	return bEnough;
 }
 
-bool SessionBufferQueue::ClearData(int len)
+bool CircularBuffer::Clear(int size)
 {
-	bool bCircualrSeparate = (mDataHead > mDataTail);
-	char* dataHead = mDataHead;
-	char* dataTail = bCircualrSeparate ? mBufferEnd : mDataTail;
+	char* dataHead = NULL;
+	bool bGet = GetData(&dataHead, size, false);
+	if ( bGet ) {
+	}
 
-	return true;
+	return bGet;
 }
 
+
+
+SessionBufferQueue::SessionBufferQueue()
+{
+}
+
+SessionBufferQueue::~SessionBufferQueue()
+{
+	mCriticalSec.Enter();
+	mCriticalSec.Leave();
+}
 
 
 //SendBufferQueue ///////////////////////////////////////////////////////////////////////////////////
