@@ -213,18 +213,11 @@ int CircularBuffer::GetDataSize()
 
 	return size;
 }
-/*
-SessionBufferQueue::SessionBufferQueue()
-{
-}
-
-SessionBufferQueue::~SessionBufferQueue()
-{
-}
 
 
-//SendBufferQueue ///////////////////////////////////////////////////////////////////////////////////
-bool SendBufferQueue::OnIoComplete(char* bufPtr, DWORD transferBytes)
+
+//SendBuffer ///////////////////////////////////////////////////////////////////////////////////
+bool SendBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
 {
 	mCriticalSec.Enter();
 	mCriticalSec.Leave();
@@ -232,11 +225,11 @@ bool SendBufferQueue::OnIoComplete(char* bufPtr, DWORD transferBytes)
 }
 
 
-//RecvBufferQueue ///////////////////////////////////////////////////////////////////////////////////
-bool RecvBufferQueue::OnIoComplete(char* bufPtr, DWORD transferBytes)
+//RecvBuffer ///////////////////////////////////////////////////////////////////////////////////
+bool RecvBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
 {
 	mCriticalSec.Enter();
 	mCriticalSec.Leave();
 	return true;
 }
-*/
+

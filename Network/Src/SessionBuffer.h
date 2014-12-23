@@ -48,51 +48,26 @@ namespace Network
 	class SendBuffer : public CircularBuffer
 	{
 	public :
-		SendBuffer();
-		virtual ~SendBuffer();
+		//SendBuffer();
+		//virtual ~SendBuffer();
 
-		bool					OnIoComplete(char* dataPtr, int completeSize);
+		bool					OnIoComplete(char* dataPtr, DWORD completeSize);
 
 	};
 
 	class RecvBuffer : public CircularBuffer
 	{
 	public :
-		RecvBuffer();
-		virtual ~RecvBuffer();
+		//RecvBuffer();
+		//virtual ~RecvBuffer();
 
-		bool					OnIoComplete(char* dataPtr, int completeSize);
-	}
-
-
-	/*
-	class SessionBufferQueue
-	{
-	public:
-		SessionBufferQueue();
-		virtual ~SessionBufferQueue();
-					
-		virtual		bool			OnIoComplete(char* bufPtr, DWORD transferBytes)	=	0;
-
-	protected:
-		CriticalSection				mCriticalSec;
+		bool					OnIoComplete(char* dataPtr, DWORD completeSize);
 	};
 
-	//For Sending	////////////////////////////////////////////////////////////////////////////////
-	class SendBufferQueue : public SessionBufferQueue
+#pragma pack (1)
+	struct PacketHeader 
 	{
-	public :
-
-		virtual		bool				OnIoComplete(char* bufPtr, DWORD transferBytes);
+		USHORT	mPacketSize;
 	};
-
-
-	//For Receiving	////////////////////////////////////////////////////////////////////////////////
-	class RecvBufferQueue : public SessionBufferQueue
-	{
-	public:
-
-		virtual		bool				OnIoComplete(char* bufPtr, DWORD transferBytes);
-	};
-	*/
+#pragma pack (pop)
 }

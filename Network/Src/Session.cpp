@@ -274,7 +274,7 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {
 	if ( sendSize > 0 ) {
 		mCriticalSec.Enter();
-		if ( mIsPendingSend && mSendBuffer.OnIoComplete(ioData->dataPtr, sendSize) ) {
+		if ( mIsPendingSend && mSendBuffer.OnIoComplete(ioData->bufPtr, sendSize) ) {
 			mIsPendingSend = false;
 		}
 		mCriticalSec.Leave();
@@ -287,7 +287,7 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
 	if ( recvSize > 0 ) { 
-		mRecvBufferQ.OnIoComplete(buf, recvSize);
+		mRecvBuffer.OnIoComplete(ioData->bufPtr, recvSize);
 		PreReceive();
 	}
 	else {
@@ -305,10 +305,18 @@ bool Session::PushSend(char* data, int dataLen)
 }
 
 //Note : Returned Buffer Must be "Clear()" after Use.
-SessionBuffer* Session::PopRecv()
+PacketHeader* Session::PopRecv()
 {
 	mCriticalSec.Enter();
-	SessionBuffer* buf = mRecvBufferQ.Pop(false);	//No Clear
+	char* data = NULL;
+	int size = sizeof(PacketHeader);
+	PacketHeader* packet = NULL;
+	if ( mRecvBuffer.GetData(&data, &size, false, false) ) {
+		size = ((PacketHeader*)data)->mPacketSize;
+		if ( mRecvBuffer.GetData(&data, &size, false, true) ) {
+			packet = (PacketHeader*)data;
+		}
+	}
 	mCriticalSec.Leave();
-	return buf;
+	return packet;
 }

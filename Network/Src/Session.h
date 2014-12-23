@@ -61,8 +61,9 @@ namespace Network
 		bool					Send();
 
 		bool					PushSend(char* data, int dataLen);
-		//Note : Returned Buffer Must be "Clear()" after Use.
-		char*					PopRecv();
+		
+		PacketHeader*			PopRecv();
+		bool					ClearRecv(int bufSize);
 
 	//Start Event Callback
 	public :
@@ -94,8 +95,8 @@ namespace Network
 		OverlappedIoData		mRecvIoData;
 
 		char*					mAcceptBuffer;
-		CircularBuffer			mSendBuffer;
-		CircularBuffer			mRecvBuffer;
+		SendBuffer				mSendBuffer;
+		RecvBuffer				mRecvBuffer;
 
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;
@@ -103,4 +104,5 @@ namespace Network
 		CriticalSection			mCriticalSec;
 	};
 
+	
 }

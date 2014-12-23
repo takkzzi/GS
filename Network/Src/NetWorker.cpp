@@ -34,10 +34,10 @@ unsigned __stdcall IOCPWorker (void* arg)
 					sess->OnAccept(INVALID_SOCKET);
 				}
 				else if ( io == IO_SEND ) {
-					sess->OnSendComplete(overlapped->sessBuf, transferBytes);
+					sess->OnSendComplete(overlapped, transferBytes);
 				}
 				else if ( io == IO_RECV ) {
-					sess->OnRecvComplete(overlapped->sessBuf, transferBytes);
+					sess->OnRecvComplete(overlapped, transferBytes);
 				}
 			}
 			else {
