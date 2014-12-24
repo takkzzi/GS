@@ -62,8 +62,6 @@ public :
 
 	void Update() {
 		
-		
-
 		if ( IsState(THREAD_END) )
 			return;
 
@@ -72,17 +70,20 @@ public :
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
 			{
 				//ECHO !
-				while( SessionBuffer* buf = se->PopRecv() )	
-				{
-					if ( buf->len != 27 )
-						PrintDebugString(buf);
+				while( PacketBase* packet = se->PopRecv() )	
+				{	
+					if ( packet->mPacketSize != sizeof(AlphabetPacket) ) {
+						PrintDebugString("PacketSize Error!", packet);
+					}
+
+					AlphabetPacket* alpha = (AlphabetPacket*)packet;
 
 					//se->PushSend(buf->buf, buf->len);
-					buf->Clear();
+					se->ClearRecv(sizeof(AlphabetPacket));
 
 					++mEchoCount[se->GetId()];
 
-					Logger::Log("Test", buf->buf);
+					Logger::Log("Test", alpha->mData);
 				}
 				
 				
@@ -94,12 +95,10 @@ public :
 		mIocp->Update();
 	}
 
-	void PrintDebugString(SessionBuffer* buf) {
-		char msg[2048];
-		::ZeroMemory(msg, 2048);
+	void PrintDebugString(char* msg, PacketBase* packet ) {
+		char totalMsg[2048];
 
-		memcpy(msg, buf->buf, buf->len-1);
-		sprintf_s(msg, "%s(size:%d),(idx:%d)\n", msg, buf->len, buf->index);
+		sprintf_s(totalMsg, "%s (size:%d)\n", msg, packet->mPacketSize);
 		OutputDebugStringA(msg);
 	}
 

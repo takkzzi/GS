@@ -274,8 +274,12 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {
 	if ( sendSize > 0 ) {
 		mCriticalSec.Enter();
-		if ( mIsPendingSend && mSendBuffer.OnIoComplete(ioData->bufPtr, sendSize) ) {
-			mIsPendingSend = false;
+		if ( mIsPendingSend ) { 
+			ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
+			if ( mSendBuffer.ClearData(sendSize) )
+				mIsPendingSend = false;
+			else 
+				ASSERT(0 && "SendBuffer Clear Error !");
 		}
 		mCriticalSec.Leave();
 	}
@@ -287,8 +291,17 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
 	if ( recvSize > 0 ) { 
-		mRecvBuffer.OnIoComplete(ioData->bufPtr, recvSize);
-		PreReceive();
+		if ( mRecvBuffer.GetDataTail() == ioData->bufPtr ) {
+			if ( mRecvBuffer.ReserveData(recvSize) ) {
+				PreReceive();
+			}
+			else {
+				ASSERT(0 && "mRecvBuffer.ReserveData() OnRecv Error!");
+			}
+		}
+		else {
+			ASSERT(0 && "mRecvBuffer.GetDataTail() != ioData->bufPtr");
+		}		
 	}
 	else {
 	//Remote Session Closed
@@ -299,24 +312,31 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 bool Session::PushSend(char* data, int dataLen)
 {
 	mCriticalSec.Enter();
-	bool bResult = mSendBuffer.Push(data, dataLen);
+	bool bResult = mSendBuffer.PushData(data, dataLen);
 	mCriticalSec.Leave();
 	return bResult;
 }
 
-//Note : Returned Buffer Must be "Clear()" after Use.
-PacketHeader* Session::PopRecv()
+//Note : Returned Buffer Must be "ClearRecv()" after Use.
+PacketBase* Session::PopRecv()
 {
 	mCriticalSec.Enter();
 	char* data = NULL;
-	int size = sizeof(PacketHeader);
-	PacketHeader* packet = NULL;
+	int size = sizeof(PacketBase);
+	PacketBase* packet = NULL;
 	if ( mRecvBuffer.GetData(&data, &size, false, false) ) {
-		size = ((PacketHeader*)data)->mPacketSize;
+		size = ((PacketBase*)data)->mPacketSize;
 		if ( mRecvBuffer.GetData(&data, &size, false, true) ) {
-			packet = (PacketHeader*)data;
+			packet = (PacketBase*)data;
 		}
 	}
 	mCriticalSec.Leave();
 	return packet;
+}
+
+bool Session::ClearRecv(int bufSize)
+{
+	mCriticalSec.Enter();
+	return mRecvBuffer.ClearData(bufSize);
+	mCriticalSec.Leave();
 }

@@ -52,7 +52,7 @@ void CircularBuffer::ClearAll()
 	mCriticalSec.Leave();
 }
 
-bool CircularBuffer::Push(char* data, int size)
+bool CircularBuffer::PushData(char* data, int size)
 {	
 	mCriticalSec.Enter();
 
@@ -86,6 +86,26 @@ bool CircularBuffer::DoPushSeparate(char* data, int size)
 		memcpy(mBufferStart, data + tail_end, start_head);
 		mDataTail = mBufferStart + start_head;
 	}
+	return bEnough;
+}
+
+//Set Data without memcpy (Linear);
+bool CircularBuffer::ReserveData(int size) 
+{
+	mCriticalSec.Enter();
+
+	bool bLinear = ! IsCircularData();
+	char* emptyStart = mDataTail;
+	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
+
+	bool bEnough = (emptyEnd - emptyStart) >= size;
+
+	if ( bEnough ) {
+		mDataTail += size;
+	}
+
+	mCriticalSec.Leave();
+
 	return bEnough;
 }
 
@@ -214,8 +234,7 @@ int CircularBuffer::GetDataSize()
 	return size;
 }
 
-
-
+/*
 //SendBuffer ///////////////////////////////////////////////////////////////////////////////////
 bool SendBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
 {
@@ -232,4 +251,4 @@ bool RecvBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
 	mCriticalSec.Leave();
 	return true;
 }
-
+*/

@@ -86,28 +86,30 @@ public :
 		}
 		*/
 
-		mIocp->Update();
-		mIocp->Update();
-		mIocp->Update();
 
-
+		//Send Push
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
-				se->PushSend(gTestSendData, sizeof(gTestSendData));
+				
+				AlphabetPacket alpha;
+				alpha.mPacketSize = sizeof(AlphabetPacket);
+				se->PushSend((char*)&alpha, sizeof(AlphabetPacket));
+
 				++mSendCounters[se->GetId()];
 				
+				/*
 				while(SessionBuffer* buf = se->PopRecv()){
 					buf->Clear();
 					++mRecvCounters[se->GetId()];
-					/*
-					char msg[64];
-					sprintf_s(msg, "Recv Data: %s (Buffer Index:%d) \n", buf->buf, buf->index);
-					OutputDebugStringA(msg);
-					*/
 				}
+				*/
 			}
 		}
+
+		mIocp->Update();
+		mIocp->Update();
+		mIocp->Update();
 
 		Sleep(10);
 
@@ -154,14 +156,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	
 	PingPongClient* sessTester[5] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new PingPongClient(10);
+	sessTester[0] = new PingPongClient(1);
 	sessTester[0]->Begin(false);
 	
 	sessTester[1] = new PingPongClient(10);
-	sessTester[1]->Begin(false);
+	//sessTester[1]->Begin(false);
 
 	sessTester[2] = new PingPongClient(10);
-	sessTester[2]->Begin(false);
+	//sessTester[2]->Begin(false);
 
 	sessTester[3] = new PingPongClient(1000);
 	//sessTester[3]->Begin(false);

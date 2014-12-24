@@ -9,8 +9,6 @@
  - Assert 없이 Dump 남기기
  - Full Dumping
 
-* Logger 
- - LogDebug 구현 (File, Line 출력)
 
 ------------ Network ------------ 
 
@@ -21,15 +19,12 @@
 * Session
 	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	
-
-* Server - Echo Server 구현 (EndUser(가칭) 구현 - DummyData 들을 주변 100 개 유저에 BroadCast 테스트)
-
 * Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.
 
+* Game Component 에서 Session 상속받고 최적화(Io Completion)하여 구현할것.
 
------------- ClientSimulator -------------
-
-* Session Test - Thread 로 구현
+* SessionBuffer 
+	- Test 로 구현되어있던 Packet 구조체 제자리로 옮길것.
 
 
 ------------ DB -------------

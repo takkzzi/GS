@@ -62,9 +62,10 @@ namespace Network
 
 		bool					PushSend(char* data, int dataLen);
 		
-		PacketHeader*			PopRecv();
+		PacketBase*				PopRecv();
 		bool					ClearRecv(int bufSize);
 
+		
 	//Start Event Callback
 	public :
 		//void					OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize);
@@ -95,8 +96,8 @@ namespace Network
 		OverlappedIoData		mRecvIoData;
 
 		char*					mAcceptBuffer;
-		SendBuffer				mSendBuffer;
-		RecvBuffer				mRecvBuffer;
+		CircularBuffer			mSendBuffer;
+		CircularBuffer			mRecvBuffer;
 
 		SOCKET					mListenSock;
 		BOOL					mIsAccepter;
