@@ -38,6 +38,7 @@ namespace Network
 		SESSIONSTATE_NONE,
 		SESSIONSTATE_ACCEPTING,
 		SESSIONSTATE_CONNECTED,
+		SESSIONSTATE_DISCONNECTING,
 	};
 
 
@@ -48,7 +49,7 @@ namespace Network
 		~Session(void);
 
 	public:
-
+		void					Init();
 		int						GetId()		{ return mId; }
 		void					SetState(SessionState state);
 		bool					IsState(SessionState state)			{ return (mState == state); }
@@ -56,8 +57,8 @@ namespace Network
 		void					ResetState(bool bClearDataQ);
 
 		bool					Connect(const CHAR* addr, USHORT port);
-		bool					Disconnect(bool bReAccept=false);
-		bool					PreAccept(SOCKET listenSock);		//Using AcceptEx()
+		bool					Disconnect();
+		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		bool					Send();
 
 		bool					PushSend(char* data, int dataLen);
@@ -65,7 +66,11 @@ namespace Network
 		PacketBase*				PopRecv();
 		bool					ClearRecv(int bufSize);
 
+		void					Update();
 		
+		//TEST
+		void					LogPacket(char* prefix, AlphabetPacket* packet);
+
 	//Start Event Callback
 	public :
 		//void					OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize);
@@ -75,14 +80,13 @@ namespace Network
 
 	protected:
 		void					OnConnect();
-		void					OnDisconnect();
 	//End Event Callback
 
 	protected:
-		void					PreReceive();		//Receive Using Overlapped
+		bool					StartReceive();		//Receive Using Overlapped
 
 	protected:
-		static	bool			msUseAcceptBuffer;
+
 		Networker*				mNetworker;
 		int						mId;
 		SessionState			mState;
@@ -100,8 +104,9 @@ namespace Network
 		CircularBuffer			mRecvBuffer;
 
 		SOCKET					mListenSock;
-		BOOL					mIsAccepter;
-		volatile	BOOL		mIsPendingSend;
+		bool					mIsAccepter;
+		bool					mbSendCompleted;
+		bool					mbRecvCompleted;
 		CriticalSection			mCriticalSec;
 	};
 

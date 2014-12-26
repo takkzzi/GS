@@ -23,8 +23,8 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
 const int port			= 42006;
-const int sessionCount	= 100;
-const int sessionLimit	= 50000;
+const int sessionCount	= 2;
+const int sessionLimit	= 1000;
 
 class EchoServer : public Thread 
 {
@@ -32,9 +32,9 @@ public :
 
 	EchoServer() : Thread()
 	{
-		mIocp = new Networker(4, sessionCount, sessionLimit, 1024, 1024);
-		
-		::ZeroMemory(mEchoCount, 5000*sizeof(UINT64));
+		mIocp = new Networker(5, sessionCount, sessionLimit, 1024, 1024);
+
+		mSendTime = Time::GetAppTime();
 	};
 
 	virtual ~EchoServer() 
@@ -51,70 +51,81 @@ public :
 
 	virtual bool End()
 	{
+		/*
 		//DisconnectAll
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			se->Disconnect();
 		}
-
+		*/
 		return __super::End();
 	}
 
-	void Update() {
-		
+	virtual DWORD ThreadTick()
+	{
 		if ( IsState(THREAD_END) )
-			return;
+			return 0;
 
+		double currTime = Time::GetAppTime();
+		if ( (currTime - mSendTime) > 3.0) {
+			//PushSend();
+			mSendTime = currTime;
+		}
+
+		mIocp->UpdateSessions();
+
+		PopRecv();
+
+		return 1;
+	}
+
+	void PushSend()
+	{
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
 			{
-				//ECHO !
+				AlphabetPacket alph;
+				alph.mPacketSize = sizeof(alph);
+				se->PushSend((char*)&alph, alph.mPacketSize);
+			}
+		}
+	}
+
+	void PopRecv()
+	{
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
+			{
 				while( PacketBase* packet = se->PopRecv() )	
 				{	
-					if ( packet->mPacketSize != sizeof(AlphabetPacket) ) {
-						PrintDebugString("PacketSize Error!", packet);
-					}
+					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
 
 					AlphabetPacket* alpha = (AlphabetPacket*)packet;
 
 					//se->PushSend(buf->buf, buf->len);
 					se->ClearRecv(sizeof(AlphabetPacket));
-
-					++mEchoCount[se->GetId()];
-
-					Logger::Log("Test", alpha->mData);
 				}
-				
-				
 			}
 		}
-
-		mIocp->Update();
-		mIocp->Update();
-		mIocp->Update();
 	}
 
-	void PrintDebugString(char* msg, PacketBase* packet ) {
+	void SessionLog(Session* sess, char* msg, size_t size ) {
 		char totalMsg[2048];
 
-		sprintf_s(totalMsg, "%s (size:%d)\n", msg, packet->mPacketSize);
-		OutputDebugStringA(msg);
-	}
+		memcpy(totalMsg, msg, size);
+		totalMsg[size] = '\0';
 
-	virtual DWORD ThreadTick()
-	{
-		Update();
-		Update();
-
-		return 1;
+		sprintf_s(totalMsg, "%s\n", totalMsg);
+		//OutputDebugStringA(totalMsg);
 	}
 
 protected :
 	Networker*					mIocp;
 	std::vector<Session*>		mSessions;
 
-	UINT64						mEchoCount[5000];
+	double						mSendTime;
 };
 
 

@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
-    </Filter>
     <Filter Include="DefaultFiles">
       <UniqueIdentifier>{4ab0e4cb-8ea4-48c1-a64b-e9c185dd2ff5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceFiles">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -29,15 +29,15 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Server.ico">
-      <Filter>리소스 파일</Filter>
+      <Filter>ResourceFiles</Filter>
     </Image>
     <Image Include="small.ico">
-      <Filter>리소스 파일</Filter>
+      <Filter>ResourceFiles</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Server.rc">
-      <Filter>리소스 파일</Filter>
+      <Filter>ResourceFiles</Filter>
     </ResourceCompile>
   </ItemGroup>
 </Project>

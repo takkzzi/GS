@@ -29,7 +29,7 @@ void Logger::Init(const TCHAR* logDir)
 	const SYSTEMTIME* sysTime = Time::GetSystemTime();
 	_sntprintf(timeStr, 32, _T("%d-%d-%d"), sysTime->wYear, sysTime->wMonth, sysTime->wDay);
 
-	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s\\"), msLogPath, logDir);
+	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s"), msLogPath, logDir);
 	CreateDirectory(msLogPath, NULL);
 
 	_sntprintf(msLogPath, MAX_PATH, _T("%s\\%s\\"), msLogPath, timeStr);

@@ -12,11 +12,8 @@
 
 ------------ Network ------------ 
 
-* Networker(IOCP)
-	- Listener 를 쓰레드 없이 IOCP 에 포함 시켜 단순화&최적화
-	- Send, Recv Buffer 구현 ( Atlantica 참고 )
-	- AcceptEx 시 함께 전송된 Data 처리 할것.
 * Session
+ 	- Session Close(Reset) 후 재사용시 (OnAccept() ) 에서 데드락
 	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	
 * Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.

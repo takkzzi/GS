@@ -21,7 +21,7 @@ namespace Network
 		bool						GetEmpty(char** bufPtr, int* size);		//If Size 0, musch as possible;
 		bool						ClearData(int size);
 		
-		int							GetDataSize();
+		size_t						GetDataSize();
 		char*						GetDataHead()					{ return mDataHead; };
 		char*						GetDataTail()					{ return mDataTail; };
 
@@ -83,7 +83,7 @@ namespace Network
 			memcpy(mData, "abcdefghijklmnopqrstuvwxyz", 26);
 		}
 
-		USHORT		mPacketId;
+		UINT		mPacketId;
 		char		mData[26];
 	};
 #pragma pack()

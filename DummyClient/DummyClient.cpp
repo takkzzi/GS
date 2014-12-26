@@ -21,15 +21,13 @@ const char* gServerIP = "127.0.0.1";
 const int	gServerPort = 42006;
 
 
-char gTestSendData[] = "abcdefghijklmnopqrstuvwxyz";
-
 class PingPongClient : public Thread 
 {
 public :
 
 	PingPongClient(int connCount) : Thread()
 	{
-		mIocp = new Networker(1, connCount, 1000000, 1024, 1024);
+		mIocp = new Networker(1, connCount, 100, 2048, 1024);
 
 		ZeroMemory(mSendCounters, 5000*sizeof(UINT64));
 		ZeroMemory(mRecvCounters, 5000*sizeof(UINT64));
@@ -46,75 +44,91 @@ public :
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
-			Logger::Log("Session", "Session Connect %s %d", bConn ? "Success" : "Failed", se->GetId());
+
+			ASSERT(bConn);
 		}
+
+		mLastSendTime = Core::Time::GetAppTime();
 
 		return __super::Begin(bSuspend);
 	}
 
-	virtual bool End()
-	{
-		//DisconnectAll
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			se->Disconnect();
-		}
-
-		return __super::End();
-	}
-
-	void Update() {
-	}
-
-
 	virtual DWORD ThreadTick()
 	{
-		/*
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			if ( se->IsState(SESSIONSTATE_CONNECTED) ) {
-				bool bDisconn = se->Disconnect();
-				if ( ! bDisconn )
-					Logger::Log("SessionTester", "Disconnect() Failed.");
-			}
-			else if ( se->IsState(SESSIONSTATE_NONE) ) {
-				bool bConn = se->Connect(gServerIP, gServerPort);
-				//if ( ! bConn )
-				//	Logger::Log("SessionTester", "Connect() Failed.");
-			}
-			Sleep(5);
-		}
-		*/
 
+		double currTime = Time::GetAppTime();
+		if ( currTime - mLastSendTime > 1.0) {
+			PushSend(10);
+			mLastSendTime = currTime;
+		};
 
-		//Send Push
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
-				
-				AlphabetPacket alpha;
-				alpha.mPacketSize = sizeof(AlphabetPacket);
-				se->PushSend((char*)&alpha, sizeof(AlphabetPacket));
+		//PopRecv();
 
-				++mSendCounters[se->GetId()];
-				
-				/*
-				while(SessionBuffer* buf = se->PopRecv()){
-					buf->Clear();
-					++mRecvCounters[se->GetId()];
-				}
-				*/
-			}
-		}
-
-		mIocp->Update();
-		mIocp->Update();
-		mIocp->Update();
+		mIocp->UpdateSessions();
 
 		Sleep(10);
 
 		return 1;
 	}
+
+	void PushSend(int pushCount)
+	{
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
+				
+				for (int j = 0 ; j < pushCount; ++j) {
+					AlphabetPacket alpha;
+					alpha.mPacketSize = sizeof(AlphabetPacket);
+				
+					bool bSend = se->PushSend((char*)&alpha, sizeof(AlphabetPacket));
+					ASSERT(bSend);
+				}
+			}
+		}
+
+		
+	}
+
+	void PopRecv() 
+	{
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
+				while(PacketBase* packet = se->PopRecv())
+				{
+					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
+					AlphabetPacket* alpha = (AlphabetPacket*)packet;
+					//PrintDebugString("Recved : ", packet);
+					se->ClearRecv(packet->mPacketSize);
+				}
+			}
+		}
+	}
+
+	/*
+	void PrintDebugString(char* msg, PacketBase* packet ) {
+		char totalMsg[2048];
+
+		sprintf_s(totalMsg, "%s (size:%d)\n", msg, packet->mPacketSize);
+		OutputDebugStringA(msg);
+	}
+	*/
+
+
+	virtual bool End()
+	{
+		/*
+		//DisconnectAll
+		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
+			Session* se = mIocp->GetSession(i);
+			se->Disconnect();
+		}
+		*/
+
+		return __super::End();
+	}
+
 
 protected :
 	Networker*					mIocp;
@@ -122,6 +136,8 @@ protected :
 
 	UINT64						mSendCounters[5000];
 	UINT64						mRecvCounters[5000];
+
+	double						mLastSendTime;
 };
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -156,19 +172,19 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	
 	PingPongClient* sessTester[5] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new PingPongClient(1);
+	sessTester[0] = new PingPongClient(2);
 	sessTester[0]->Begin(false);
 	
-	sessTester[1] = new PingPongClient(10);
+	//sessTester[1] = new PingPongClient(10);
 	//sessTester[1]->Begin(false);
 
-	sessTester[2] = new PingPongClient(10);
+	//sessTester[2] = new PingPongClient(10);
 	//sessTester[2]->Begin(false);
 
-	sessTester[3] = new PingPongClient(1000);
+	//sessTester[3] = new PingPongClient(1000);
 	//sessTester[3]->Begin(false);
 
-	sessTester[4] = new PingPongClient(1000);
+	//sessTester[4] = new PingPongClient(1000);
 	//sessTester[4]->Begin(false);
 
 	// Main message loop:
@@ -192,9 +208,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
+
 	sessTester[0]->End();
 	delete sessTester[0];
 
+	/*
 	sessTester[1]->End();
 	delete sessTester[1];
 	
@@ -206,6 +224,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	sessTester[4]->End();
 	delete sessTester[4];
+	*/
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

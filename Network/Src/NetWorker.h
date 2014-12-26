@@ -32,22 +32,30 @@ namespace Network
 		HANDLE					GetIocpHandle()					{ return mIocp; }
 
 		void					OnEndIoThread();
-		void					Update();
+		bool					UpdateSessions();
+
+		bool					IsPreAccepter();
+		SOCKET					GetListnerSocket();
+
+		bool					IsUpdatingSession()				{ return mbUpdateSessions; };
 
 	protected:
 		void					BeginIo();
 		void					EndIo();
 
+		void					BeginSessionUpdate();
+		void					EndSessionUpdate();
+
 		Session*				AddSession();
 
-		void					PreacceptAll();
+		void					StartAcceptAll();
 		void					DeleteAllSessions();
 
 	private:
 
 		HANDLE							mIocp;
 		UINT							mThreadCount;
-		UINT							mWorkingcCount;
+		UINT							mIoWorkingCount;
 		class Listener*					mListener;
 		bool							mbPreAccept;
 
@@ -56,6 +64,8 @@ namespace Network
 		INT								mRecvBufferSize;
 
 		std::vector<Session*>			mSessionVec;
+		volatile	bool				mbUpdateSessions;
+		HANDLE							mSessUpdateThread;
 		CriticalSection					mCriticalSec;
 	};
 }
