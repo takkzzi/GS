@@ -27,7 +27,7 @@ public :
 
 	PingPongClient(int connCount) : Thread()
 	{
-		mIocp = new Networker(1, connCount, 100, 2048, 1024);
+		mIocp = new Networker(3, connCount, 100, 2048, 1024);
 
 		ZeroMemory(mSendCounters, 5000*sizeof(UINT64));
 		ZeroMemory(mRecvCounters, 5000*sizeof(UINT64));
