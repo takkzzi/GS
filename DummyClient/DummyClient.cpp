@@ -64,7 +64,7 @@ public :
 
 		//PopRecv();
 
-		//mIocp->UpdateSessions();
+		mIocp->UpdateSessions();
 
 		Sleep(10);
 
@@ -81,7 +81,7 @@ public :
 					AlphabetPacket alpha;
 					alpha.mPacketSize = sizeof(AlphabetPacket);
 				
-					bool bSend = se->PushSend((char*)&alpha, sizeof(AlphabetPacket));
+					bool bSend = se->WriteData((char*)&alpha, sizeof(AlphabetPacket));
 					ASSERT(bSend);
 				}
 			}
@@ -95,7 +95,7 @@ public :
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
-				while(PacketBase* packet = se->PopRecv())
+				while(PacketBase* packet = se->ReadData())
 				{
 					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
 					AlphabetPacket* alpha = (AlphabetPacket*)packet;

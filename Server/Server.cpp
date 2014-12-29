@@ -32,7 +32,7 @@ public :
 
 	EchoServer() : Thread()
 	{
-		mIocp = new Networker(5, sessionCount, sessionLimit, 1024, 1024);
+		mIocp = new Networker(5, sessionCount, sessionLimit, 1024, 299);
 
 		mSendTime = Time::GetAppTime();
 	};
@@ -72,7 +72,7 @@ public :
 			mSendTime = currTime;
 		}
 
-		//mIocp->UpdateSessions();
+		mIocp->UpdateSessions();
 
 		PopRecv();
 
@@ -87,7 +87,7 @@ public :
 			{
 				AlphabetPacket alph;
 				alph.mPacketSize = sizeof(alph);
-				se->PushSend((char*)&alph, alph.mPacketSize);
+				se->WriteData((char*)&alph, alph.mPacketSize);
 			}
 		}
 	}
@@ -98,7 +98,7 @@ public :
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
 			{
-				while( PacketBase* packet = se->PopRecv() )	
+				while( PacketBase* packet = se->ReadData() )	
 				{	
 					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
 

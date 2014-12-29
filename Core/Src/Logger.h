@@ -27,6 +27,8 @@ namespace Core
 		static		void			Log(const LPTSTR category, const LPTSTR log, ...);
 		static		void			Log(const CHAR* category, const CHAR* log, ...);
 
+		static		void			LogDebugString(const CHAR* logMsg, ...);
+
 		static		void			LogWithDate(const LPTSTR category, const LPTSTR log, ...);
 		static		void			LogWithDate(const CHAR* category, const CHAR* log, ...);
 
@@ -46,6 +48,7 @@ namespace Core
 	};
 
 	
+
 #define		LOG					Logger::Log
 #define		LOG_DATE			Logger::LogWithDate
 

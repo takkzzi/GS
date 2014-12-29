@@ -8,15 +8,8 @@ using namespace Network;
 //#define THREADSYNC_DEBUG
 
 #ifdef THREADSYNC_DEBUG
-
-	void TraceCriticalSection(TCHAR* msg, TCHAR* funcName) {
-		static TCHAR totalMsg[64] = { 0, };
-		::_stprintf_s(totalMsg, _T("%s (%s) \n"), msg, funcName);
-		OutputDebugString(totalMsg);
-	}
-
-	#define				CS_LOCK				TraceCriticalSection(_T("Enter"), __FUNCTIONW__);		mCriticalSec.Enter(); 
-	#define				CS_UNLOCK			mCriticalSec.Leave();		TraceCriticalSection(_T("Leave"), __FUNCTIONW__); 
+	#define				CS_LOCK				Logger::LogDebugString("%s (%s)", "Enter", __FUNCTION__);		mCriticalSec.Enter(); 
+	#define				CS_UNLOCK			mCriticalSec.Leave();		Logger::LogDebugString("%s (%s)", "Leave", __FUNCTION__);
 #else
 	#define				CS_LOCK				mCriticalSec.Enter();
 	#define				CS_UNLOCK			mCriticalSec.Leave();
@@ -209,14 +202,15 @@ bool Session::StartReceive()
 		DWORD transferBytes;
 		DWORD dwFlags = 0;
 
-		mbRecvCompleted = false;
-
 		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
 
 		if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 			SetState(SESSIONSTATE_DISCONNECTING);
 		}
-		else if ( res == 0 ) {  //Received Immediately
+		else {
+			mbRecvCompleted = false;
+			if ( res == 0 ) {  //Received Immediately
+			}
 		}
 	}
 
@@ -236,7 +230,7 @@ bool Session::Send()
 	wsabuf.buf = NULL;
 	wsabuf.len = 0x0000ffff;	//== Max TCP/IP Packet Size;
 
-	if ( ! mSendBuffer.GetData(&wsabuf.buf, (int*)&wsabuf.len, true, true) )
+	if ( ! mSendBuffer.Read(&wsabuf.buf, (int*)&wsabuf.len, true, true) )
 		return false;
 
 	CS_LOCK;
@@ -294,8 +288,6 @@ void Session::OnConnect()
 
 	mbRecvCompleted = true;
 	mbSendCompleted = true;
-
-	StartReceive();
 }
 
 void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
@@ -325,7 +317,7 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 
 	if ( ! mbRecvCompleted ) {
 
-		if ( mRecvBuffer.ReserveData(recvSize) ) {
+		if ( mRecvBuffer.Write(recvSize) ) {
 			mbRecvCompleted = true;
 		}
 		else {
@@ -334,20 +326,17 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	}
 
 	CS_UNLOCK;
-
-	//StartReceive();
 }
 
-bool Session::PushSend(char* data, int dataLen)
+bool Session::WriteData(char* data, int dataLen)
 {
 	//TEST
 	static UINT packetId = 0;
 	AlphabetPacket* alphaPacket = (AlphabetPacket*)data;
 	alphaPacket->mPacketId = packetId++;
 
-	bool bResult = mSendBuffer.PushData(data, dataLen);
+	bool bResult = mSendBuffer.Write(data, dataLen);
 	
-
 	//TEST
 	if ( bResult ) {
 		AlphabetPacket* alphaPacket = (AlphabetPacket*)data;
@@ -358,19 +347,19 @@ bool Session::PushSend(char* data, int dataLen)
 }
 
 //Note : Returned Buffer Must be "ClearRecv()" after Use.
-PacketBase* Session::PopRecv()
+PacketBase* Session::ReadData()
 {
 	CS_LOCK;
 
 	char* data = NULL;
-	int size = sizeof(PacketBase);
+	int minSize = sizeof(PacketBase);
 	PacketBase* packet = NULL;
+	
+	int currData = mRecvBuffer.GetDataSize();
 
-	int dataSize = mRecvBuffer.GetDataSize();
-
-	if ( mRecvBuffer.GetData(&data, &size, false, false) ) {
-		size = ((PacketBase*)data)->mPacketSize;
-		if ( mRecvBuffer.GetData(&data, &size, false, true) ) {
+	if ( mRecvBuffer.Read(&data, &minSize, false, true) ) {
+		minSize = ((PacketBase*)data)->mPacketSize;
+		if ( mRecvBuffer.Read(&data, &minSize, false, true) ) {
 			packet = (PacketBase*)data;
 		}
 	}
@@ -407,7 +396,6 @@ void Session::Update()
 	}
 }
 
-//TEST
 void Session::LogPacket(char* prefix, AlphabetPacket* packet)
 {
 	ASSERT(sizeof(*packet) == sizeof(AlphabetPacket));
@@ -420,5 +408,5 @@ void Session::LogPacket(char* prefix, AlphabetPacket* packet)
 	memcpy(logMsg, packet->mData, msgSize);
 	logMsg[msgSize] = '\0';
 
-	Logger::Log(categ, "%s(Num:%d)", logMsg, packet->mPacketId);
+	Logger::Log(categ, "%s %s(Num:%d)", categ, logMsg, packet->mPacketId);
 }

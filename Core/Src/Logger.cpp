@@ -189,8 +189,30 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 		}
 	}
 	CS_UNLOCK
+}
 
-	
+void Logger::LogDebugString(const CHAR* logMsg, ...)
+{
+	if ( ! msInit  ) return;
+
+	CS_LOCK
+	{
+		static CHAR logBuff[MAX_LOG_BUFFER]				= {0,};
+
+		va_list		ap;
+		va_start(ap, logMsg);
+		vsprintf(logBuff, logMsg, ap);
+		va_end(ap);
+
+		sprintf_s(logBuff, "%s\n", logBuff);
+
+		OutputDebugStringA(logBuff);
+
+	#ifdef _CONSOLE
+			_tprintf("%s", logBuff);
+	#endif
+	}
+	CS_UNLOCK
 }
 
 void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)

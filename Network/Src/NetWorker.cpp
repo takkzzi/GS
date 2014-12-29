@@ -54,19 +54,19 @@ unsigned __stdcall SessionUpdater (void* arg)
 {
 	Networker* networker = (Networker*)arg;
 
+	/*
 	do{
 		Sleep(10);
 	}
 	while(networker->UpdateSessions());
+	*/
 
-	/*
 	while(1)
 	{
 		Sleep(20);
 		if ( !networker->IsUpdatingSession() )
 			break;
 	}
-	*/
 
 	return 0;
 }

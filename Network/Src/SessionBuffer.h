@@ -4,6 +4,12 @@ namespace Network
 {
 	class Session;
 
+	/* 
+	mBuffer			mBufferStart	mDataHead(Moving)		mDataTail(Moving)		mBufferEnd
+	|----------------------|-----------------|-------------------------|-------------------|
+	|--- (Extra Buffer) ---|
+	*/
+
 	class CircularBuffer
 	{
 	public :
@@ -13,10 +19,11 @@ namespace Network
 		void						Init(int size, int dataMaxSize);
 		void						ClearAll();
 
-		bool						PushData(char* data, int size);
-		bool						ReserveData(int size);
-		int							GetData(char** bufPtr);		//Linear Whole Size
-		bool						GetData(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge);
+		bool						Write(char* data, int size);	//For Sending
+		bool						Write(int size);				//For Recv Complete (No memcpy)
+
+		int							Read(char** bufPtr);			//Linear Whole Size
+		bool						Read(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge);
 
 		bool						GetEmpty(char** bufPtr, int* size);		//If Size 0, musch as possible;
 		bool						ClearData(int size);
@@ -26,10 +33,10 @@ namespace Network
 		char*						GetDataTail()					{ return mDataTail; };
 
 	protected:
-		bool						DoPushSeparate(char* data, int size);
+		bool						DoWriteSeparate(char* data, int size);
 		bool						DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize);		//Use Only Separated Data.
 
-		bool						IsCircularData()				{ return (mBufferStart < mDataHead) && (mDataTail < mDataHead); }
+		bool						IsCircularData()				{ return (mBufferStart < mDataHead) && (mDataTail <= mDataHead); }
 		bool						IsUsingExtraBuffer()			{ return (mDataHead < mBufferStart); }
 		
 	protected:
@@ -80,11 +87,11 @@ namespace Network
 	struct AlphabetPacket : public PacketBase
 	{
 		AlphabetPacket() {
-			memcpy(mData, "abcdefghijklmnopqrstuvwxyz", 26);
+			memcpy(mData, "abcdefghijklmnopqrstuvwx", sizeof(mData));
 		}
 
 		UINT		mPacketId;
-		char		mData[26];
+		char		mData[24];
 	};
 #pragma pack()
 }

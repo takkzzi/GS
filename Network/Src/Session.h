@@ -61,9 +61,9 @@ namespace Network
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		bool					Send();
 
-		bool					PushSend(char* data, int dataLen);
+		bool					WriteData(char* data, int dataLen);
 		
-		PacketBase*				PopRecv();
+		PacketBase*				ReadData();
 		bool					ClearRecv(int bufSize);
 
 		void					Update();
