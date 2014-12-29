@@ -17,7 +17,8 @@ namespace Core
 #endif
 
 
-#define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
+#define SAFE_DELETE(p)				{ if(p) { delete (p);     (p)=NULL; } }
+#define SAFE_DELETE_ARRAYPTR(p)		{ if(p) { delete[] p;     p=NULL; } }
 
 
 #ifndef IN

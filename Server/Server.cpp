@@ -23,7 +23,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
 const int port			= 42006;
-const int sessionCount	= 2;
+const int sessionCount	= 1;
 const int sessionLimit	= 1000;
 
 class EchoServer : public Thread 
@@ -72,7 +72,7 @@ public :
 			mSendTime = currTime;
 		}
 
-		mIocp->UpdateSessions();
+		//mIocp->UpdateSessions();
 
 		PopRecv();
 

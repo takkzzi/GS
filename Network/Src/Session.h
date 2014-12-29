@@ -108,6 +108,8 @@ namespace Network
 		bool					mbSendCompleted;
 		bool					mbRecvCompleted;
 		CriticalSection			mCriticalSec;
+
+		int						mTestLockCount;
 	};
 
 	

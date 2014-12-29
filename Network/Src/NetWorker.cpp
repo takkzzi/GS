@@ -53,19 +53,20 @@ unsigned __stdcall IOCPWorker (void* arg)
 unsigned __stdcall SessionUpdater (void* arg)
 {
 	Networker* networker = (Networker*)arg;
-	/*
+
 	do{
 		Sleep(10);
 	}
 	while(networker->UpdateSessions());
-	*/
 
+	/*
 	while(1)
 	{
 		Sleep(20);
 		if ( !networker->IsUpdatingSession() )
 			break;
 	}
+	*/
 
 	return 0;
 }
@@ -106,6 +107,7 @@ Networker::~Networker(void)
 	EndSessionUpdate();
 	EndListen();
 	EndIo();
+	DeleteAllSessions();
 }
 
 //Thread Creation & Start Thread
@@ -148,8 +150,6 @@ void Networker::EndIo()
 		mIocp = INVALID_HANDLE_VALUE;
 	}
 	mCriticalSec.Leave();
-
-	DeleteAllSessions();
 }
 
 void Networker::BeginListen(UINT16 port, bool bPreAccept)
@@ -168,18 +168,18 @@ void Networker::BeginListen(UINT16 port, bool bPreAccept)
 		mListener = new SelectListener(this, port);
 		mListener->BeginListen();
 	}
-	
 
 	mCriticalSec.Leave();
 }
 
 void Networker::EndListen()
-{
-	mCriticalSec.Enter();
-	if ( mListener )
+{	
+	if ( mListener ) {
+		mCriticalSec.Enter();
 		mListener->EndListen();
-	SAFE_DELETE(mListener);
-	mCriticalSec.Leave();
+		SAFE_DELETE(mListener);
+		mCriticalSec.Leave();
+	}
 }
 
 void Networker::BeginSessionUpdate()
@@ -293,7 +293,7 @@ bool Networker::UpdateSessions()
 	
 	//If No Accepting Session, Create New Accepting Session;
 	if ( IsPreAccepter() && ! acceptingSession ) {
-		AddSession();
+		//AddSession();
 	}
 	mCriticalSec.Leave();
 	return true;

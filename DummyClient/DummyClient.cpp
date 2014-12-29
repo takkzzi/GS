@@ -64,7 +64,7 @@ public :
 
 		//PopRecv();
 
-		mIocp->UpdateSessions();
+		//mIocp->UpdateSessions();
 
 		Sleep(10);
 
@@ -172,7 +172,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	
 	PingPongClient* sessTester[5] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new PingPongClient(2);
+	sessTester[0] = new PingPongClient(1);
 	sessTester[0]->Begin(false);
 	
 	//sessTester[1] = new PingPongClient(10);
