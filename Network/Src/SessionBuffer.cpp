@@ -56,7 +56,7 @@ void CircularBuffer::ClearAll()
 	mCriticalSec.Leave();
 }
 
-bool CircularBuffer::Write(char* data, int size)
+bool CircularBuffer::Write(char* data, size_t size)
 {	
 	mCriticalSec.Enter();
 
@@ -79,22 +79,24 @@ bool CircularBuffer::Write(char* data, int size)
 	return bEnough;
 }
 
-bool CircularBuffer::DoWriteSeparate(char* data, int size)
+bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 {
 	size_t tail_end = (mBufferEnd - mDataTail);
 	size_t start_head = (mDataHead - mBufferStart);
+	ASSERT(tail_end > 0 && start_head > 0);
 	bool bEnough = ( tail_end + start_head ) >= (size_t)size;
 
 	if ( bEnough ) {   //Separate Tail-End, Start-Head
+		size_t start_tail = (size - tail_end);
 		memcpy(mDataTail, data, tail_end);
-		memcpy(mBufferStart, data + tail_end, start_head);
-		mDataTail = mBufferStart + start_head;
+		memcpy(mBufferStart, (data + tail_end), start_tail);
+		mDataTail = mBufferStart + start_tail;
 	}
 	return bEnough;
 }
 
 //Set Data without memcpy (Linear);
-bool CircularBuffer::Write(int size) 
+bool CircularBuffer::Write(size_t size) 
 {
 	mCriticalSec.Enter();
 
@@ -131,8 +133,10 @@ bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircu
 {
 	mCriticalSec.Enter();
 	
-	bool bLinear = ! IsCircularData();
+	*bufPtr = NULL;
 	bool bResult = false;
+	bool bLinear = ! IsCircularData();
+
 	if ( bLinear ) {
 		size_t dataSize = (mDataTail - mDataHead);
 		bool bDataEnough = dataSize >= (size_t)*reqSize;
@@ -156,7 +160,7 @@ bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircu
 	return bResult;
 }
 
-//Use Only Separated Data.
+//Use Only Separated Data. Make buffer Linear
 bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize)
 {
 	size_t head_end_size = (mBufferEnd - mDataHead);
@@ -165,9 +169,10 @@ bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize
 	if ( head_end_size <= (size_t)mBufferExtraSize ) {
 
 		size_t start_tail_size = (mDataTail - mBufferStart);
+		ASSERT(start_tail_size > 0);
 		size_t dataFullSize = (head_end_size + start_tail_size);
 
-		bool bDataEnough = dataFullSize >= (size_t)*reqSize;
+		bool bDataEnough = dataFullSize >= (size_t)(*reqSize);
 
 		if ( bDataEnough ) {
 			char* newHeadPos = (mBufferStart - head_end_size);
@@ -193,7 +198,7 @@ bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
 	mCriticalSec.Enter();
 
 	bool bLinear = ! IsCircularData();
-	if ( bLinear && (mDataTail == mBufferEnd) && (mBufferStart < mDataHead) ) {   //Converting Circular
+	if ( bLinear && (mDataTail == mBufferEnd) && (mBufferStart < mDataHead) ) {   //Make Circular
 		mDataTail = mBufferStart;
 		bLinear = false;
 	}

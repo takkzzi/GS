@@ -19,8 +19,8 @@ namespace Network
 		void						Init(int size, int dataMaxSize);
 		void						ClearAll();
 
-		bool						Write(char* data, int size);	//For Sending
-		bool						Write(int size);				//For Recv Complete (No memcpy)
+		bool						Write(char* data, size_t size);	//For Sending
+		bool						Write(size_t size);				//For Recv Complete (No memcpy)
 
 		int							Read(char** bufPtr);			//Linear Whole Size
 		bool						Read(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge);
@@ -33,7 +33,7 @@ namespace Network
 		char*						GetDataTail()					{ return mDataTail; };
 
 	protected:
-		bool						DoWriteSeparate(char* data, int size);
+		bool						DoWriteSeparate(char* data, size_t size);
 		bool						DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize);		//Use Only Separated Data.
 
 		bool						IsCircularData()				{ return (mBufferStart < mDataHead) && (mDataTail <= mDataHead); }
