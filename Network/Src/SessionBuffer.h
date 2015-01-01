@@ -29,15 +29,18 @@ namespace Network
 		bool						ClearData(int size);
 		
 		size_t						GetDataSize();
-		char*						GetDataHead()					{ return mDataHead; };
-		char*						GetDataTail()					{ return mDataTail; };
+		char*						GetDataHead()					{ return mCircletart + mDataHead; };
+		char*						GetDataTail()					{ return mCircleStart + mDataTail; };
+
+		int							GetDataHeadPos()				{ return mDataHead; };
+		int							GetDataTailPos()				{ return mDataTail; };
 
 	protected:
 		bool						DoWriteSeparate(char* data, size_t size);
 		bool						DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize);		//Use Only Separated Data.
 
-		bool						IsCircularData()				{ return (mBufferStart < mDataHead) && (mDataTail <= mDataHead); }
-		bool						IsUsingExtraBuffer()			{ return (mDataHead < mBufferStart); }
+		bool						IsCircularData()				{ return (0 < mDataHead) && (mDataTail <= mDataHead); }
+		bool						IsUsingExtraBuffer()			{ return (mDataHead < 0); }
 		
 	protected:
 
@@ -46,10 +49,10 @@ namespace Network
 
 		//For Circular Buffering
 		char*						mBuffer;
-		char*						mBufferStart;
-		char*						mBufferEnd;
-		char*						mDataHead;		//Data Start : Moving
-		char*						mDataTail;		//Data End : Moving
+		char*						mCircleStart;
+		char*						mCircleEnd;
+		int							mDataHead;		//Data Start : Moving
+		int							mDataTail;		//Data End : Moving
 
 		CriticalSection				mCriticalSec;
 	};
@@ -87,11 +90,11 @@ namespace Network
 	struct AlphabetPacket : public PacketBase
 	{
 		AlphabetPacket() {
-			memcpy(mData, "abcdefghijklmnopqrstuvwx", sizeof(mData));
+			memcpy(mData, "abcdefghijklmnopqrstuvwxyz", sizeof(mData));
 		}
 
 		UINT		mPacketId;
-		char		mData[24];
+		char		mData[4];
 	};
 #pragma pack()
 }

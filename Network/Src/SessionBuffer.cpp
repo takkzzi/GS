@@ -11,6 +11,10 @@ CircularBuffer::CircularBuffer()
 	: mBufferSize(0)
 	, mBufferExtraSize(0)
 	, mBuffer(NULL)
+	, mCircleStart(0)
+	, mCircleEnd(0)
+	, mDataHead(0)
+	, mDataTail(0)
 {
 }
 
@@ -41,8 +45,8 @@ void CircularBuffer::Init(int size, int extraBufferSize)
 	mBufferSize = size;
 	mBufferExtraSize = extraBufferSize;
 
-	mBufferStart = mBuffer + extraBufferSize;
-	mBufferEnd = mBufferStart + mBufferSize;
+	mCircleStart = mBuffer + extraBufferSize;
+	mCircleEnd = mCircleStart + mBufferSize;
 	
 	mCriticalSec.Leave();
 
@@ -52,7 +56,7 @@ void CircularBuffer::Init(int size, int extraBufferSize)
 void CircularBuffer::ClearAll()
 {
 	mCriticalSec.Enter();
-	mDataHead = mDataTail = mBufferStart;
+	mDataHead = mDataTail = 0;
 	mCriticalSec.Leave();
 }
 
@@ -61,10 +65,10 @@ bool CircularBuffer::Write(char* data, size_t size)
 	mCriticalSec.Enter();
 
 	bool bLinear = ! IsCircularData();
-	char* emptyStart = mDataTail;
-	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
+	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
 
-	bool bEnough = (emptyEnd - emptyStart) >= size;
+	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
 
 	if ( bEnough ) {
 		memcpy(emptyStart, data, size);
@@ -81,16 +85,16 @@ bool CircularBuffer::Write(char* data, size_t size)
 
 bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 {
-	size_t tail_end = (mBufferEnd - mDataTail);
-	size_t start_head = (mDataHead - mBufferStart);
+	size_t tail_end = (mCircleEnd - (mCircleStart + mDataTail));
+	size_t start_head = (mDataHead);
 	ASSERT(tail_end > 0 && start_head > 0);
 	bool bEnough = ( tail_end + start_head ) >= (size_t)size;
 
 	if ( bEnough ) {   //Separate Tail-End, Start-Head
 		size_t start_tail = (size - tail_end);
-		memcpy(mDataTail, data, tail_end);
-		memcpy(mBufferStart, (data + tail_end), start_tail);
-		mDataTail = mBufferStart + start_tail;
+		memcpy(mCircleStart + mDataTail, data, tail_end);
+		memcpy(mCircleStart, (data + tail_end), start_tail);
+		mDataTail = start_tail;
 	}
 	return bEnough;
 }
@@ -101,9 +105,9 @@ bool CircularBuffer::Write(size_t size)
 	mCriticalSec.Enter();
 
 	bool bLinear = ! IsCircularData();
-	char* emptyStart = mDataTail;
-	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
-	bool bEnough = (emptyEnd - emptyStart) >= size;
+	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
+	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
 
 	if ( bEnough ) {
 		mDataTail += size;
@@ -121,7 +125,7 @@ int CircularBuffer::GetData(char** bufPtr)
 	mCriticalSec.Enter();
 	bool bCircualrSeparate = (mDataHead > mDataTail);
 	char* dataHead = mDataHead;
-	char* dataTail = bCircualrSeparate ? mBufferEnd : mDataTail;
+	char* dataTail = bCircualrSeparate ? mCircleEnd : mDataTail;
 	*bufPtr = dataHead;
 	int size = (dataTail - dataHead);
 	mCriticalSec.Leave();
@@ -142,11 +146,11 @@ bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircu
 		bool bDataEnough = dataSize >= (size_t)*reqSize;
 
 		if ( bDataEnough ) {
-			*bufPtr = mDataHead;
+			*bufPtr = (mCircleStart + mDataHead);
 			bResult = true;
 		}
 		else if ( bResize && (dataSize > 0) ) {
-			*bufPtr = mDataHead;
+			*bufPtr = (mCircleStart + mDataHead);
 			*reqSize = dataSize;
 			bResult = true;
 		}
@@ -163,27 +167,28 @@ bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircu
 //Use Only Separated Data. Make buffer Linear
 bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize)
 {
-	size_t head_end_size = (mBufferEnd - mDataHead);
+	size_t head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
 	bool bResult = false;
 
 	if ( head_end_size <= (size_t)mBufferExtraSize ) {
 
-		size_t start_tail_size = (mDataTail - mBufferStart);
-		ASSERT(start_tail_size > 0);
+		size_t start_tail_size = (mDataTail);
+		//ASSERT(start_tail_size > 0);
 		size_t dataFullSize = (head_end_size + start_tail_size);
 
 		bool bDataEnough = dataFullSize >= (size_t)(*reqSize);
 
+		char* newHeadPos = (mCircleStart - head_end_size);
+		memcpy(newHeadPos, mCircleStart + mDataHead, head_end_size);
+
 		if ( bDataEnough ) {
-			char* newHeadPos = (mBufferStart - head_end_size);
-			memcpy(newHeadPos, mDataHead, head_end_size);
-			*bufPtr = mDataHead = newHeadPos;	//Set New Head Position in Extra Buffer
+			*bufPtr = newHeadPos;	
+			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			bResult = true;
 		}
 		else if ( bResize && (dataFullSize > 0) ) {
-			char* newHeadPos = (mBufferStart - head_end_size);
-			memcpy(newHeadPos, mDataHead, head_end_size);
-			*bufPtr = mDataHead = newHeadPos;	//Set New Head Position in Extra Buffer
+			*bufPtr = newHeadPos;
+			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			*reqSize = dataFullSize;
 			bResult = true;
 		}
@@ -198,13 +203,13 @@ bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
 	mCriticalSec.Enter();
 
 	bool bLinear = ! IsCircularData();
-	if ( bLinear && (mDataTail == mBufferEnd) && (mBufferStart < mDataHead) ) {   //Make Circular
-		mDataTail = mBufferStart;
+	if ( bLinear && (mDataTail == mBufferSize) && (0 < mDataHead) ) {   //Make Circular
+		mDataTail = 0;
 		bLinear = false;
 	}
 
-	char* emptyStart = mDataTail;
-	char* emptyEnd = bLinear ? mBufferEnd : mDataHead;
+	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
 	bool bEnough = (emptyEnd - emptyStart) >= *size;
 	bool muchAsPossible = ((*size) == 0);
 
@@ -231,7 +236,7 @@ bool CircularBuffer::ClearData(int size)
 		mDataHead += size;
 		ASSERT(mDataHead <= mDataTail);
 		if ( mDataHead == mDataTail) {
-			mDataHead = mDataTail = mBufferStart;
+			mDataHead = mDataTail = 0;
 		}
 	}
 	mCriticalSec.Leave();
@@ -242,13 +247,13 @@ size_t CircularBuffer::GetDataSize()
 {
 	size_t size = 0;
 	if ( IsCircularData() ) {
-		size = (mBufferEnd - mDataHead) + (mDataTail - mBufferStart);
+		size = (mBufferSize - mDataHead) + (mDataTail);
 	} 
 	else {
 		size = (mDataTail - mDataHead);
 	}
 
-	return (int)size;
+	return size;
 }
 
 /*

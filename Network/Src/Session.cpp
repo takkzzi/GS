@@ -209,6 +209,7 @@ bool Session::StartReceive()
 		}
 		else {
 			mbRecvCompleted = false;
+			Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 			if ( res == 0 ) {  //Received Immediately
 			}
 		}
@@ -226,9 +227,7 @@ bool Session::Send()
 	if ( ! mbSendCompleted )
 		return false;
 
-	WSABUF wsabuf;
-	wsabuf.buf = NULL;
-	wsabuf.len = 0x0000ffff;	//== Max TCP/IP Packet Size;
+	WSABUF wsabuf = { 0x0000ffff, NULL};	// len = Max TCP/IP Packet Size;
 
 	if ( ! mSendBuffer.Read(&wsabuf.buf, (int*)&wsabuf.len, true, true) )
 		return false;
@@ -319,6 +318,7 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 
 		if ( mRecvBuffer.Write(recvSize) ) {
 			mbRecvCompleted = true;
+			Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 		}
 		else {
 			ASSERT(0 && "RecvBuffer.Reserve() Error !");
