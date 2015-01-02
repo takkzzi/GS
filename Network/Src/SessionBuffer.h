@@ -29,7 +29,7 @@ namespace Network
 		bool						ClearData(int size);
 		
 		size_t						GetDataSize();
-		char*						GetDataHead()					{ return mCircletart + mDataHead; };
+		char*						GetDataHead()					{ return mCircleStart + mDataHead; };
 		char*						GetDataTail()					{ return mCircleStart + mDataTail; };
 
 		int							GetDataHeadPos()				{ return mDataHead; };

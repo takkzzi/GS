@@ -73,7 +73,6 @@ namespace Network
 
 	//Start Event Callback
 	public :
-		//void					OnCompletionStatus(OverlappedData* overlapped, DWORD transferSize);
 		void					OnAccept(SOCKET listenSock);
 		void					OnSendComplete(OverlappedIoData* overlapIoData, DWORD sendSize);
 		void					OnRecvComplete(OverlappedIoData* overlapIoData, DWORD recvSize);
