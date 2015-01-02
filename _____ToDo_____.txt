@@ -13,10 +13,9 @@
 ------------ Network ------------ 
 
 * Session
-	- 종료시 Session 소멸자에서 데드락
+	- [중요] DoGetAndMergeData 내에서 (Head_End > *reqSize) 일때 고찰 !!!
+	- [중요] Recv 예약중에 DoGetAndMergeData() 로 DataTail 이 변경된 상황 !!! 버그 !!!
 	- Session 종료 (Disconnect) 절차 확실히
- 	- Session Close(Reset) 후 재사용시 (OnAccept() ) 에서 데드락
-	- Circular Buffer 좀더 테스트 할것.
 	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	
 * Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.

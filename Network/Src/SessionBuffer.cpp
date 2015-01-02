@@ -144,13 +144,12 @@ bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircu
 	if ( bLinear ) {
 		size_t dataSize = (mDataTail - mDataHead);
 		bool bDataEnough = dataSize >= (size_t)*reqSize;
+		*bufPtr = (mCircleStart + mDataHead);
 
 		if ( bDataEnough ) {
-			*bufPtr = (mCircleStart + mDataHead);
 			bResult = true;
 		}
 		else if ( bResize && (dataSize > 0) ) {
-			*bufPtr = (mCircleStart + mDataHead);
 			*reqSize = dataSize;
 			bResult = true;
 		}
@@ -173,7 +172,6 @@ bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize
 	if ( head_end_size <= (size_t)mBufferExtraSize ) {
 
 		size_t start_tail_size = (mDataTail);
-		//ASSERT(start_tail_size > 0);
 		size_t dataFullSize = (head_end_size + start_tail_size);
 
 		bool bDataEnough = dataFullSize >= (size_t)(*reqSize);
