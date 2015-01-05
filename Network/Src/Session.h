@@ -62,7 +62,6 @@ namespace Network
 		bool					Send();
 
 		bool					WriteData(char* data, int dataLen);
-		
 		PacketBase*				ReadData();
 		bool					ClearRecv(int bufSize);
 
@@ -106,9 +105,8 @@ namespace Network
 		bool					mIsAccepter;
 		bool					mbSendCompleted;
 		bool					mbRecvCompleted;
+		bool					mbRecvLock;
 		CriticalSection			mCriticalSec;
-
-		int						mTestLockCount;
 	};
 
 	

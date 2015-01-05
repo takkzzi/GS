@@ -4,14 +4,16 @@ namespace Network
 {
 	class Session;
 
-	/* 
-	mBuffer			mBufferStart	mDataHead(Moving)		mDataTail(Moving)		mBufferEnd
-	|----------------------|-----------------|-------------------------|-------------------|
-	|--- (Extra Buffer) ---|
-	*/
-
 	class CircularBuffer
 	{
+		/* <Buffer Structure>
+
+		mBuffer			mBufferStart	mDataHead(Moving)		mDataTail(Moving)		mBufferEnd
+		|----------------------|-----------------|-------------------------|-------------------|
+		|--- (Extra Buffer) ---|
+
+		*/
+
 	public :
 		CircularBuffer();
 		virtual ~CircularBuffer();
@@ -19,15 +21,14 @@ namespace Network
 		void						Init(int size, int dataMaxSize);
 		void						ClearAll();
 
-		bool						Write(char* data, size_t size);	//For Sending
-		bool						Write(size_t size);				//For Recv Complete (No memcpy)
+		bool						Write(char* data, size_t size);
+		char*						Read(int* reqSize, bool bResize, bool bCircularMerge);
 
-		int							Read(char** bufPtr);			//Linear Whole Size
-		bool						Read(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge);
+		bool						AddDataTail(size_t size);
 
-		bool						GetEmpty(char** bufPtr, int* size);		//If Size 0, musch as possible;
+		char*						GetEmpty(int* size);		//If Size 0, musch as possible;
 		bool						ClearData(int size);
-		
+	
 		size_t						GetDataSize();
 		char*						GetDataHead()					{ return mCircleStart + mDataHead; };
 		char*						GetDataTail()					{ return mCircleStart + mDataTail; };
@@ -37,15 +38,15 @@ namespace Network
 
 	protected:
 		bool						DoWriteSeparate(char* data, size_t size);
-		bool						DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize);		//Use Only Separated Data.
+		char*						DoReadAndMergeData(int* reqSize, bool bResize);		//Use Only Separated Data.
 
-		bool						IsCircularData()				{ return (0 < mDataHead) && (mDataTail <= mDataHead); }
+		bool						IsCircularData()				{ return (0 < mDataHead) && (mDataTail < mDataHead); }
 		bool						IsUsingExtraBuffer()			{ return (mDataHead < 0); }
 		
 	protected:
 
 		int							mBufferSize;
-		int							mBufferExtraSize;	//front of Start Part : Combine Separate End and Start 
+		int							mBufferExtraSize;	//front of CircleStart Part : Combine Separate End and Start 
 
 		//For Circular Buffering
 		char*						mBuffer;
@@ -61,20 +62,24 @@ namespace Network
 	class SendBuffer : public CircularBuffer
 	{
 	public :
-		//SendBuffer();
-		//virtual ~SendBuffer();
+		SendBuffer()	{};
+		virtual ~SendBuffer()	{};
 
-		bool					OnIoComplete(char* dataPtr, DWORD completeSize);
-
+		bool						WriteData(char* data, size_t size);
+		char*						GetDataForSend(int* requestSize);
+		bool						OnSendComplete(size_t transferSize);
 	};
+
 
 	class RecvBuffer : public CircularBuffer
 	{
 	public :
-		//RecvBuffer();
-		//virtual ~RecvBuffer();
+		RecvBuffer()	{};
+		virtual ~RecvBuffer()	{};
 
-		bool					OnIoComplete(char* dataPtr, DWORD completeSize);
+		int							ReadData(char** buf);
+		char*						GetEmptyForRecv(int* requestSize);
+		bool						OnRecvComplete(size_t transferSize);
 	};
 	*/
 

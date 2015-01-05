@@ -28,7 +28,7 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	, mIsAccepter(false)
 	, mbSendCompleted(true)
 	, mbRecvCompleted(true)
-	, mTestLockCount(0)
+	, mbRecvLock(false)
 {	
 	CS_LOCK;
 
@@ -186,31 +186,34 @@ bool Session::StartAccept(SOCKET listenSock) {
 
 bool Session::StartReceive()
 {
-	if ( ! IsState(SESSIONSTATE_CONNECTED) || ! mbRecvCompleted )
+	if ( ! IsState(SESSIONSTATE_CONNECTED) )
 		return false;
 
 	CS_LOCK;
 
-	WSABUF wsabuf;
-	wsabuf.buf = NULL;
-	wsabuf.len = 0;		//Much as Possible
+	if ( mbRecvCompleted && ! mbRecvLock ) 
+	{
+		WSABUF wsabuf = { 0, NULL };	// len == 0 Much as Possible
+		wsabuf.buf = mRecvBuffer.GetEmpty((int*)&(wsabuf.len));
 
-	if ( mRecvBuffer.GetEmpty(&(wsabuf.buf), (int*)&(wsabuf.len)) ) {
+		if ( wsabuf.buf && wsabuf.len > 0 ) {
 
-		mRecvIoData.Reset(wsabuf.buf);
+			mRecvIoData.Reset(wsabuf.buf);
 
-		DWORD transferBytes;
-		DWORD dwFlags = 0;
+			DWORD transferBytes;
+			DWORD dwFlags = 0;
 
-		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
+			int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
 
-		if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-			SetState(SESSIONSTATE_DISCONNECTING);
-		}
-		else {
-			mbRecvCompleted = false;
-			Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
-			if ( res == 0 ) {  //Received Immediately
+			if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
+				LOG_LASTERROR(_T("WSARecv() Error!"), true);
+				SetState(SESSIONSTATE_DISCONNECTING);
+			}
+			else {
+				mbRecvCompleted = false;
+				Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
+				if ( res == 0 ) {  //Received Immediately
+				}
 			}
 		}
 	}
@@ -228,8 +231,8 @@ bool Session::Send()
 		return false;
 
 	WSABUF wsabuf = { 0x0000ffff, NULL};	// len = Max TCP/IP Packet Size;
-
-	if ( ! mSendBuffer.Read(&wsabuf.buf, (int*)&wsabuf.len, true, true) )
+	wsabuf.buf = mSendBuffer.Read((int*)&wsabuf.len, true, true);
+	if ( ! wsabuf.buf )
 		return false;
 
 	CS_LOCK;
@@ -316,7 +319,7 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 
 	if ( ! mbRecvCompleted ) {
 
-		if ( mRecvBuffer.Write(recvSize) ) {
+		if ( mRecvBuffer.AddDataTail(recvSize) ) {
 			mbRecvCompleted = true;
 			Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 		}
@@ -352,16 +355,21 @@ PacketBase* Session::ReadData()
 	CS_LOCK;
 
 	char* data = NULL;
+	bool bCanMakeCircleData = mbRecvCompleted;	//Important : Don't Change DataTailPos in Recv-Progress.
 	int minSize = sizeof(PacketBase);
 	PacketBase* packet = NULL;
-	
-	int currData = mRecvBuffer.GetDataSize();
+	int dataTail = mRecvBuffer.GetDataTailPos();
 
-	if ( mRecvBuffer.Read(&data, &minSize, false, true) ) {
+	if ( data = mRecvBuffer.Read(&minSize, false, bCanMakeCircleData) ) {
 		minSize = ((PacketBase*)data)->mPacketSize;
-		if ( mRecvBuffer.Read(&data, &minSize, false, true) ) {
+		if ( data = mRecvBuffer.Read(&minSize, false, bCanMakeCircleData) ) {
 			packet = (PacketBase*)data;
 		}
+	}
+
+	//If Tail Changed, Lock Recv Until ClearRecv.
+	if ( dataTail != mRecvBuffer.GetDataTailPos() ) {
+		mbRecvLock = true;
 	}
 
 	//TEST
@@ -376,7 +384,9 @@ PacketBase* Session::ReadData()
 
 bool Session::ClearRecv(int bufSize)
 {
-	return mRecvBuffer.ClearData(bufSize);
+	bool bClear = mRecvBuffer.ClearData(bufSize);
+	mbRecvLock = !bClear;
+	return bClear;
 }
 
 void Session::Update()

@@ -3,9 +3,9 @@
 
 using namespace Network;
 
-#define		CS_LOCK		mCriticalSec.Enter();
+#define		CS_LOCK			mCriticalSec.Enter();
 #define		CS_UNLOCK		mCriticalSec.Leave();
-
+#define		CIRCULAR_DATATAIL_MAX	(mDataHead - 1)
 
 CircularBuffer::CircularBuffer()
 	: mBufferSize(0)
@@ -20,14 +20,14 @@ CircularBuffer::CircularBuffer()
 
 CircularBuffer::~CircularBuffer()
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 	delete[] mBuffer;
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 void CircularBuffer::Init(int size, int extraBufferSize)
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 
 	int newBufferTotal = extraBufferSize + size;
 	int oldBufferTotal = mBufferSize + mBufferExtraSize;
@@ -48,25 +48,25 @@ void CircularBuffer::Init(int size, int extraBufferSize)
 	mCircleStart = mBuffer + extraBufferSize;
 	mCircleEnd = mCircleStart + mBufferSize;
 	
-	mCriticalSec.Leave();
+	CS_UNLOCK
 
 	ClearAll();
 }
 
 void CircularBuffer::ClearAll()
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 	mDataHead = mDataTail = 0;
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 bool CircularBuffer::Write(char* data, size_t size)
 {	
-	mCriticalSec.Enter();
+	CS_LOCK
 
 	bool bLinear = ! IsCircularData();
 	char* emptyStart = mCircleStart + mDataTail;
-	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 
 	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
 
@@ -78,7 +78,7 @@ bool CircularBuffer::Write(char* data, size_t size)
 		bEnough = DoWriteSeparate(data, size);
 	}
 
-	mCriticalSec.Leave();
+	CS_UNLOCK
 
 	return bEnough;
 }
@@ -86,8 +86,8 @@ bool CircularBuffer::Write(char* data, size_t size)
 bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 {
 	size_t tail_end = (mCircleEnd - (mCircleStart + mDataTail));
-	size_t start_head = (mDataHead);
-	ASSERT(tail_end > 0 && start_head > 0);
+	size_t start_head = CIRCULAR_DATATAIL_MAX;
+
 	bool bEnough = ( tail_end + start_head ) >= (size_t)size;
 
 	if ( bEnough ) {   //Separate Tail-End, Start-Head
@@ -99,76 +99,41 @@ bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 	return bEnough;
 }
 
-//Set Data without memcpy (Linear);
-bool CircularBuffer::Write(size_t size) 
+char* CircularBuffer::Read(int* reqSize, bool bResize, bool bCircularMerge)
 {
-	mCriticalSec.Enter();
-
-	bool bLinear = ! IsCircularData();
-	char* emptyStart = mCircleStart + mDataTail;
-	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
-	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
-
-	if ( bEnough ) {
-		mDataTail += size;
-	}
-
-	mCriticalSec.Leave();
-
-	return bEnough;
-}
-
-/*
-//Linear Data Only
-int CircularBuffer::GetData(char** bufPtr)
-{
-	mCriticalSec.Enter();
-	bool bCircualrSeparate = (mDataHead > mDataTail);
-	char* dataHead = mDataHead;
-	char* dataTail = bCircualrSeparate ? mCircleEnd : mDataTail;
-	*bufPtr = dataHead;
-	int size = (dataTail - dataHead);
-	mCriticalSec.Leave();
-	return size;
-}
-*/
-
-bool CircularBuffer::Read(char** bufPtr, int* reqSize, bool bResize, bool bCircularMerge)
-{
-	mCriticalSec.Enter();
+	CS_UNLOCK
 	
-	*bufPtr = NULL;
-	bool bResult = false;
+	char* resultBuf = NULL;
 	bool bLinear = ! IsCircularData();
 
 	if ( bLinear ) {
 		size_t dataSize = (mDataTail - mDataHead);
 		bool bDataEnough = dataSize >= (size_t)*reqSize;
-		*bufPtr = (mCircleStart + mDataHead);
 
 		if ( bDataEnough ) {
-			bResult = true;
+			resultBuf = (mCircleStart + mDataHead);
 		}
 		else if ( bResize && (dataSize > 0) ) {
+			resultBuf = (mCircleStart + mDataHead);
 			*reqSize = dataSize;
-			bResult = true;
 		}
 	}
 	else if ( bCircularMerge && ! IsUsingExtraBuffer() ) {    //Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
-		bResult = DoGetAndMergeData(bufPtr, reqSize, bResize);
+		resultBuf = DoReadAndMergeData(reqSize, bResize);
 	}
 
-	mCriticalSec.Leave();
+	CS_UNLOCK
 
-	return bResult;
+	return resultBuf;
 }
 
 //Use Only Separated Data. Make buffer Linear
-bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize)
+char* CircularBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 {
 	size_t head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
 	bool bResult = false;
 
+	char* resultBuf = NULL;
 	if ( head_end_size <= (size_t)mBufferExtraSize ) {
 
 		size_t start_tail_size = (mDataTail);
@@ -180,25 +145,47 @@ bool CircularBuffer::DoGetAndMergeData(char** bufPtr, int* reqSize, bool bResize
 		memcpy(newHeadPos, mCircleStart + mDataHead, head_end_size);
 
 		if ( bDataEnough ) {
-			*bufPtr = newHeadPos;	
+			resultBuf = newHeadPos;	
 			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			bResult = true;
 		}
 		else if ( bResize && (dataFullSize > 0) ) {
-			*bufPtr = newHeadPos;
+			resultBuf = newHeadPos;
 			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			*reqSize = dataFullSize;
 			bResult = true;
 		}
 	}
 
-	return bResult;
+	return resultBuf;
+}
+
+//Set DataTail without data-memcpy (Linear);
+bool CircularBuffer::AddDataTail(size_t size) 
+{
+	CS_LOCK
+
+	bool bLinear = ! IsCircularData();
+	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
+	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
+
+	if ( bEnough ) {
+		mDataTail += size;
+	}
+
+	CS_UNLOCK
+
+	return bEnough;
 }
 
 //For Recv
-bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
+char* CircularBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possible
 {
-	mCriticalSec.Enter();
+	CS_LOCK
+	if ( mDataHead == mDataTail ) {
+		mDataHead = mDataTail = 0;	// == ClearAll();
+	}
 
 	bool bLinear = ! IsCircularData();
 	if ( bLinear && (mDataTail == mBufferSize) && (0 < mDataHead) ) {   //Make Circular
@@ -206,13 +193,14 @@ bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
 		bLinear = false;
 	}
 
+	char* resultBuf = NULL;
 	char* emptyStart = mCircleStart + mDataTail;
-	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + mDataHead);
+	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 	bool bEnough = (emptyEnd - emptyStart) >= *size;
 	bool muchAsPossible = ((*size) == 0);
 
 	if ( bEnough ) {
-		*bufPtr = emptyStart;
+		resultBuf = emptyStart;
 
 		if ( muchAsPossible ) {
 			int emptySize = (emptyEnd - emptyStart);
@@ -220,25 +208,27 @@ bool CircularBuffer::GetEmpty(char** bufPtr, int* size)
 			bEnough = emptySize > 0;
 		}
 	}
-	mCriticalSec.Leave();
-	return bEnough;
+	CS_UNLOCK
+
+	return resultBuf;
 }
 
 bool CircularBuffer::ClearData(int size)
 {
-	char* dataHead = NULL;
-	bool bGet = Read(&dataHead, &size, false, false);
+	char* dataHead = Read(&size, false, false);
 
-	mCriticalSec.Enter();
-	if ( bGet ) {
+	CS_LOCK
+	if ( dataHead ) {
 		mDataHead += size;
+		/*
 		ASSERT(mDataHead <= mDataTail);
 		if ( mDataHead == mDataTail) {
 			mDataHead = mDataTail = 0;
 		}
+		*/
 	}
-	mCriticalSec.Leave();
-	return bGet;
+	CS_UNLOCK
+	return (dataHead && (size > 0));
 }
 
 size_t CircularBuffer::GetDataSize()
@@ -254,21 +244,33 @@ size_t CircularBuffer::GetDataSize()
 	return size;
 }
 
+
 /*
 //SendBuffer ///////////////////////////////////////////////////////////////////////////////////
-bool SendBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
+bool SendBuffer::WriteData(char* data, size_t size)
 {
-	mCriticalSec.Enter();
-	mCriticalSec.Leave();
-	return true;
+	return Write(data, size);
+}
+
+char* SendBuffer::GetDataForSend(int* requestSize)
+{
+	return Read(requestSize, true, true);
+}
+
+bool SendBuffer::OnSendComplete(size_t transferSize)
+{
+	return ClearData(transferSize);
 }
 
 
 //RecvBuffer ///////////////////////////////////////////////////////////////////////////////////
-bool RecvBuffer::OnIoComplete(char* bufPtr, DWORD transferBytes)
+char* RecvBuffer::GetEmptyForRecv(int* requestSize)
 {
-	mCriticalSec.Enter();
-	mCriticalSec.Leave();
-	return true;
+	return GetEmpty
+}
+
+bool RecvBuffer::OnRecvComplete(size_t transferSize)
+{
+	return AddDataTail(transferSize);
 }
 */

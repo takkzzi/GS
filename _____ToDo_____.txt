@@ -13,18 +13,14 @@
 ------------ Network ------------ 
 
 * Session
-	- [중요] DoGetAndMergeData 내에서 (Head_End > *reqSize) 일때 고찰 !!!
-	- [중요] Recv 예약중에 DoGetAndMergeData() 로 DataTail 이 변경된 상황 !!! 버그 !!!
+	
 	- Session 종료 (Disconnect) 절차 확실히
 	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
-	
-* Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.
+	= Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
 
 * Game Component 에서 Session 상속받고 최적화(Io Completion)하여 구현할것.
 
-* SessionBuffer 
-	- DoGetAndMergeData() 버그 없는지 확인!
-	- [중요] Data Pop시, PacketBase(Header) 만큼 연속된 Data 인지 확인 (Linear Tail-End )를 Extra 로 옮길수 있는지 확인.
+* SessionBuffer
 	- Test 로 구현되어있던 Packet 구조체 제자리로 옮길것.
 
 
