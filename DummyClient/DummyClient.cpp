@@ -62,7 +62,7 @@ public :
 			mLastSendTime = currTime;
 		};
 
-		//PopRecv();
+		PopRecv();
 
 		mIocp->UpdateSessions();
 

@@ -21,7 +21,7 @@
 * Game Component 에서 Session 상속받고 최적화(Io Completion)하여 구현할것.
 
 * SessionBuffer
-	- Test 로 구현되어있던 Packet 구조체 제자리로 옮길것.
+	- Read() 버그 있음 !!!
 
 
 ------------ DB -------------

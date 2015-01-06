@@ -66,33 +66,20 @@ public :
 		if ( IsState(THREAD_END) )
 			return 0;
 
+		bool bDataEcho = true;
+
 		double currTime = Time::GetAppTime();
 		if ( (currTime - mSendTime) > 3.0) {
-			//PushSend();
 			mSendTime = currTime;
 		}
 
 		mIocp->UpdateSessions();
-
-		PopRecv();
+		ReadData(bDataEcho);
 
 		return 1;
 	}
 
-	void PushSend()
-	{
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
-			{
-				AlphabetPacket alph;
-				alph.mPacketSize = sizeof(alph);
-				se->WriteData((char*)&alph, alph.mPacketSize);
-			}
-		}
-	}
-
-	void PopRecv()
+	void ReadData(bool bEcho)
 	{
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
@@ -104,7 +91,9 @@ public :
 
 					AlphabetPacket* alpha = (AlphabetPacket*)packet;
 
-					//se->PushSend(buf->buf, buf->len);
+					if ( bEcho ) 
+						se->WriteData((char*)(packet), packet->mPacketSize);	//Echo
+
 					se->ClearRecv(sizeof(AlphabetPacket));
 				}
 			}

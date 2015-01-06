@@ -41,7 +41,7 @@ unsigned __stdcall IOCPWorker (void* arg)
 				}
 			}
 			else {
-				//Socket Closed
+				//Remote Socket Closed
 				sess->ResetState(true);
 			}
 		}
@@ -50,23 +50,15 @@ unsigned __stdcall IOCPWorker (void* arg)
 	return 0;
 }
 
-unsigned __stdcall SessionUpdater (void* arg)
+
+unsigned __stdcall SessionUpdater (void* arg) 
 {
 	Networker* networker = (Networker*)arg;
 
-	/*
 	do{
 		Sleep(10);
 	}
 	while(networker->UpdateSessions());
-	*/
-
-	while(1)
-	{
-		Sleep(20);
-		if ( !networker->IsUpdatingSession() )
-			break;
-	}
 
 	return 0;
 }

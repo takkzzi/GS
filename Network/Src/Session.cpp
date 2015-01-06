@@ -230,25 +230,24 @@ bool Session::Send()
 	if ( ! mbSendCompleted )
 		return false;
 
-	WSABUF wsabuf = { 0x0000ffff, NULL};	// len = Max TCP/IP Packet Size;
-	wsabuf.buf = mSendBuffer.Read((int*)&wsabuf.len, true, true);
-	if ( ! wsabuf.buf )
-		return false;
-
 	CS_LOCK;
 
-	mSendIoData.Reset(wsabuf.buf);
-	
-	mbSendCompleted = false;
+	WSABUF wsabuf = { 0x0000ffff, NULL};	// len = Max TCP/IP Packet Size;
+	wsabuf.buf = mSendBuffer.Read((int*)&wsabuf.len, true, true);
+	if ( wsabuf.buf && wsabuf.len > 0) {
 
-	DWORD transferBytes;
-	int sendResult = ::WSASend(mSock, &(wsabuf), 1, &transferBytes, 0, &(mSendIoData.ov), NULL);
+		mbSendCompleted = false;
+		mSendIoData.Reset(wsabuf.buf);
 
-	if ( (sendResult == SOCKET_ERROR) && (WSAGetLastError() != ERROR_IO_PENDING) ) {
-		SetState(SESSIONSTATE_DISCONNECTING);
-	}
-	else if ( sendResult == 0 )  {  //Send Immediately
-		//OnSendComplete(&mSendIoData, transferBytes);
+		DWORD transferBytes;
+		int sendResult = ::WSASend(mSock, &(wsabuf), 1, &transferBytes, 0, &(mSendIoData.ov), NULL);
+
+		if ( (sendResult == SOCKET_ERROR) && (WSAGetLastError() != ERROR_IO_PENDING) ) {
+			SetState(SESSIONSTATE_DISCONNECTING);
+		}
+		else if ( sendResult == 0 )  {  //Send Immediately
+			//OnSendComplete(&mSendIoData, transferBytes);
+		}
 	}
 	CS_UNLOCK;
 

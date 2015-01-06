@@ -243,34 +243,3 @@ size_t CircularBuffer::GetDataSize()
 
 	return size;
 }
-
-
-/*
-//SendBuffer ///////////////////////////////////////////////////////////////////////////////////
-bool SendBuffer::WriteData(char* data, size_t size)
-{
-	return Write(data, size);
-}
-
-char* SendBuffer::GetDataForSend(int* requestSize)
-{
-	return Read(requestSize, true, true);
-}
-
-bool SendBuffer::OnSendComplete(size_t transferSize)
-{
-	return ClearData(transferSize);
-}
-
-
-//RecvBuffer ///////////////////////////////////////////////////////////////////////////////////
-char* RecvBuffer::GetEmptyForRecv(int* requestSize)
-{
-	return GetEmpty
-}
-
-bool RecvBuffer::OnRecvComplete(size_t transferSize)
-{
-	return AddDataTail(transferSize);
-}
-*/

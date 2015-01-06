@@ -12,8 +12,8 @@ namespace Network
 	struct OverlappedIoData;
 	class Session;
 	class Listener;
-
-	//IOCP Only
+	
+	//Workin With IOCP
 	class Networker
 	{
 	public:
@@ -32,12 +32,12 @@ namespace Network
 		HANDLE					GetIocpHandle()					{ return mIocp; }
 
 		void					OnEndIoThread();
-		bool					UpdateSessions();
 
 		bool					IsPreAccepter();
 		SOCKET					GetListnerSocket();
 
 		bool					IsUpdatingSession()				{ return mbUpdateSessions; };
+		bool					UpdateSessions();
 
 	protected:
 		void					BeginIo();

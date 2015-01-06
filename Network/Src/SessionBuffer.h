@@ -58,30 +58,6 @@ namespace Network
 		CriticalSection				mCriticalSec;
 	};
 
-	/*
-	class SendBuffer : public CircularBuffer
-	{
-	public :
-		SendBuffer()	{};
-		virtual ~SendBuffer()	{};
-
-		bool						WriteData(char* data, size_t size);
-		char*						GetDataForSend(int* requestSize);
-		bool						OnSendComplete(size_t transferSize);
-	};
-
-
-	class RecvBuffer : public CircularBuffer
-	{
-	public :
-		RecvBuffer()	{};
-		virtual ~RecvBuffer()	{};
-
-		int							ReadData(char** buf);
-		char*						GetEmptyForRecv(int* requestSize);
-		bool						OnRecvComplete(size_t transferSize);
-	};
-	*/
 
 	//추후 Game Module 로 옮기자
 #pragma pack (1)
