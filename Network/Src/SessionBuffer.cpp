@@ -3,8 +3,8 @@
 
 using namespace Network;
 
-#define		CS_LOCK			mCriticalSec.Enter();
-#define		CS_UNLOCK		mCriticalSec.Leave();
+#define		CS_LOCK					mCritiSect.Enter();
+#define		CS_UNLOCK				mCritiSect.Leave();
 #define		CIRCULAR_DATATAIL_MAX	(mDataHead - 1)
 
 CircularBuffer::CircularBuffer()
@@ -101,25 +101,25 @@ bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 
 char* CircularBuffer::Read(int* reqSize, bool bResize, bool bCircularMerge)
 {
-	CS_UNLOCK
+	CS_LOCK
 	
 	char* resultBuf = NULL;
 	bool bLinear = ! IsCircularData();
+	char* continousDataEnd = bLinear ? GetDataTail() : mCircleEnd;
 
-	if ( bLinear ) {
-		size_t dataSize = (mDataTail - mDataHead);
-		bool bDataEnough = dataSize >= (size_t)*reqSize;
+	size_t dataSize = (continousDataEnd - GetDataHead());
+	bool bDataEnough = dataSize >= (size_t)*reqSize;
 
-		if ( bDataEnough ) {
-			resultBuf = (mCircleStart + mDataHead);
-		}
-		else if ( bResize && (dataSize > 0) ) {
-			resultBuf = (mCircleStart + mDataHead);
-			*reqSize = dataSize;
-		}
+	if ( bDataEnough ) {
+		resultBuf = (mCircleStart + mDataHead);
 	}
-	else if ( bCircularMerge && ! IsUsingExtraBuffer() ) {    //Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
-		resultBuf = DoReadAndMergeData(reqSize, bResize);
+	else if ( bResize && (dataSize > 0) ) {
+		resultBuf = (mCircleStart + mDataHead);
+		*reqSize = dataSize;
+	}
+	
+	if ( (resultBuf == NULL) && ! bLinear && bCircularMerge && ! IsUsingExtraBuffer() ) {    
+		resultBuf = DoReadAndMergeData(reqSize, bResize);	//Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
 	}
 
 	CS_UNLOCK

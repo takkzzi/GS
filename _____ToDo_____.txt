@@ -14,14 +14,15 @@
 
 * Session
 	
-	- Session 종료 (Disconnect) 절차 확실히
+	- Session 예외적 종료 (네트웍단절, OS Down)
 	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
-	= Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
+	- Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
 
-* Game Component 에서 Session 상속받고 최적화(Io Completion)하여 구현할것.
 
-* SessionBuffer
-	- Read() 버그 있음 !!!
+------------ Game ------------ 
+
+	- SessionEventObject Sub-Classing 구현
+	- Packetizer 구현
 
 
 ------------ DB -------------
@@ -31,5 +32,4 @@
 * DB Session 은 7개 생성 (Atlantica 의 경우 용도에 따라 달리 생성 : Common, Login, Sub, Letter, System, PcRoom, PersonCopy)
   한가한 Session을 선택하여 Sending 하는 다른 방법도 강구해볼것.
 * 
-
 

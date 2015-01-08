@@ -5,6 +5,10 @@
 
 #include <process.h>
 
+
+#define		CS_LOCK				mCritiSect.Enter();
+#define		CS_UNLOCK			mCritiSect.Leave();
+
 using namespace Core;
 using namespace Network;
 
@@ -64,9 +68,9 @@ unsigned __stdcall SessionUpdater (void* arg)
 }
 
 
-Networker::Networker(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
+Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessionReserveCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
-	, mThreadCount(threadCount)
+	, mIoThreadCount(ioThreadCount)
 	, mIoWorkingCount(0)
 	, mListener(NULL)
 	, mbPreAccept(false)
@@ -79,19 +83,20 @@ Networker::Networker(int threadCount, int reserveSessionCount, int sessionLimitC
 	if ( mSessionLimitCount <= 0 )
 		mSessionLimitCount = 1;
 
-	if ( reserveSessionCount <= 0 )
-		reserveSessionCount = 1;
+	if ( sessionReserveCount <= 0 )
+		sessionReserveCount = 1;
 
 	mSessionVec.reserve(mSessionLimitCount);
 
-	for(int i = 0; i < reserveSessionCount; ++i) {
+	for(int i = 0; i < sessionReserveCount; ++i) {
 		Session* s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
 		s->Init();
 		mSessionVec.push_back(s);
 	}
 
 	BeginIo();
-	BeginSessionUpdate();
+	if ( bUseThreadUpdateSession )
+		BeginSessionUpdate();
 }
 
 Networker::~Networker(void)
@@ -105,32 +110,32 @@ Networker::~Networker(void)
 //Thread Creation & Start Thread
 void Networker::BeginIo()
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 	
 	mIocp = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 	if (mIocp == NULL) {
 		LOG_ERROR(_T("IOCP Creation Fail."));
 	}
 
-	if (mThreadCount <= 0 ) {
+	if (mIoThreadCount <= 0 ) {
 		DWORD processors = System::GetProcessorCount();
-		mThreadCount = processors * 2 + 1; //optimized count for processors
+		mIoThreadCount = processors * 2 + 1; //optimized count for processors
 	}
 
-	mIoWorkingCount = mThreadCount;
-	for (UINT i = 0; i < mThreadCount; i++)
+	mIoWorkingCount = mIoThreadCount;
+	for (UINT i = 0; i < mIoThreadCount; i++)
 	{
 		HANDLE hThread = (HANDLE) ::_beginthreadex(NULL, 0, IOCPWorker, this, 0, NULL);
 		CloseHandle (hThread);
 	}
 	
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 void Networker::EndIo()
 {	
-	mCriticalSec.Enter();
-	for (UINT i = 0; i < mThreadCount; i++) {
+	CS_LOCK
+	for (UINT i = 0; i < mIoThreadCount; i++) {
 		PostQueuedCompletionStatus(GetIocpHandle(), 0, NULL, NULL);
 	}
 
@@ -141,14 +146,14 @@ void Networker::EndIo()
 		CloseHandle(mIocp);
 		mIocp = INVALID_HANDLE_VALUE;
 	}
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 void Networker::BeginListen(UINT16 port, bool bPreAccept)
 {
 	EndListen();
 
-	mCriticalSec.Enter();
+	CS_LOCK
 	
 	if ( bPreAccept ) {
 		mListener = new IocpListener(this, port);
@@ -161,16 +166,16 @@ void Networker::BeginListen(UINT16 port, bool bPreAccept)
 		mListener->BeginListen();
 	}
 
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 void Networker::EndListen()
 {	
 	if ( mListener ) {
-		mCriticalSec.Enter();
+		CS_LOCK
 		mListener->EndListen();
 		SAFE_DELETE(mListener);
-		mCriticalSec.Leave();
+		CS_UNLOCK
 	}
 }
 
@@ -194,7 +199,7 @@ Session* Networker::GetSession(int id)
 
 Session* Networker::GetNewSession()
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 
 	Session* newSession = NULL;
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
@@ -216,7 +221,7 @@ Session* Networker::GetNewSession()
 		newSession = AddSession();
 	}
 
-	mCriticalSec.Leave();
+	CS_UNLOCK
 
 	return newSession;
 }
@@ -232,28 +237,14 @@ Session* Networker::AddSession()
 	return newSess;
 }
 
-/*
-void Networker::StartAcceptAll()
-{
-	mCriticalSec.Enter();
-
-	for(unsigned int i = 0; i < mSessionVec.size(); ++i) {
-		mSessionVec[i]->StartAccept(mListener->GetSocket());
-	}
-
-	mCriticalSec.Leave();
-}
-*/
-
-
 void Networker::DeleteAllSessions()
 {
-	mCriticalSec.Enter();
+	CS_LOCK
 	for(auto &i : mSessionVec) {
 		SAFE_DELETE(i);
 	}
 	mSessionVec.clear();
-	mCriticalSec.Leave();
+	CS_UNLOCK
 }
 
 void Networker::OnEndIoThread()
@@ -267,7 +258,7 @@ bool Networker::UpdateSessions()
 	if ( ! mbUpdateSessions )
 		return false;
 
-	mCriticalSec.Enter();
+	CS_LOCK
 
 	Session* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
@@ -285,9 +276,9 @@ bool Networker::UpdateSessions()
 	
 	//If No Accepting Session, Create New Accepting Session;
 	if ( IsPreAccepter() && ! acceptingSession ) {
-		//AddSession();
+		AddSession();
 	}
-	mCriticalSec.Leave();
+	CS_UNLOCK
 	return true;
 }
 

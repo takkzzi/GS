@@ -55,7 +55,7 @@ namespace Network
 		int							mDataHead;		//Data Start : Moving
 		int							mDataTail;		//Data End : Moving
 
-		CriticalSection				mCriticalSec;
+		CriticalSection				mCritiSect;
 	};
 
 

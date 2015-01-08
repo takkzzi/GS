@@ -6,7 +6,9 @@ namespace Network
 {
 	class Networker;
 	class Listener;
-	
+	class SessionEventObject;
+
+
 	enum OverlappedIoType 
 	{
 		IO_NONE,
@@ -103,11 +105,31 @@ namespace Network
 
 		SOCKET					mListenSock;
 		bool					mIsAccepter;
-		bool					mbSendCompleted;
-		bool					mbRecvCompleted;
-		bool					mbRecvLock;
-		CriticalSection			mCriticalSec;
+		volatile	bool		mbSendCompleted;
+		volatile	bool		mbRecvCompleted;
+		volatile	bool		mbRecvLock;
+		CriticalSection			mCritiSect;
+
+		volatile INT64			mRecvLockCount;
+		volatile INT64			mRecvUnlockCount;
 	};
 
+
+	class SessionEventObject
+	{
+	public :
+		SessionEventObject();
+		virtual ~SessionEventObject();
+
+	public :
+		virtual		void		Init(Session* session);
+
+		//Session Event
+		virtual		void		OnConnect()			=	0;
+		virtual		void		OnDisconnect()		=	0;
+		virtual		void		OnReceived()		=	0;
+		virtual		void		OnSend()			=	0;
+		
+	};
 	
 }

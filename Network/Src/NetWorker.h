@@ -17,7 +17,7 @@ namespace Network
 	class Networker
 	{
 	public:
-		Networker(int threadCount, int reserveSessionCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize);
+		Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessionReserveCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize);
 		virtual ~Networker(void);
 
 	public:
@@ -54,7 +54,8 @@ namespace Network
 	private:
 
 		HANDLE							mIocp;
-		UINT							mThreadCount;
+		bool							mbThreadUpdate;
+		UINT							mIoThreadCount;
 		UINT							mIoWorkingCount;
 		class Listener*					mListener;
 		bool							mbPreAccept;
@@ -66,6 +67,6 @@ namespace Network
 		std::vector<Session*>			mSessionVec;
 		volatile	bool				mbUpdateSessions;
 		HANDLE							mSessUpdateThread;
-		CriticalSection					mCriticalSec;
+		CriticalSection					mCritiSect;
 	};
 }
