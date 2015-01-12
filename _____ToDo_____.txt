@@ -15,14 +15,14 @@
 * Session
 	
 	- Session 예외적 종료 (네트웍단절, OS Down)
-	- Socket Resue 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
+	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	- Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
 
 
 ------------ Game ------------ 
-
 	- SessionEventObject Sub-Classing 구현
 	- Packetizer 구현
+	- Protobuf 적용 ? 
 
 
 ------------ DB -------------
