@@ -14,6 +14,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	CoreSystem::Init(_T("TestLog"));
 	NetworkSystem::Init();
 
+	Networker* net = NULL;
+	net->BeginListen(40001, true);
 
 	CoreSystem::Shutdown();
 	NetworkSystem::Shutdown();
