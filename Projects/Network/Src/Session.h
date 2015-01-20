@@ -77,6 +77,7 @@ namespace Network
 		void					OnAccept(SOCKET listenSock);
 		void					OnSendComplete(OverlappedIoData* overlapIoData, DWORD sendSize);
 		void					OnRecvComplete(OverlappedIoData* overlapIoData, DWORD recvSize);
+		void					OnDisconnect();
 
 	protected:
 		void					OnConnect();

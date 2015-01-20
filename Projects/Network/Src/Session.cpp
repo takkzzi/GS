@@ -334,7 +334,7 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
 	if ( recvSize <= 0 ) {  //Remote Session Closed
-		ResetState(true);
+		OnDisconnect();
 		return;
 	}
 
@@ -349,6 +349,11 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	}
 
 	//CS_UNLOCK;
+}
+
+void Session::OnDisconnect()
+{
+	ResetState(true);
 }
 
 bool Session::WriteData(char* data, int dataLen)

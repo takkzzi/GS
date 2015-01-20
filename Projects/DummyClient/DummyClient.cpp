@@ -17,7 +17,7 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-const char* gServerIP = "192.168.0.14";
+const char* gServerIP = "127.0.0.1";//"192.168.0.14";
 const int	gServerPort = 42006;
 
 

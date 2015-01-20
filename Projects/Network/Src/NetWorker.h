@@ -30,9 +30,7 @@ namespace Network
 		void					ClearSession(int id);
 		int						GetSessionCount()				{ return mSessionVec.size(); }
 		HANDLE					GetIocpHandle()					{ return mIocp; }
-
-		void					OnEndIoThread();
-
+		
 		bool					IsPreAccepter();
 		SOCKET					GetListnerSocket();
 
@@ -54,9 +52,9 @@ namespace Network
 	private:
 
 		HANDLE							mIocp;
+		std::vector<HANDLE>				mIoThreadHandles;
 		bool							mbThreadUpdate;
 		UINT							mIoThreadCount;
-		UINT							mIoWorkingCount;
 		class Listener*					mListener;
 		bool							mbPreAccept;
 

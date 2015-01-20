@@ -65,7 +65,6 @@ bool SelectListener::BeginListen()
 	if ( ::listen (mSock, SOMAXCONN) == SOCKET_ERROR )
 		return false;
 
-	Logger::Log(_T("Listener"), TEXT("SelectListener::Begin()"));
 	return __super::Begin(false);
 }
 
@@ -168,12 +167,14 @@ bool IocpListener::BeginListen()
 
 	CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (DWORD)mSock, 0);
 
-	Logger::Log(_T("Listener"), TEXT("IocpListener::BeginListen()"));
+	Logger::Log(_T("Log"), _T("alsdfjlasdjkflasdjf %d %d "), 1, 2);
+
 	return true;
 }
 
 bool IocpListener::EndListen()
 {
-	LOG_WARNING_A("IocpListener::EndListen()");
+	//LOG_WARNING_A("IocpListener::EndListen()");
+	Logger::LogWithDate(_T("LogWithDate"), _T("alsdfjlasdjkflasdjf %d %d "), 1, 2);
 	return __super::EndListen();
 }

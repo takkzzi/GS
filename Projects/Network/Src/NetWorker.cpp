@@ -46,11 +46,10 @@ unsigned __stdcall IOCPWorker (void* arg)
 			}
 			else {
 				//Remote Socket Closed
-				sess->ResetState(true);
+				sess->OnDisconnect();
 			}
 		}
 	}
-	networker->OnEndIoThread();
 	return 0;
 }
 
@@ -71,7 +70,6 @@ unsigned __stdcall SessionUpdater (void* arg)
 Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessionReserveCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
 	, mIoThreadCount(ioThreadCount)
-	, mIoWorkingCount(0)
 	, mListener(NULL)
 	, mbPreAccept(false)
 	, mSessionLimitCount(sessionLimitCount)
@@ -122,11 +120,12 @@ void Networker::BeginIo()
 		mIoThreadCount = processors * 2 + 1; //optimized count for processors
 	}
 
-	mIoWorkingCount = mIoThreadCount;
+	mIoThreadHandles.reserve(mIoThreadCount);
 	for (UINT i = 0; i < mIoThreadCount; i++)
 	{
 		HANDLE hThread = (HANDLE) ::_beginthreadex(NULL, 0, IOCPWorker, this, 0, NULL);
-		CloseHandle (hThread);
+		mIoThreadHandles.push_back(hThread);
+		//CloseHandle (hThread);
 	}
 	
 	CS_UNLOCK
@@ -135,12 +134,14 @@ void Networker::BeginIo()
 void Networker::EndIo()
 {	
 	CS_LOCK
-	for (UINT i = 0; i < mIoThreadCount; i++) {
+	for (UINT i = 0; i < mIoThreadCount; i++)
 		PostQueuedCompletionStatus(GetIocpHandle(), 0, NULL, NULL);
-	}
-
-	while ( mIoWorkingCount > 0) {
-	}
+	
+	//Wait for All Io Threads Finished
+	WaitForMultipleObjects(mIoThreadHandles.size(), (HANDLE*)&mIoThreadHandles.begin(), TRUE, INFINITE);
+	for (UINT i = 0; i < mIoThreadCount; i++)
+		CloseHandle(mIoThreadHandles[i]);
+	mIoThreadHandles.clear();
 
 	if ( mIocp != INVALID_HANDLE_VALUE) {
 		CloseHandle(mIocp);
@@ -154,29 +155,27 @@ void Networker::BeginListen(UINT16 port, bool bPreAccept)
 	EndListen();
 
 	CS_LOCK
-	
+	mbPreAccept = bPreAccept;
 	if ( bPreAccept ) {
 		mListener = new IocpListener(this, port);
 		mListener->BeginListen();
-		//StartAcceptAll();
-		mbPreAccept = bPreAccept;
 	}
 	else {
 		mListener = new SelectListener(this, port);
 		mListener->BeginListen();
 	}
-
 	CS_UNLOCK
 }
 
 void Networker::EndListen()
 {	
+	CS_LOCK
 	if ( mListener ) {
-		CS_LOCK
+		
 		mListener->EndListen();
 		SAFE_DELETE(mListener);
-		CS_UNLOCK
 	}
+	CS_UNLOCK
 }
 
 void Networker::BeginSessionUpdate()
@@ -246,12 +245,6 @@ void Networker::DeleteAllSessions()
 	}
 	mSessionVec.clear();
 	CS_UNLOCK
-}
-
-void Networker::OnEndIoThread()
-{
-	::InterlockedDecrement(&mIoWorkingCount);
-	ASSERT(mIoWorkingCount >= 0);
 }
 
 void Networker::UpdateSessions()

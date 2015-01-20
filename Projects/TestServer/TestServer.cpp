@@ -30,7 +30,7 @@ public :
 
 	EchoServer() : Thread()
 	{
-		mIocp = new Networker(true, 5, sessionCount, sessionLimit, 1024, 19);
+		mIocp = new Networker(true, 500, sessionCount, sessionLimit, 1024, 19);
 
 		mSendTime = Time::GetAppTime();
 	};
