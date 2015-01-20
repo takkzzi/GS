@@ -2,6 +2,10 @@
 #include "Session.h"
 #include "Networker.h"
 
+#include <mswsock.h>
+#include <mstcpip.h>
+
+
 using namespace Core;
 using namespace Network;
 
@@ -16,6 +20,19 @@ using namespace Network;
 #endif // DEBUG
 
 
+//Call the 'AcceptEx' function directly, rather than refer to the Mswsock.lib library.
+LPFN_ACCEPTEX GetAcceptExFunction(SOCKET sock)
+{
+	static LPFN_ACCEPTEX	fnAcceptEx = NULL;
+	if ( fnAcceptEx == NULL ) {
+		DWORD dwBytes;
+		GUID GuidAcceptEx = WSAID_ACCEPTEX;
+		int iRes = ::WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx, sizeof(GuidAcceptEx), &fnAcceptEx, sizeof(fnAcceptEx), &dwBytes, NULL, NULL);
+		ASSERT(iRes == 0);
+	}
+
+	return fnAcceptEx;
+}
 
 Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
 	: mNetworker(networker)
@@ -149,25 +166,26 @@ bool Session::Disconnect()
 	return true;
 }
 
-//TODO : Minimum supported client
-// Minimum supported client : Windows 8.1, Windows Vista [desktop apps only]
-// Minimum supported server : Windows Server 2003 [desktop apps only]
 bool Session::StartAccept(SOCKET listenSock) {
 
 	if ( ! IsState(SESSIONSTATE_NONE) )
 		return false;
 
 	CS_LOCK;
-
+    
 	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	ASSERT(mSock != INVALID_SOCKET);
-	if (mSock != INVALID_SOCKET) 
+
+	LPFN_ACCEPTEX pfnAcceptEx = GetAcceptExFunction(listenSock);
+
+	if (mSock != INVALID_SOCKET && pfnAcceptEx) 
 	{
 		BOOL bOptVal = TRUE;
 		setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
 
 		int bufferLen = 0;//((sizeof(sockaddr_in) + 16) * 2);
-		BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, bufferLen, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
+		//BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, bufferLen, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
+		BOOL bPreAccept = pfnAcceptEx(listenSock, mSock, mAcceptBuffer, bufferLen, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
 	
 		DWORD lastErr = WSAGetLastError();
 		if ( ! bPreAccept && (lastErr != ERROR_IO_PENDING && lastErr != WSAEWOULDBLOCK) ) {
@@ -281,6 +299,8 @@ void Session::OnAccept(SOCKET listenSock)
 	}
 	
 	OnConnect();
+
+	SetKeepAliveOpt();
 
 	CS_UNLOCK;
 }
@@ -414,6 +434,29 @@ void Session::Update()
 		Send();
 		StartReceive();
 	}
+}
+
+//Set KeepAlive Option
+void Session::SetKeepAliveOpt()
+{
+	bool optval = TRUE;
+	int valsize = sizeof(optval);
+	if ( 0 == ::getsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, &valsize) ) {
+		if ( (false == optval) && (0 != ::setsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, valsize)) ) {
+			LOG_LASTERROR(_T("Socket"), true);
+		}
+	}
+
+	tcp_keepalive keepalive;
+	keepalive.onoff = true;
+	keepalive.keepalivetime = KEEPALIVE_TIME;
+	keepalive.keepaliveinterval = KEEPALIVE_INTERVAL;
+
+	DWORD bufferSize = sizeof(tcp_keepalive);
+	DWORD cbBytesReturned = 0;
+
+	int ioctlRes = WSAIoctl(mSock, SIO_KEEPALIVE_VALS,  (LPVOID)&keepalive, bufferSize, NULL, 0, (LPDWORD)&cbBytesReturned, NULL, NULL);
+	ASSERT(ioctlRes == 0);
 }
 
 void Session::LogPacket(char* prefix, AlphabetPacket* packet)

@@ -1,25 +1,23 @@
-// Server.cpp : 응용 프로그램에 대한 진입점을 정의합니다.
+// TestServer.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
-#include "Server.h"
-#include "stdio.h"
-
-using namespace Core;
-using namespace Network;
+#include "TestServer.h"
 
 #define MAX_LOADSTRING 100
 
-// 전역 변수:
-HINSTANCE hInst;								// 현재 인스턴스입니다.
-TCHAR szTitle[MAX_LOADSTRING];					// 제목 표시줄 텍스트입니다.
-TCHAR szWindowClass[MAX_LOADSTRING];			// 기본 창 클래스 이름입니다.
+// Global Variables:
+HINSTANCE hInst;								// current instance
+TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
+TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
-// 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
+// Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+
+
 
 
 const int port			= 42006;
@@ -32,7 +30,7 @@ public :
 
 	EchoServer() : Thread()
 	{
-		mIocp = new Networker(false, 5, sessionCount, sessionLimit, 1024, 19);
+		mIocp = new Networker(true, 5, sessionCount, sessionLimit, 1024, 19);
 
 		mSendTime = Time::GetAppTime();
 	};
@@ -73,9 +71,10 @@ public :
 			mSendTime = currTime;
 		}
 
-		mIocp->UpdateSessions();
-		ReadData(bDataEcho);
+		if ( ! mIocp->IsThreadUpdatingSessions() )
+			mIocp->UpdateSessions();
 
+		ReadData(bDataEcho);
 		return 1;
 	}
 
@@ -118,52 +117,45 @@ protected :
 };
 
 
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+
+int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPTSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
- 	// TODO: 여기에 코드를 입력합니다.
+ 	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;
 
-	// 전역 문자열을 초기화합니다.
+	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	LoadString(hInstance, IDC_SERVER, szWindowClass, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_TESTSERVER, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	// 응용 프로그램 초기화를 수행합니다.
+	// Perform application initialization:
 	if (!InitInstance (hInstance, nCmdShow))
 	{
 		return FALSE;
 	}
 
-	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SERVER));
+	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTSERVER));
 
 	CoreSystem::Init(_T("ServerLog"));
 	NetworkSystem::Init();
-	
-	
+
 	EchoServer* server = new EchoServer();
 	server->Begin();
 
-
-	// 기본 메시지 루프입니다.
-	while (1)
+	// Main message loop:
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) )
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
-			if( msg.message == WM_QUIT )
-				break;
-
-			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		}
-		else
-		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 	}
 
@@ -178,19 +170,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 
 
-
 //
-//  함수: MyRegisterClass()
+//  FUNCTION: MyRegisterClass()
 //
-//  목적: 창 클래스를 등록합니다.
-//
-//  설명:
-//
-//    Windows 95에서 추가된 'RegisterClassEx' 함수보다 먼저
-//    해당 코드가 Win32 시스템과 호환되도록
-//    하려는 경우에만 이 함수를 사용합니다. 이 함수를 호출해야
-//    해당 응용 프로그램에 연결된
-//    '올바른 형식의' 작은 아이콘을 가져올 수 있습니다.
+//  PURPOSE: Registers the window class.
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -203,11 +186,10 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SERVER));
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TESTSERVER));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	//wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_SERVER);
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_TESTSERVER);
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -215,20 +197,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 //
-//   함수: InitInstance(HINSTANCE, int)
+//   FUNCTION: InitInstance(HINSTANCE, int)
 //
-//   목적: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
+//   PURPOSE: Saves instance handle and creates main window
 //
-//   설명:
+//   COMMENTS:
 //
-//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
-//        주 프로그램 창을 만든 다음 표시합니다.
+//        In this function, we save the instance handle in a global variable and
+//        create and display the main program window.
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    HWND hWnd;
 
-   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+   hInst = hInstance; // Store instance handle in our global variable
 
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
@@ -245,13 +227,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 //
-//  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
+//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
-//  목적: 주 창의 메시지를 처리합니다.
+//  PURPOSE:  Processes messages for the main window.
 //
-//  WM_COMMAND	- 응용 프로그램 메뉴를 처리합니다.
-//  WM_PAINT	- 주 창을 그립니다.
-//  WM_DESTROY	- 종료 메시지를 게시하고 반환합니다.
+//  WM_COMMAND	- process the application menu
+//  WM_PAINT	- Paint the main window
+//  WM_DESTROY	- post a quit message and return
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -265,7 +247,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		// 메뉴의 선택 영역을 구문 분석합니다.
+		// Parse the menu selections:
 		switch (wmId)
 		{
 		case IDM_ABOUT:
@@ -280,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
-		// TODO: 여기에 그리기 코드를 추가합니다.
+		// TODO: Add any drawing code here...
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:
@@ -292,7 +274,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// 정보 대화 상자의 메시지 처리기입니다.
+// Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);

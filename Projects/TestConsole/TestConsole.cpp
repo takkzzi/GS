@@ -8,18 +8,6 @@
 #include "Network/Network.h"
 
 
-struct BuffItem {
-public :
-	BuffItem() {
-		p = new int[10];
-	}
-	~BuffItem() {
-		delete[] p;
-	}
-
-	int* p;
-	int* p2;
-};
 
 int _tmain(int argc, _TCHAR* argv[])
 {

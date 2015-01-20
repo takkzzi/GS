@@ -36,8 +36,8 @@ namespace Network
 		bool					IsPreAccepter();
 		SOCKET					GetListnerSocket();
 
-		bool					IsUpdatingSession()				{ return mbUpdateSessions; };
-		bool					UpdateSessions();
+		bool					IsThreadUpdatingSessions()		{ return mbThreadUpdateSessions; };
+		void					UpdateSessions();
 
 	protected:
 		void					BeginIo();
@@ -65,7 +65,7 @@ namespace Network
 		INT								mRecvBufferSize;
 
 		std::vector<Session*>			mSessionVec;
-		volatile	bool				mbUpdateSessions;
+		volatile	bool				mbThreadUpdateSessions;
 		HANDLE							mSessUpdateThread;
 		CriticalSection					mCritiSect;
 	};

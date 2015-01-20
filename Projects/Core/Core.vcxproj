@@ -67,21 +67,21 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)..\Lib\$(PlatformName)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\Lib\$(PlatformName)\</OutDir>
     <IntDir>..\Immediate\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\Lib\$(PlatformName)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\Lib\$(PlatformName)\</OutDir>
     <IntDir>..\Immediate\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)..\Lib\$(PlatformName)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\Lib\$(PlatformName)\</OutDir>
     <IntDir>..\Immediate\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)..\Lib\$(PlatformName)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\Lib\$(PlatformName)\</OutDir>
     <IntDir>..\Immediate\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -92,7 +92,7 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;USE_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,8 +102,8 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\Include\Core
-if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\Core
+if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Core</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,7 +114,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
       <PreprocessorDefinitions>_DEBUG;_LIB;USE_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -139,6 +139,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,7 +161,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

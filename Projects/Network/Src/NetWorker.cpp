@@ -59,10 +59,10 @@ unsigned __stdcall SessionUpdater (void* arg)
 {
 	Networker* networker = (Networker*)arg;
 
-	do{
+	while (networker->IsThreadUpdatingSessions()) {
+		networker->UpdateSessions();
 		Sleep(10);
 	}
-	while(networker->UpdateSessions());
 
 	return 0;
 }
@@ -77,7 +77,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 	, mSessionLimitCount(sessionLimitCount)
 	, mSendBufferSize(sendBufferSize)
 	, mRecvBufferSize(recvBufferSize)
-	, mbUpdateSessions(false)
+	, mbThreadUpdateSessions(bUseThreadUpdateSession)
 	, mSessUpdateThread(INVALID_HANDLE_VALUE)
 {
 	if ( mSessionLimitCount <= 0 )
@@ -95,7 +95,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 	}
 
 	BeginIo();
-	if ( bUseThreadUpdateSession )
+	if ( mbThreadUpdateSessions )
 		BeginSessionUpdate();
 }
 
@@ -181,14 +181,15 @@ void Networker::EndListen()
 
 void Networker::BeginSessionUpdate()
 {
-	mbUpdateSessions = true;
 	mSessUpdateThread = (HANDLE) ::_beginthreadex(NULL, 0, SessionUpdater, this, 0, NULL);
 }
 
 void Networker::EndSessionUpdate()
 {
-	mbUpdateSessions = false;
-	WaitForSingleObject(mSessUpdateThread, INFINITE);
+	if ( mbThreadUpdateSessions ) {
+		mbThreadUpdateSessions = false;
+		WaitForSingleObject(mSessUpdateThread, INFINITE);
+	}
 }
 
 Session* Networker::GetSession(int id)			
@@ -253,18 +254,12 @@ void Networker::OnEndIoThread()
 	ASSERT(mIoWorkingCount >= 0);
 }
 
-bool Networker::UpdateSessions()
+void Networker::UpdateSessions()
 {
-	if ( ! mbUpdateSessions )
-		return false;
-
 	CS_LOCK
 
 	Session* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
-		if ( ! mbUpdateSessions )
-			break;
-
 		if ( sess ) {
 			sess->Update();
 
@@ -273,19 +268,17 @@ bool Networker::UpdateSessions()
 			}
 		}
 	}
-	
+
 	//If No Accepting Session, Create New Accepting Session;
 	if ( IsPreAccepter() && ! acceptingSession ) {
 		AddSession();
 	}
 	CS_UNLOCK
-	return true;
 }
 
 bool Networker::IsPreAccepter()	
 { 
-	bool bRes = (mListener && mbPreAccept);
-	return bRes;
+	return (mListener && mbPreAccept);
 }
 
 SOCKET Networker::GetListnerSocket()			

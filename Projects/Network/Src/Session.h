@@ -84,6 +84,7 @@ namespace Network
 
 	protected:
 		bool					StartReceive();		//Receive Using Overlapped
+		void					SetKeepAliveOpt();
 
 	protected:
 

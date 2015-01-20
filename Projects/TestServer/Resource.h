@@ -1,23 +1,23 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Server.rc
+// Used by TestServer.rc
 //
 
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
-#define IDD_SERVER_DIALOG	102
+#define IDD_TESTSERVER_DIALOG	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
-#define IDI_SERVER			107
+#define IDI_TESTSERVER			107
 #define IDI_SMALL				108
-#define IDC_SERVER			109
+#define IDC_TESTSERVER			109
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #endif
-// 다음은 새 개체에 사용할 기본값입니다.
+// Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
