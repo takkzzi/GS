@@ -5,16 +5,19 @@
  - 각종 Interpolate Class.
 
 * Dump
- - Mini Dump is Not Work In x64 !!!
- - Assert 없이 Dump 남기기
- - Full Dumping
+ - Atlantica NDumper 및 NDumper_AT1 참고 해서 수정
+ - Full Dump 
 
+* System 에 정보 추가
+ - Atlantica NSystem 참고
+ 
+* Time Class 따로 파일로 분리
 
 ------------ Network ------------ 
 
 * Session
 	
-	- Session 예외적 종료 (네트웍단절, OS Down)
+	- Session 예외적 종료 (네트웍단절, OS Down) - Progressing
 	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	- Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
 
