@@ -32,7 +32,7 @@ using namespace Core;
 #include <windows.h>
 
 #ifdef _DEBUG
-#include "Externals/VisualLeakDetector/vld.h"	//Visual Leak Detector : Need "vld.lib"
+#include "Externals/VisualLeakDetector/vld.h"	//Visual Leak Detector : "vld.lib" Required.
 #endif // _DEBUG
 
 #include <tchar.h>

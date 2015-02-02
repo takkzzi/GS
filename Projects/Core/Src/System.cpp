@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "System.h"
 #include "Macro.h"
+#include "Logger.h"
 
 
 using namespace Core;
@@ -27,7 +28,7 @@ void System::CheckWindowVersion()
 
 	if( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\") ,0,KEY_QUERY_VALUE,&hKey) != ERROR_SUCCESS )  
 	{
-		//Logger::DebugOutput(_T("[System]"), _T("WARNING* Not NT OS")); 
+		LOG_ERROR(_T("Error! Not NT OS!")); 
 		return;
 	}
 
@@ -36,7 +37,7 @@ void System::CheckWindowVersion()
 		 
 	if(RegQueryValueEx (hKey, TEXT("ProductName"), NULL, NULL, (LPBYTE) ProductName, &charSize) != ERROR_SUCCESS)  
 	{
-		//Logger::Log(_T("ERROR* Fail to Load the ProductName"));  		
+		//LOG_ERROR(_T("ERROR* Fail to Load the ProductName"));
 	}
 	
 	RegCloseKey (hKey); 
@@ -44,30 +45,26 @@ void System::CheckWindowVersion()
 
 const SYSTEM_INFO* System::GetSystemInfo()
 {
-	//Debug::Assert(msbInit);
 	return &msSysInfo;
 }
 
-DWORD System::GetProcessorCount() {
-	//Debug::Assert(msbInit);
+DWORD System::GetProcessorCount() 
+{
 	return msSysInfo.dwNumberOfProcessors;
 }
 
 const MEMORYSTATUS*	System::GetMemoryStatus()
 {
-	//Debug::Assert(msbInit);
 	return &msMemStatus;
 }
 
 SIZE_T System::GetTotalPhysicalMemory()  // in byte
 {
-	//Debug::Assert(msbInit);
 	return msMemStatus.dwTotalPhys;
 }
 
 SIZE_T System::GetAvailPhysicalMemory() // in byte
 {
-	//Debug::Assert(msbInit);
 	return msMemStatus.dwAvailPhys;
 }
 

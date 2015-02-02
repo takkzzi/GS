@@ -8,7 +8,6 @@ namespace Core
 	public :
 		static				void			Init();
 
-		//System Info
 		static				void			CheckWindowVersion();
 		static		const	SYSTEM_INFO*	GetSystemInfo();
 		static				DWORD			GetProcessorCount();
@@ -16,6 +15,8 @@ namespace Core
 		static				SIZE_T			GetTotalPhysicalMemory();		// in byte
 		static				SIZE_T			GetAvailPhysicalMemory();
 		static				DWORD			GetLastErrorMessage(TCHAR* outStr, INT outStrLen);
+
+	protected :
 
 	protected :
 		static		bool					msbInit;

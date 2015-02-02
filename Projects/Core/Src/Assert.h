@@ -37,7 +37,8 @@
 
 	#include <Assert.h>
 		#define ASSERT(Expr)	(void)( (!!(Expr)) || (_wassert(_CRT_WIDE(#Expr), _CRT_WIDE(__FILE__), __LINE__), 0) )
-	
+
+	#include <DbgHelp.h>
 
 	#else
 

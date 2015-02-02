@@ -125,8 +125,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Core</Comm
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\Include\Core
-if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\Include\Core</Command>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\Core</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
