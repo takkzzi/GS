@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+//#include "Core/Threadsync.h"
 
 class IOCPThread;
 
@@ -25,17 +26,21 @@ namespace Network
 		void					BeginListen(UINT16 port, bool bPreAccept);
 		void					EndListen();
 
+		HANDLE					GetIocpHandle()					{ return mIocp; }
+
 		Session*				GetSession(int id);
 		Session*				GetNewSession();
 		void					ClearSession(int id);
 		int						GetSessionCount()				{ return mSessionVec.size(); }
-		HANDLE					GetIocpHandle()					{ return mIocp; }
+		const std::vector<Session*>*	GetSessionVec()			{ return &mSessionVec; };
+
 		
 		bool					IsPreAccepter();
 		SOCKET					GetListnerSocket();
 
 		bool					IsThreadUpdatingSessions()		{ return mbThreadUpdateSessions; };
 		void					UpdateSessions();
+
 
 	protected:
 		void					BeginIo();

@@ -41,6 +41,7 @@ using namespace Core;
 #include "Macro.h"
 #include "Assert.h"
 #include "System.h"
+#include "Time.h"
 #include "Math.h"
 #include "Dump.h"
 #include "Logger.h"

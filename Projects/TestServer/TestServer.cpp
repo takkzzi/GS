@@ -149,13 +149,17 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	EchoServer* server = new EchoServer();
 	server->Begin();
 
-	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0))
+	//Main message loop:
+	//while (GetMessage(&msg, NULL, 0, 0))
+	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+		}
+		else {
+			TheGame->MainLoop();
 		}
 	}
 

@@ -22,7 +22,7 @@ namespace Network
 		void						ClearAll();
 
 		bool						Write(char* data, size_t size);
-		char*						Read(int* reqSize, bool bResize, bool bCircularMerge);
+		char*						Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge);
 
 		bool						AddDataTail(size_t size);
 

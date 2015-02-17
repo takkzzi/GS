@@ -31,6 +31,7 @@ namespace Network
 
 using namespace Network;
 
+#include "Core/Core.h"
 #include "Defines.h"
 #include "Networker.h"
 #include "Session.h"

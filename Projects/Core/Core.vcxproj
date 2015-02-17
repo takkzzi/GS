@@ -22,6 +22,7 @@
     <ProjectGuid>{B6E7B08A-2C47-4E8D-BBED-04BA636AA6BC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Core</RootNamespace>
+    <ProjectName>Core</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -188,6 +189,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Core</Comm
     <ClInclude Include="Src\System.h" />
     <ClInclude Include="Src\Thread.h" />
     <ClInclude Include="Src\ThreadSync.h" />
+    <ClInclude Include="Src\Time.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +207,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Core</Comm
     <ClCompile Include="Src\StrUtil.cpp" />
     <ClCompile Include="Src\System.cpp" />
     <ClCompile Include="Src\Thread.cpp" />
+    <ClCompile Include="Src\Time.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

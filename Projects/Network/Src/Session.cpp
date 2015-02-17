@@ -359,9 +359,7 @@ void Session::OnDisconnect()
 bool Session::WriteData(char* data, int dataLen)
 {
 	//TEST
-	static UINT packetId = 0;
 	AlphabetPacket* alphaPacket = (AlphabetPacket*)data;
-	alphaPacket->mPacketId = packetId++;
 
 	bool bResult = mSendBuffer.Write(data, dataLen);
 	

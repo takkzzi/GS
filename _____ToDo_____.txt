@@ -4,14 +4,11 @@
 * Math
  - 각종 Interpolate Class.
 
-* Dump
- - Atlantica NDumper 및 NDumper_AT1 참고 해서 수정
- - Full Dump 
+* Time Class 따로 파일로 분리
 
 * System 에 정보 추가
  - Atlantica NSystem 참고
  
-* Time Class 따로 파일로 분리
 
 ------------ Network ------------ 
 
@@ -23,6 +20,7 @@
 
 
 ------------ Game ------------ 
+	- Include 디렉터리 정리 !!!
 	- SessionEventObject Sub-Classing 구현
 	- Packetizer 구현
 	- Protobuf 적용 ? 
@@ -35,4 +33,12 @@
 * DB Session 은 7개 생성 (Atlantica 의 경우 용도에 따라 달리 생성 : Common, Login, Sub, Letter, System, PcRoom, PersonCopy)
   한가한 Session을 선택하여 전송하는 방법도 강구해볼것.
 * 
+
+
+
+------------ 알아야 할것 -------------
+
+* Server Login 처리
+* User 에게 ID 부여
+* Http 방식의 Game-Serving
 

@@ -99,7 +99,7 @@ bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 	return bEnough;
 }
 
-char* CircularBuffer::Read(int* reqSize, bool bResize, bool bCircularMerge)
+char* CircularBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge)
 {
 	CS_LOCK
 	
