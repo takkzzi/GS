@@ -7,7 +7,7 @@ using namespace Network;
 #define		CS_UNLOCK				mCritiSect.Leave();
 #define		CIRCULAR_DATATAIL_MAX	(mDataHead - 1)
 
-CircularBuffer::CircularBuffer()
+SessionBuffer::SessionBuffer()
 	: mBufferSize(0)
 	, mBufferExtraSize(0)
 	, mBuffer(NULL)
@@ -18,14 +18,14 @@ CircularBuffer::CircularBuffer()
 {
 }
 
-CircularBuffer::~CircularBuffer()
+SessionBuffer::~SessionBuffer()
 {
 	CS_LOCK
 	delete[] mBuffer;
 	CS_UNLOCK
 }
 
-void CircularBuffer::Init(int size, int extraBufferSize)
+void SessionBuffer::Init(int size, int extraBufferSize)
 {
 	CS_LOCK
 
@@ -53,14 +53,14 @@ void CircularBuffer::Init(int size, int extraBufferSize)
 	ClearAll();
 }
 
-void CircularBuffer::ClearAll()
+void SessionBuffer::ClearAll()
 {
 	CS_LOCK
 	mDataHead = mDataTail = 0;
 	CS_UNLOCK
 }
 
-bool CircularBuffer::Write(char* data, size_t size)
+bool SessionBuffer::Write(char* data, size_t size)
 {	
 	CS_LOCK
 
@@ -83,7 +83,7 @@ bool CircularBuffer::Write(char* data, size_t size)
 	return bEnough;
 }
 
-bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
+bool SessionBuffer::DoWriteSeparate(char* data, size_t size)
 {
 	size_t tail_end = (mCircleEnd - (mCircleStart + mDataTail));
 	size_t start_head = CIRCULAR_DATATAIL_MAX;
@@ -99,7 +99,7 @@ bool CircularBuffer::DoWriteSeparate(char* data, size_t size)
 	return bEnough;
 }
 
-char* CircularBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge)
+char* SessionBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge)
 {
 	CS_LOCK
 	
@@ -128,7 +128,7 @@ char* CircularBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerg
 }
 
 //Use Only Separated Data. Make buffer Linear
-char* CircularBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
+char* SessionBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 {
 	size_t head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
 	bool bResult = false;
@@ -161,7 +161,7 @@ char* CircularBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 }
 
 //Set DataTail without data-memcpy (Linear);
-bool CircularBuffer::AddDataTail(size_t size) 
+bool SessionBuffer::AddDataTail(size_t size) 
 {
 	CS_LOCK
 
@@ -180,7 +180,7 @@ bool CircularBuffer::AddDataTail(size_t size)
 }
 
 //For Recv
-char* CircularBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possible
+char* SessionBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possible
 {
 	CS_LOCK
 	if ( mDataHead == mDataTail ) {
@@ -213,7 +213,7 @@ char* CircularBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possib
 	return resultBuf;
 }
 
-bool CircularBuffer::ClearData(int size)
+bool SessionBuffer::ClearData(int size)
 {
 	char* dataHead = Read(&size, false, false);
 
@@ -231,7 +231,7 @@ bool CircularBuffer::ClearData(int size)
 	return (dataHead && (size > 0));
 }
 
-size_t CircularBuffer::GetDataSize()
+size_t SessionBuffer::GetDataSize()
 {
 	size_t size = 0;
 	if ( IsCircularData() ) {

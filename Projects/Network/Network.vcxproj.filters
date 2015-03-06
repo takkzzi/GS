@@ -17,6 +17,9 @@
     <ClCompile Include="Src\SessionBuffer.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="Src\SessionDataReader.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -37,6 +40,9 @@
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\SessionBuffer.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SessionDataReader.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>

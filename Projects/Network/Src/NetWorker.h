@@ -23,7 +23,7 @@ namespace Network
 
 	public:
 
-		void					BeginListen(UINT16 port, bool bPreAccept);
+		bool					BeginListen(UINT16 port, bool bPreAccept);
 		void					EndListen();
 
 		HANDLE					GetIocpHandle()					{ return mIocp; }
@@ -35,7 +35,7 @@ namespace Network
 		const std::vector<Session*>*	GetSessionVec()			{ return &mSessionVec; };
 
 		
-		bool					IsPreAccepter();
+		bool					IsPreAccept()					{ return (mListener && mbPreAccept); }
 		SOCKET					GetListnerSocket();
 
 		bool					IsThreadUpdatingSessions()		{ return mbThreadUpdateSessions; };

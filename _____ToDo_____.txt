@@ -13,16 +13,14 @@
 ------------ Network ------------ 
 
 * Session
-	
-	- Session 예외적 종료 (네트웍단절, OS Down) - Progressing
+	- Session Buffer 를 단독으로 사용할수 방법 연구
+	- Session 순회 및 Buffer 접근시 Lock-Free 방법 연구
 	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
-	- Session 으로 부터 받을 EndUser의 메시지 콜백 연구해둘것.	
 
 
 ------------ Game ------------ 
-	- Include 디렉터리 정리 !!!
 	- SessionEventObject Sub-Classing 구현
-	- Packetizer 구현
+	- Packetizer 구현 (Pending)
 	- Protobuf 적용 ? 
 
 

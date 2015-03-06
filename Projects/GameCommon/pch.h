@@ -18,6 +18,7 @@
 //#include <stdlib.h>
 //#include <tchar.h>
 
-//#include "Core\Core.h"
+#include "Core\Core.h"
 #include "Network\Network.h"
+
 

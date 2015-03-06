@@ -4,19 +4,19 @@ namespace Network
 {
 	class Session;
 
-	class CircularBuffer
+	class SessionBuffer
 	{
-		/* <Buffer Structure>
+		/* <Circulary Buffer Structure>
 
 		mBuffer			mBufferStart	mDataHead(Moving)		mDataTail(Moving)		mBufferEnd
 		|----------------------|-----------------|-------------------------|-------------------|
-		|--- (Extra Buffer) ---|
+		|-- (Circular Buffer) -|
 
 		*/
 
 	public :
-		CircularBuffer();
-		virtual ~CircularBuffer();
+		SessionBuffer();
+		virtual ~SessionBuffer();
 
 		void						Init(int size, int dataMaxSize);
 		void						ClearAll();
@@ -57,25 +57,4 @@ namespace Network
 
 		CriticalSection				mCritiSect;
 	};
-
-
-	//추후 Game Module 로 옮기자
-#pragma pack (1)
-	struct PacketBase
-	{
-		USHORT	mPacketSize;
-	};
-#pragma pack()
-
-#pragma pack (1)
-	struct AlphabetPacket : public PacketBase
-	{
-		AlphabetPacket() {
-			memcpy(mData, "abcdefghijklmnopqrstuvwxyz", sizeof(mData));
-		}
-
-		UINT		mPacketId;
-		char		mData[4];
-	};
-#pragma pack()
 }

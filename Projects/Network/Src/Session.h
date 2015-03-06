@@ -46,6 +46,8 @@ namespace Network
 
 	class Session
 	{
+		friend Networker;
+
 	public:
 		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize);
 		~Session(void);
@@ -63,14 +65,9 @@ namespace Network
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		bool					Send();
 
-		bool					WriteData(char* data, int dataLen);
-		PacketBase*				ReadData();
-		bool					ClearRecv(int bufSize);
-
-		void					Update();
-		
-		//TEST
-		void					LogPacket(char* prefix, AlphabetPacket* packet);
+		bool					WriteSendBuffer(char* data, int dataLen);
+		char*					ReadRecvBuffer(int bufSize);
+		bool					ClearRecvBuffer(int bufSize);
 
 	//Start Event Callback
 	public :
@@ -80,6 +77,7 @@ namespace Network
 		void					OnDisconnect();
 
 	protected:
+		void					Update();
 		void					OnConnect();
 	//End Event Callback
 
@@ -102,18 +100,15 @@ namespace Network
 		OverlappedIoData		mRecvIoData;
 
 		char*					mAcceptBuffer;
-		CircularBuffer			mSendBuffer;
-		CircularBuffer			mRecvBuffer;
+		SessionBuffer			mSendBuffer;
+		SessionBuffer			mRecvBuffer;
 
 		SOCKET					mListenSock;
 		bool					mIsAccepter;
-		volatile	bool		mbSendCompleted;
-		volatile	bool		mbRecvCompleted;
+		volatile	bool		mbSendPending;
+		volatile	bool		mbRecvStarted;
 		volatile	bool		mbRecvLock;
 		CriticalSection			mCritiSect;
-
-		volatile INT64			mRecvLockCount;
-		volatile INT64			mRecvUnlockCount;
 	};
 
 

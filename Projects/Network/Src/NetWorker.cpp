@@ -60,7 +60,6 @@ unsigned __stdcall SessionUpdater (void* arg)
 
 	while (networker->IsThreadUpdatingSessions()) {
 		networker->UpdateSessions();
-		Sleep(10);
 	}
 
 	return 0;
@@ -88,7 +87,6 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 
 	for(int i = 0; i < sessionReserveCount; ++i) {
 		Session* s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
-		s->Init();
 		mSessionVec.push_back(s);
 	}
 
@@ -150,21 +148,23 @@ void Networker::EndIo()
 	CS_UNLOCK
 }
 
-void Networker::BeginListen(UINT16 port, bool bPreAccept)
+bool Networker::BeginListen(UINT16 port, bool bPreAccept)
 {
 	EndListen();
 
 	CS_LOCK
+	bool bListen = false;
 	mbPreAccept = bPreAccept;
 	if ( bPreAccept ) {
 		mListener = new IocpListener(this, port);
-		mListener->BeginListen();
+		bListen = mListener->BeginListen();
 	}
 	else {
 		mListener = new SelectListener(this, port);
-		mListener->BeginListen();
+		bListen = mListener->BeginListen();
 	}
 	CS_UNLOCK
+	return bListen;
 }
 
 void Networker::EndListen()
@@ -206,7 +206,6 @@ Session* Networker::GetNewSession()
 		Session* s = mSessionVec[i];
 		if ( s == NULL ) {
 			s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
-			s->Init();
 			mSessionVec[i] = s;
 			newSession = s;
 			break;
@@ -231,7 +230,6 @@ Session* Networker::AddSession()
 	Session* newSess = NULL;
 	if ( mSessionVec.size() < (std::size_t)mSessionLimitCount ) {
 		newSess = new Session(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
-		newSess->Init();
 		mSessionVec.push_back(newSess);
 	}
 	return newSess;
@@ -251,27 +249,24 @@ void Networker::UpdateSessions()
 {
 	CS_LOCK
 
+	bool isPreaccepting = IsPreAccept();
+
 	Session* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
 		if ( sess ) {
 			sess->Update();
 
-			if ( IsPreAccepter() && sess->IsState(SESSIONSTATE_ACCEPTING) ) {
+			if ( isPreaccepting && sess->IsState(SESSIONSTATE_ACCEPTING) ) {
 				acceptingSession = sess;
 			}
 		}
 	}
 
 	//If No Accepting Session, Create New Accepting Session;
-	if ( IsPreAccepter() && ! acceptingSession ) {
+	if ( isPreaccepting && (acceptingSession == NULL) ) {
 		AddSession();
 	}
 	CS_UNLOCK
-}
-
-bool Networker::IsPreAccepter()	
-{ 
-	return (mListener && mbPreAccept);
 }
 
 SOCKET Networker::GetListnerSocket()			

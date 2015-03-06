@@ -175,6 +175,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Network</C
     <ClCompile Include="Src\NetWorker.cpp" />
     <ClCompile Include="Src\Session.cpp" />
     <ClCompile Include="Src\SessionBuffer.cpp" />
+    <ClCompile Include="Src\SessionDataReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -184,6 +185,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Network</C
     <ClInclude Include="Src\NetWorker.h" />
     <ClInclude Include="Src\Session.h" />
     <ClInclude Include="Src\SessionBuffer.h" />
+    <ClInclude Include="Src\SessionDataReader.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

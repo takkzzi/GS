@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "TestServer.h"
+#include "EchoServer.h"
 
 #define MAX_LOADSTRING 100
 
@@ -18,105 +19,9 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
-
-
 const int port			= 42006;
 const int sessionCount	= 1;
 const int sessionLimit	= 1000;
-
-class EchoServer : public Thread 
-{
-public :
-
-	EchoServer() : Thread()
-	{
-		mIocp = new Networker(true, 500, sessionCount, sessionLimit, 1024, 19);
-
-		mSendTime = Time::GetAppTime();
-	};
-
-	virtual ~EchoServer() 
-	{
-		SAFE_DELETE(mIocp);
-	};
-
-	virtual bool Begin(bool bSuspend=false)
-	{
-		mIocp->BeginListen(port, true);
-
-		return __super::Begin(bSuspend);
-	}
-
-	virtual bool End()
-	{
-		/*
-		//DisconnectAll
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			se->Disconnect();
-		}
-		*/
-		return __super::End();
-	}
-
-	virtual DWORD ThreadTick()
-	{
-		if ( IsState(THREAD_END) )
-			return 0;
-
-		bool bDataEcho = true;
-
-		double currTime = Time::GetAppTime();
-		if ( (currTime - mSendTime) > 3.0) {
-			mSendTime = currTime;
-		}
-
-		if ( ! mIocp->IsThreadUpdatingSessions() )
-			mIocp->UpdateSessions();
-
-		ReadData(bDataEcho);
-		return 1;
-	}
-
-	void ReadData(bool bEcho)
-	{
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) 
-			{
-				while( PacketBase* packet = se->ReadData() )	
-				{	
-					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
-
-					AlphabetPacket* alpha = (AlphabetPacket*)packet;
-
-					if ( bEcho ) 
-						se->WriteData((char*)(packet), packet->mPacketSize);	//Echo
-
-					se->ClearRecv(sizeof(AlphabetPacket));
-				}
-			}
-		}
-	}
-
-	void SessionLog(Session* sess, char* msg, size_t size ) {
-		char totalMsg[2048];
-
-		memcpy(totalMsg, msg, size);
-		totalMsg[size] = '\0';
-
-		sprintf_s(totalMsg, "%s\n", totalMsg);
-		//OutputDebugStringA(totalMsg);
-	}
-
-protected :
-	Networker*					mIocp;
-	std::vector<Session*>		mSessions;
-
-	double						mSendTime;
-};
-
-
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -146,20 +51,28 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	CoreSystem::Init(_T("ServerLog"));
 	NetworkSystem::Init();
 
-	EchoServer* server = new EchoServer();
-	server->Begin();
+	EchoServer* server = new EchoServer(sessionCount, sessionLimit);
 
-	//Main message loop:
-	//while (GetMessage(&msg, NULL, 0, 0))
-	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	if ( server->Begin(port) ) 
 	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		//Main message loop:
+		//while (GetMessage(&msg, NULL, 0, 0))
+		while (1)
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		else {
-			TheGame->MainLoop();
+			if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) 
+			{
+				if( msg.message == WM_QUIT )
+					break;
+
+				if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+			else {
+				//TheGame->MainLoop();
+			}
 		}
 	}
 

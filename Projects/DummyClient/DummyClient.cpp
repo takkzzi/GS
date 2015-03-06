@@ -190,7 +190,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	// Main message loop:
 	double startTime = Time::GetAppTime();
 
-	while (GetMessage(&msg, NULL, 0, 0))
+	//while (GetMessage(&msg, NULL, 0, 0))
+	while(1)
 	{
 		if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) )
 		{
