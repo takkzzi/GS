@@ -5,13 +5,13 @@
     <ClCompile Include="GameNetworker.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp" />
     <ClCompile Include="PacketProcessor.cpp">
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="PacketProcessor_Handler.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="GameCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -22,13 +22,13 @@
     <ClInclude Include="PacketBase.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h" />
     <ClInclude Include="PacketProcessor.h">
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="PacketProtocol.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="GameCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">

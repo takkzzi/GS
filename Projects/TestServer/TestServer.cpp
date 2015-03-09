@@ -31,9 +31,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
- 	// TODO: Place code here.
-	MSG msg;
-	HACCEL hAccelTable;
 
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -46,33 +43,32 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		return FALSE;
 	}
 
-	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTSERVER));
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTSERVER));
 
 	CoreSystem::Init(_T("ServerLog"));
 	NetworkSystem::Init();
 
 	EchoServer* server = new EchoServer(sessionCount, sessionLimit);
+	if ( ! server->Begin(port) )
+		return 0;
 
-	if ( server->Begin(port) ) 
+	//Main message loop:
+	MSG msg;
+	while (1)
 	{
-		//Main message loop:
-		//while (GetMessage(&msg, NULL, 0, 0))
-		while (1)
+		if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) 
 		{
-			if ( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) 
-			{
-				if( msg.message == WM_QUIT )
-					break;
+			if( msg.message == WM_QUIT )
+				break;
 
-				if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
-			else {
-				//TheGame->MainLoop();
-			}
+		}
+		else {
+			//TheGame->MainLoop();
 		}
 	}
 

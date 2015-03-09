@@ -4,8 +4,6 @@
 * Math
  - 각종 Interpolate Class.
 
-* Time Class 따로 파일로 분리
-
 * System 에 정보 추가
  - Atlantica NSystem 참고
  
@@ -13,14 +11,13 @@
 ------------ Network ------------ 
 
 * Session
-	- Session Buffer 를 단독으로 사용할수 방법 연구
+	- Session Buffer 에 직접 접근하여 사용 가능한 방법 연구
 	- Session 순회 및 Buffer 접근시 Lock-Free 방법 연구
 	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 
 
 ------------ Game ------------ 
 	- SessionEventObject Sub-Classing 구현
-	- Packetizer 구현 (Pending)
 	- Protobuf 적용 ? 
 
 
