@@ -167,14 +167,13 @@ bool IocpListener::BeginListen()
 
 	CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (DWORD)mSock, 0);
 
-	Logger::Log(_T("Log"), _T("alsdfjlasdjkflasdjf %d %d "), 1, 2);
+	Logger::Log(_T("Log"), _T("Start Listen..."));
 
 	return true;
 }
 
 bool IocpListener::EndListen()
 {
-	//LOG_WARNING_A("IocpListener::EndListen()");
-	Logger::LogWithDate(_T("LogWithDate"), _T("alsdfjlasdjkflasdjf %d %d "), 1, 2);
+	Logger::Log(_T("Log"), _T("End Listen... "));
 	return __super::EndListen();
 }

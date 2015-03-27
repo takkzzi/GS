@@ -5,13 +5,34 @@
     <ClCompile Include="GameNetworker.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="PacketProcessor.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketProcessor_Handler.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="GameCommon.cpp" />
+    <ClCompile Include="Player.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameObj</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>GameObj</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticObject.cpp">
+      <Filter>GameObj</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakableObject.cpp">
+      <Filter>GameObj</Filter>
+    </ClCompile>
+    <ClCompile Include="Trigger.cpp">
+      <Filter>GameObj</Filter>
+    </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>Level</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePacketReader.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePacketReader_Processing.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -19,20 +40,50 @@
     <ClInclude Include="GameNetworker.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="PacketBase.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketProcessor.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketProtocol.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="GameCommon.h" />
+    <ClInclude Include="Player.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameObj</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>GameObj</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticObject.h">
+      <Filter>GameObj</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakableObject.h">
+      <Filter>GameObj</Filter>
+    </ClInclude>
+    <ClInclude Include="Trigger.h">
+      <Filter>GameObj</Filter>
+    </ClInclude>
+    <ClInclude Include="Level.h">
+      <Filter>Level</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePacketBase.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePacketProtocol.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePacketReader.h">
+      <Filter>Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">
       <UniqueIdentifier>{a70fd088-c457-4494-b83e-436dc9d96875}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player">
+      <UniqueIdentifier>{d7bb171f-a979-4166-8eb5-704e4f9471cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObj">
+      <UniqueIdentifier>{83b6d87f-12b1-4d8b-af17-d6c36ffcfb6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Level">
+      <UniqueIdentifier>{dd4f9ef3-fe58-4c4e-a266-6b350e0303a7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

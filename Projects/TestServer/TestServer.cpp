@@ -44,13 +44,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTSERVER));
-
-	CoreSystem::Init(_T("ServerLog"));
-	NetworkSystem::Init();
-
-	EchoServer* server = new EchoServer(sessionCount, sessionLimit);
-	if ( ! server->Begin(port) )
-		return 0;
+	
+	GameCommon* gameApp = GameCommon::Create();
+	gameApp->Init();
 
 	//Main message loop:
 	MSG msg;
@@ -68,15 +64,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 		else {
-			//TheGame->MainLoop();
+			gameApp->MainLoop();
 		}
 	}
 
-	server->End();
-	SAFE_DELETE(server);
 
-	NetworkSystem::Shutdown();
-	CoreSystem::Shutdown();
+	gameApp->Shutdown();
+	GameCommon::Destroy();
 
 	return (int) msg.wParam;
 }

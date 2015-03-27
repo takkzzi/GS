@@ -18,9 +18,9 @@
 //#include <stdlib.h>
 //#include <tchar.h>
 
+
 #include "Core\Core.h"
 #include "Network\Network.h"
 
-
-
-
+#include "GameCommon.h"
+#include "Actor.h"

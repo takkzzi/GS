@@ -108,25 +108,11 @@ namespace Network
 		volatile	bool		mbSendPending;
 		volatile	bool		mbRecvStarted;
 		volatile	bool		mbRecvLock;
+
+		SessionEventObject*		mEventObj;
+
 		CriticalSection			mCritiSect;
-	};
 
-
-	class SessionEventObject
-	{
-	public :
-		SessionEventObject();
-		virtual ~SessionEventObject();
-
-	public :
-		virtual		void		Init(Session* session);
-
-		//Session Event
-		virtual		void		OnConnect()			=	0;
-		virtual		void		OnDisconnect()		=	0;
-		virtual		void		OnReceived()		=	0;
-		virtual		void		OnSend()			=	0;
-		
 	};
 	
 }

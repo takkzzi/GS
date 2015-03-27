@@ -41,7 +41,10 @@ unsigned __stdcall IOCPWorker (void* arg)
 					sess->OnSendComplete(overlapped, transferBytes);
 				}
 				else if ( io == IO_RECV ) {
-					sess->OnRecvComplete(overlapped, transferBytes);
+					if ( transferBytes <= 0 )
+						sess->OnDisconnect();
+					else
+						sess->OnRecvComplete(overlapped, transferBytes);
 				}
 			}
 			else {
@@ -76,6 +79,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 	, mRecvBufferSize(recvBufferSize)
 	, mbThreadUpdateSessions(bUseThreadUpdateSession)
 	, mSessUpdateThread(INVALID_HANDLE_VALUE)
+	, mNetEventDelegator(NULL)
 {
 	if ( mSessionLimitCount <= 0 )
 		mSessionLimitCount = 1;
@@ -271,6 +275,13 @@ void Networker::UpdateSessions()
 
 SOCKET Networker::GetListnerSocket()			
 { 
-	SOCKET listenSock = mListener ? mListener->GetSocket() : NULL;
-	return listenSock; 
+	return (mListener ? mListener->GetSocket() : NULL);
+}
+
+void Networker::SetEventDelegator(NetEventDelegator* eventDelegator)
+{
+	mNetEventDelegator = eventDelegator;
+	if ( mNetEventDelegator ) {
+		mNetEventDelegator->SetNetworker(this);
+	}
 }

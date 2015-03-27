@@ -327,10 +327,12 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 
 void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
+	/*
 	if ( recvSize <= 0 ) {  //Remote Session Closed
 		OnDisconnect();
 		return;
 	}
+	*/
 
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
 		mbRecvStarted = false;

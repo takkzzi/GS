@@ -20,6 +20,7 @@ void CoreSystem::Shutdown()
 {
 	Dump::Shutdown();
 	Logger::Shutdown();
+	Dump::Shutdown();
 
 	msInit = false;
 }

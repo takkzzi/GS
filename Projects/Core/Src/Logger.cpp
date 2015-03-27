@@ -39,10 +39,14 @@ void Logger::Init(const TCHAR* logDir)
 	mCS = new CriticalSection();
 
 	msInit = true;
+
+	LogDebugString("\n<Logger Initialize.>");
 }
 
 void Logger::Shutdown() 
 {
+	LogDebugString("\n<Logger Shutdown.>");
+
 	msInit = false;
 
 	CS_LOCK
@@ -144,9 +148,10 @@ void Logger::Log(const LPTSTR category, const LPTSTR logData, ...)
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		//_stprintf_s(logBuff, _T("%s%s"), logBuff, _T("\n"));
+		_stprintf_s(logBuff, _T("%s\n"), logBuff);
 
-		_ftprintf(file, _T("%s\n"), logBuff);
+		//_ftprintf(file, _T("%s\n"), logBuff);
+		_ftprintf(file, logBuff);
 		fflush(file);
 
 		if ( IsDebuggerPresent() ) {
@@ -176,9 +181,10 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 		
-		fprintf(file, "%s\n", logBuff);
+		sprintf(logBuff, "%s\n", logBuff);
+		fprintf(file, "%s", logBuff);
 		fflush(file);
-
+		
 		if ( IsDebuggerPresent() ) {
 			OutputDebugStringA(logBuff);
 
@@ -231,9 +237,10 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		//_tprintf_s(logBuff, _T("[%s] %s\n"), timeStr, logBuff);
+		_tprintf_s(logBuff, _T("[%s] %s\n"), timeStr, logBuff);
 
-		_ftprintf(file, _T("[%s] %s\n"), timeStr, logBuff);
+		//_ftprintf(file, _T("[%s] %s\n"), timeStr, logBuff);
+		_ftprintf(file, logBuff);
 		fflush(file);
 
 		if ( IsDebuggerPresent() ) {
@@ -267,7 +274,10 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		fprintf(file, "[%s] %s\n", currTimeA, logBuff);
+		sprintf(logBuff, "[%s] %s\n", currTimeA, logBuff);
+		//fprintf(file, "[%s] %s\n", currTimeA, logBuff);
+		//fprintf(file, "[%s] %s", currTimeA, logBuff);
+		fprintf(file, logBuff);
 		fflush(file);
 
 		//fclose(FilePtr);

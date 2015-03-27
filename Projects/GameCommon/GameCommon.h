@@ -5,9 +5,12 @@
 namespace Game
 {
 	class GameNetworker;
+	class Level;
+
 
 	class GameCommon : public Singleton<GameCommon>
 	{
+	friend Singleton<GameCommon>;
 	protected :
 		GameCommon();
 		virtual ~GameCommon();
@@ -17,26 +20,26 @@ namespace Game
 		virtual void			Shutdown();
 		virtual void			MainLoop();
 
+		Level*					GetLevel()			{ return mLevel; };
+
 	protected:
 		bool					mbInit;
 
-		/** Networking */
-		GameNetworker*			mGameNetworker;
-
-		/** To Do */
 		/** Scene Handling */
-		//GameLevel*			mLevel;
+		Level*					mLevel;
 		//ResourceManager*		mResourceManager;
 
 		/** Rendering */
 		//Renderer*				mRenderer;
 
+		/** Networking */
+		GameNetworker*			mGameNetworker;
 
 	protected:
 		double					mAppRuntime;
 
 	};
 
-#define			TheGame			Game::Instance()
-
 }
+
+#define			TheGame			GameCommon::Instance()

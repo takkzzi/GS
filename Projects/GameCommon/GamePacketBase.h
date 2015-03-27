@@ -1,15 +1,15 @@
 #pragma once
 
-#include "PacketProtocol.h"
+#include "GamePacketProtocol.h"
 
 
 
 namespace Game
 {
 #pragma pack (1)
-	struct PacketBase
+	struct GamePacketBase
 	{
-		PacketBase() : mSize(sizeof(PacketBase)), mType(PacketProtocol::PT_Base) {
+		GamePacketBase() : mSize(sizeof(GamePacketBase)), mType(GamePacketProtocol::PT_Base) {
 		}
 
 		USHORT		mSize;
@@ -17,11 +17,11 @@ namespace Game
 	};
 
 
-	struct AlphabetPacket : public PacketBase 
+	struct AlphabetPacket : public GamePacketBase 
 	{
 		AlphabetPacket() {
 			mSize = sizeof(AlphabetPacket);
-			mType = PacketProtocol::PT_Alphabet;
+			mType = GamePacketProtocol::PT_Alphabet;
 
 			memcpy(mData, ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), sizeof(mData));
 		}
@@ -29,10 +29,10 @@ namespace Game
 		char	mData[27];
 	};
 
-	struct ChatMsg : PacketBase 
+	struct ChatMsg : GamePacketBase 
 	{
 		ChatMsg() {
-			mType = PacketProtocol::PT_ChatMsg;
+			mType = GamePacketProtocol::PT_ChatMsg;
 		}
 
 		USHORT	mChatSize;	

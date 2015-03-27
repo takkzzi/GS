@@ -13,7 +13,9 @@ namespace Network
 	struct OverlappedIoData;
 	class Session;
 	class Listener;
-	
+	class NetEventDelegator;
+
+
 	//Workin With IOCP
 	class Networker
 	{
@@ -41,6 +43,8 @@ namespace Network
 		bool					IsThreadUpdatingSessions()		{ return mbThreadUpdateSessions; };
 		void					UpdateSessions();
 
+		void					SetEventDelegator(NetEventDelegator* eventDelegator);
+		NetEventDelegator*		GetEventDelegator()				{ return mNetEventDelegator; };
 
 	protected:
 		void					BeginIo();
@@ -71,5 +75,27 @@ namespace Network
 		volatile	bool				mbThreadUpdateSessions;
 		HANDLE							mSessUpdateThread;
 		CriticalSection					mCritiSect;
+		NetEventDelegator*				mNetEventDelegator;
+	};
+
+
+	class NetEventDelegator
+	{
+	public :
+		NetEventDelegator()	: mNetworker(NULL)	{};
+		virtual ~NetEventDelegator()			{};
+
+	public :
+
+		virtual		void		SetNetworker(Networker* networker)	{ mNetworker = networker; }
+
+		//Session Event
+		virtual		void		OnConnect(Session* session)			=	0;
+		virtual		void		OnDisconnect(Session* session)		=	0;
+		virtual		void		OnReceived(Session* session)		=	0;
+		virtual		void		OnSend(Session* session)			=	0;
+
+	protected :
+		Networker*				mNetworker;
 	};
 }

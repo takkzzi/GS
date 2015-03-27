@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "PacketProcessor.h"
-#include "PacketBase.h"
+#include "GamePacketReader.h"
+#include "GamePacketBase.h"
 //#include "Network\Session.h"
 
 using namespace Game;
@@ -23,30 +23,30 @@ void LogPacket(char* prefix, AlphabetPacket* packet)
 }
 */
 
-PacketProcessor::PacketProcessor(void)
+GamePacketReader::GamePacketReader(void)
 {
 }
 
 
-PacketProcessor::~PacketProcessor(void)
+GamePacketReader::~GamePacketReader(void)
 {
 }
 
-void PacketProcessor::Init()
+void GamePacketReader::Init()
 {
 	BindHanlder();
 }
 
-bool PacketProcessor::Process(Network::Session* session)
+bool GamePacketReader::ReadPacket(Network::Session* session)
 {
 	if ( ! session || ! session->IsState(SESSIONSTATE_CONNECTED) )
 		return false;
 
 	//Packetizing from RecvBuffer & Packet Processing
-	PacketBase* basePacket = NULL;
-	char* baseData = session->ReadRecvBuffer(sizeof(PacketBase));
+	GamePacketBase* basePacket = NULL;
+	char* baseData = session->ReadRecvBuffer(sizeof(GamePacketBase));
 	if ( baseData ) {
-		basePacket = (PacketBase*)baseData;
+		basePacket = (GamePacketBase*)baseData;
 		char* entireData = session->ReadRecvBuffer(basePacket->mSize);
 		if ( entireData ) 
 		{

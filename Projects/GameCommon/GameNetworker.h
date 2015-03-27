@@ -2,22 +2,22 @@
 
 namespace Game
 {
-	class PacketProcessor;
-
+	class GamePacketReader;
+	class Level;
 	
 	class GameNetworker
 	{
 	public:
-		GameNetworker(void);
-		virtual ~GameNetworker(void);
+		GameNetworker();
+		virtual ~GameNetworker();
 
-		
 	public :
 		virtual		void	Update(float dt);
 
 	protected:
-		Networker*				mIocpNetworker;
-		PacketProcessor*		mPackeProcessor;			//Buffer-Reading & Packetizing & Calling Packet Handler
+		Networker*					mIocpNetworker;
+		GamePacketReader*			mPackeReader;		//Buffer-Reading & Packetizing & Calling Packet Handler
+		Level*						mLevel;
 	};
 }
 

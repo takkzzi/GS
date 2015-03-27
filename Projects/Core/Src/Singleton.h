@@ -11,7 +11,7 @@ namespace Core
 	
 	public:
 		static T*			Create() {
-			if ( msSingleton )
+			if ( ! msSingleton )
 				msSingleton = new T;
 			return msSingleton;
 		}

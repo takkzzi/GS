@@ -2,7 +2,7 @@
 
 namespace Game
 {
-	enum PacketProtocol
+	enum GamePacketProtocol
 	{
 		PT_Base		=	-1,
 		PT_Alphabet,

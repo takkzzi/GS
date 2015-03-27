@@ -158,25 +158,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Actor.h" />
+    <ClInclude Include="BreakableObject.h" />
     <ClInclude Include="GameCommon.h" />
     <ClInclude Include="GameNetworker.h" />
-    <ClInclude Include="PacketBase.h" />
-    <ClInclude Include="PacketProcessor.h" />
-    <ClInclude Include="PacketProtocol.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Level.h" />
+    <ClInclude Include="GamePacketBase.h" />
+    <ClInclude Include="GamePacketReader.h" />
+    <ClInclude Include="GamePacketProtocol.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="StaticObject.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Trigger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="BreakableObject.cpp" />
     <ClCompile Include="GameCommon.cpp" />
     <ClCompile Include="GameNetworker.cpp" />
-    <ClCompile Include="PacketProcessor.cpp" />
-    <ClCompile Include="PacketProcessor_Handler.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Level.cpp" />
+    <ClCompile Include="GamePacketReader.cpp" />
+    <ClCompile Include="GamePacketReader_Processing.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="StaticObject.cpp" />
+    <ClCompile Include="Trigger.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

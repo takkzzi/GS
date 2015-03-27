@@ -1,25 +1,25 @@
 #pragma once
-#include "PacketBase.h"
+#include "GamePacketBase.h"
 
 
 namespace Game
 {
 	class		Network::Session;
-	struct		PacketBase;	
+	struct		GamePacketBase;	
 
-	class PacketProcessor
+	class GamePacketReader
 	{
 	public:
-		PacketProcessor(void);
-		virtual ~PacketProcessor(void);
+		GamePacketReader(void);
+		virtual ~GamePacketReader(void);
 		
 	public:
 		void			Init();
-		bool			Process(Network::Session* session);
+		bool			ReadPacket(Network::Session* session);
 
 	protected:
 		void			BindHanlder();
-		bool			CallHandler(PacketBase* packet);
+		bool			CallHandler(GamePacketBase* packet);
 
 	protected :
 		//** Start Packet Handler 
@@ -31,7 +31,7 @@ namespace Game
 
 	protected:
 
-		typedef		void(PacketProcessor::*PacketHandler)(char*, int);		//char:Data, int:Size
+		typedef		void(GamePacketReader::*PacketHandler)(char*, int);		//char:Data, int:Size
 		PacketHandler	mHandlerArray[PT_Max];
 	};
 }

@@ -73,6 +73,7 @@ public :
 
 	void PushSend(int pushCount)
 	{
+		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
@@ -86,12 +87,14 @@ public :
 				}
 			}
 		}
+		*/
 
 		
 	}
 
 	void PopRecv() 
 	{
+		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
@@ -104,6 +107,7 @@ public :
 				}
 			}
 		}
+		*/
 	}
 
 	/*

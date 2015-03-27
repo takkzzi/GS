@@ -103,7 +103,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>..\..\Lib\Win32\Externals;..\..\Lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Core_d.lib;Network_d.lib;CrashReport_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Core_d.lib;Network_d.lib;CrashReport_d.lib;GameCommon_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +142,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>..\..\Lib\Win32\Externals;..\..\Lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Core.lib;Network.lib;CrashReport.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Core.lib;Network.lib;CrashReport.lib;GameCommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
