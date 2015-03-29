@@ -172,6 +172,8 @@
     <ClInclude Include="StaticObject.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Trigger.h" />
+    <ClInclude Include="UserSession.h" />
+    <ClInclude Include="UserSessionManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
@@ -191,6 +193,8 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="StaticObject.cpp" />
     <ClCompile Include="Trigger.cpp" />
+    <ClCompile Include="UserSession.cpp" />
+    <ClCompile Include="UserSessionManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,7 +6,7 @@
 
 using namespace Game;
 
-#define			DEFAULT_USER_COUNT		1000
+#define			RESERVE_USER_COUNT		1000
 #define			MAX_USER_COUNT			5000
 #define			SEND_BUFFER_SIZE		10240
 #define			RECV_BUFFER_SIZE		10240
@@ -21,7 +21,7 @@ using namespace Game;
 
 GameNetworker::GameNetworker()
 {
-	mIocpNetworker = new Networker(true, 0, DEFAULT_USER_COUNT, MAX_USER_COUNT, SEND_BUFFER_SIZE, RECV_BUFFER_SIZE);
+	mIocpNetworker = new Networker(true, 0, RESERVE_USER_COUNT, MAX_USER_COUNT, SEND_BUFFER_SIZE, RECV_BUFFER_SIZE);
 	
 	//TODO : Only Server-Side
 #ifdef APP_SERVER

@@ -16,7 +16,7 @@ namespace Game
 		virtual			void			Update(float dt);
 
 	public :
-		UINT		SetPlayerIndex(UINT index)		{ mPlayerIndex = index; }
+		void		SetPlayerIndex(UINT index)		{ mPlayerIndex = index; }
 		UINT		GetPlayerIndex()				{ return mPlayerIndex; }
 
 	protected :

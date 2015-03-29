@@ -33,6 +33,12 @@
     <ClCompile Include="GamePacketReader_Processing.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="UserSessionManager.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="UserSession.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -69,6 +75,12 @@
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="GamePacketReader.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="UserSessionManager.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="UserSession.h">
       <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>

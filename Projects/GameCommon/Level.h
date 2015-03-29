@@ -28,10 +28,10 @@ namespace Game
 		static	UINT				GetActorSubId(Actor* actor);
 
 	protected:
-		static	UINT				CreateActorId(ActorType actorType);
+		static	UINT64				CreateActorId(ActorType actorType);
 
 	protected:
-		static	UINT				mActorIdSeq[ACTOR_MAX];
+		static	UINT64				mActorIdSeq[ACTOR_MAX];
 
 	protected:
 

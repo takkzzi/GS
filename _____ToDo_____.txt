@@ -14,6 +14,7 @@
 	- Session Buffer 에 직접 접근하여 사용 가능한 방법 연구
 	- Session 순회 및 Buffer 접근시 Lock-Free 방법 연구
 	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
+	- connect 시 Data 전달법 (WSAConnect 에 대해 더욱 숙지할것)
 
 
 ------------ Game ------------ 

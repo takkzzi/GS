@@ -34,7 +34,7 @@ namespace Game
 
 	protected :
 		virtual			void		OnCreate()				{};
-		virtual			void		OnDestroy();
+		virtual			void		OnDestroy()				{};
 		virtual			void		Update(float dt)		{};
 		
 	private :

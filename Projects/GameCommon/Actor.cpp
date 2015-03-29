@@ -44,7 +44,3 @@ bool Actor::UpdateDestroy(float dt)
 	return false;
 }
 
-void Actor::OnDestroy()
-{
-	mLevel->OnDestroyActor(this);
-}

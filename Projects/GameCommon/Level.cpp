@@ -11,19 +11,19 @@ using namespace Game;
 
 #define		ACTORTYPE_BIT_POS		48
 
-UINT	LevelActorFactory::mActorIdSeq[ACTOR_MAX] = {0, 0, 0, 0, 0};
+UINT64	LevelActorFactory::mActorIdSeq[ACTOR_MAX] = {0, 0, 0, 0, 0};
 
 
-UINT LevelActorFactory::CreateActorId(ActorType actorType)
+UINT64 LevelActorFactory::CreateActorId(ActorType actorType)
 {
-	UINT typePart = actorType << ACTORTYPE_BIT_POS;
-	UINT subPart = mActorIdSeq[actorType]++;
+	UINT64 typePart = (UINT64)actorType << ACTORTYPE_BIT_POS;
+	UINT64 subPart = mActorIdSeq[actorType]++;
 	return (typePart | subPart);
 }
 
 UINT LevelActorFactory::GetActorSubId(Actor* actor)
 {
-	return ( actor->GetId() % (1 << ACTORTYPE_BIT_POS));
+	return (UINT)( actor->GetId() % ((UINT64)1 << ACTORTYPE_BIT_POS));
 }
 
 Actor* LevelActorFactory::CreateActor(ActorType actorType)
@@ -99,6 +99,7 @@ void Level::Update(float dt)
 	while(pos) {
 		Actor* actor = mActorMap.GetValueAt(pos);
 		if ( actor->UpdateDestroy(dt) ) {
+			OnDestroyActor(actor);
 			POSITION nextPos = mActorMap.GetNext(pos);
 			mActorMap.RemoveAtPos(pos);
 			pos = nextPos;
@@ -122,8 +123,19 @@ void Level::OnCreateActor(Actor* actor)
 	case ACTOR_TRIGGER :
 		break;
 	case ACTOR_PLAYER :
-		ASSERT(subId >= 0 && subId < mPlayerVec.size());
-		mPlayerVec[((Player*)actor)->GetPlayerIndex()] = NULL;
+		
+		Player* player = (Player*)actor;
+
+		ASSERT(player->GetPlayerIndex() <= mPlayerVec.size());
+
+		if ( player->GetPlayerIndex() < mPlayerVec.size() ) {
+			ASSERT(mPlayerVec[player->GetPlayerIndex() == NULL]);
+			mPlayerVec[player->GetPlayerIndex()] = player;
+		}
+		else {
+			mPlayerVec.push_back(player);
+		}
+		
 		break;
 	default : 
 		
@@ -138,8 +150,6 @@ void Level::OnCreateActor(Actor* actor)
 
 void Level::OnDestroyActor(Actor* actor)
 {
-	UINT subId = LevelActorFactory::GetActorSubId(actor);
-
 	switch (actor->mActorType) {
 	case ACTOR_STATIC : 
 		break;
@@ -148,31 +158,40 @@ void Level::OnDestroyActor(Actor* actor)
 	case ACTOR_TRIGGER :
 		break;
 	case ACTOR_PLAYER :
-		ASSERT(subId >= 0 && subId < mPlayerVec.size());
-		mPlayerVec[subId] = NULL;
+		Player* player = (Player*)actor;
+		UINT index = player->GetPlayerIndex();
+		ASSERT(mPlayerVec[index]);
+		mPlayerVec[index] = NULL;
 		break;
 	default : 
 		ASSERT(0);
 	}
+
+	actor->OnDestroy();
 }
 
 Player*	Level::GetPlayer(UINT playerIndex, bool bCreate)
 {
-	Pending 
-	if ( bCreate ) {
-		if ( playerIndex >= mPlayerVec.size()) {
-			Player* newPlayer = LevelActorFactory::CreatePlayer();
-			newPlayer->SetPlayerIndex(playerIndex);
-			return newPlayer;
-		}
-		else if ( ! mPlayerVec[playerIndex] ) {
-			Player* newPlayer = LevelActorFactory::CreatePlayer();
-			mPlayerVec[playerIndex] = newPlayer;
-			newPlayer->SetPlayerIndex(playerIndex);
-			return newPlayer;
-		}
+	Player* player = NULL;
+	if ( playerIndex < mPlayerVec.size() )
+	{
+		player = mPlayerVec[playerIndex];
 	}
 
-	return mPlayerVec[playerIndex];
+	if ( ! player && bCreate )
+	{
+		if ( playerIndex = mPlayerVec.size()) {
+			player = LevelActorFactory::CreatePlayer();
+			player->SetPlayerIndex(playerIndex);
+		}
+		else if ( ! mPlayerVec[playerIndex] ) {
+			player = LevelActorFactory::CreatePlayer();
+			player->SetPlayerIndex(playerIndex);
+		}
+		else
+			ASSERT(0);
+	}
+
+	return player;
 }
 
