@@ -1,17 +1,24 @@
 #pragma once
 
+#include "UserSession.h"
+
+
 namespace Game
 {
-	class UserSession;
+	class Session;
 
 	class UserSessionManager
 	{
 	public :
-		UserSessionManager();
+		UserSessionManager(UINT reserveUserCount, UINT maxUserCount);
 		~UserSessionManager();
 
 	public :
 		void				CreateUserSession(UINT sessionIndex);
-		UserSession*		GetUserSession(UINT sessionIndex);
+		UserSession*		GetUserSession(Session* netSession, bool bCreate);
+
+
+	protected :
+		std::vector<UserSession*>			mSessionVec;
 	};
 }

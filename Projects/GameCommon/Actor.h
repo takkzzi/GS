@@ -30,7 +30,7 @@ namespace Game
 						void		Destroy(float time=0.f);
 						void		DestroyImmediate();
 
-						UINT		GetId()					{ return mActorId; }
+						UINT64		GetId()					{ return mActorId; }
 
 	protected :
 		virtual			void		OnCreate()				{};

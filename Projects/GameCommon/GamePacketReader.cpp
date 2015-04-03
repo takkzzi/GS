@@ -37,6 +37,7 @@ void GamePacketReader::Init()
 	BindHanlder();
 }
 
+/*
 bool GamePacketReader::ReadPacket(Network::Session* session)
 {
 	if ( ! session || ! session->IsState(SESSIONSTATE_CONNECTED) )
@@ -59,6 +60,8 @@ bool GamePacketReader::ReadPacket(Network::Session* session)
 
 	return false;
 }
+*/
+
 
 
 

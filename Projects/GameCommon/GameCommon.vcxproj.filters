@@ -39,6 +39,9 @@
     <ClCompile Include="UserSession.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="LocalPlayer.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="UserSession.h">
       <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalPlayer.h">
+      <Filter>Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -13,8 +13,11 @@ void GamePacketReader::BindHanlder()
 
 bool GamePacketReader::CallHandler(GamePacketBase* packet)
 {
+	if ( ! packet )
+		return false;
+
 	int protocol = (int)(packet->mType);
-	if ( mHandlerArray[protocol] ) {
+	if ( mHandlerArray[protocol] ) { //Call Binded Func
 		(this->*(this->mHandlerArray[protocol])) ( (char*)packet, (int)packet->mSize );
 		return true;
 	}

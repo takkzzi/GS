@@ -3,8 +3,9 @@
 namespace Game
 {
 	class GamePacketReader;
-	class Level;
-	
+	class UserSessionManager;
+
+
 	class GameNetworker
 	{
 	public:
@@ -16,8 +17,8 @@ namespace Game
 
 	protected:
 		Networker*					mIocpNetworker;
+		UserSessionManager*			mUserSessionMgr;
 		GamePacketReader*			mPackeReader;		//Buffer-Reading & Packetizing & Calling Packet Handler
-		Level*						mLevel;
 	};
 }
 

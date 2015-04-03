@@ -2,7 +2,8 @@
 #include "GameNetworker.h"
 #include "GamePacketReader.h"
 #include "Player.h"
-#include "Level.h"
+#include "UserSessionManager.h"
+
 
 using namespace Game;
 
@@ -14,7 +15,7 @@ using namespace Game;
 #define			PORT					42999
 #define			RECV_BUFFER_SIZE		10240
 
-
+//TEMP
 #define			APP_SERVER
 
 
@@ -22,21 +23,20 @@ using namespace Game;
 GameNetworker::GameNetworker()
 {
 	mIocpNetworker = new Networker(true, 0, RESERVE_USER_COUNT, MAX_USER_COUNT, SEND_BUFFER_SIZE, RECV_BUFFER_SIZE);
-	
-	//TODO : Only Server-Side
+	mUserSessionMgr = new UserSessionManager(RESERVE_USER_COUNT, MAX_USER_COUNT);
+
 #ifdef APP_SERVER
 	mIocpNetworker->BeginListen(PORT, true);
 #endif
 	
 	mPackeReader = new GamePacketReader();
 	mPackeReader->Init();
-
-	mLevel = TheGame->GetLevel();
 }
 
 GameNetworker::~GameNetworker(void)
 {
 	SAFE_DELETE(mPackeReader);
+	SAFE_DELETE(mUserSessionMgr);
 	SAFE_DELETE(mIocpNetworker);
 }
 
@@ -50,14 +50,20 @@ void GameNetworker::Update(float dt)
 
 		//Connected
 		if ( sess->IsState(SESSIONSTATE_CONNECTED) ) {
-			Player* player  = mLevel->GetPlayer(i, true);
-			ASSERT(player);
-			mPackeReader->ReadPacket(sess);
+			UserSession* user = mUserSessionMgr->GetUserSession(sess, true);
+			ASSERT(user);
+			GamePacketBase* packet = user->GetRecvPacket();
+			if ( packet ) {
+				mPackeReader->CallHandler(packet);
+				user->ClearRecvPacket(packet->mSize);
+			}
 		}
 
+		/*
 		//Disconnected -> Delete
 		else if ( Player* player = mLevel->GetPlayer(i, false) ) {
 			player->Destroy();
 		}
+		*/
 	}
 }

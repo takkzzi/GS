@@ -6,7 +6,8 @@ namespace Game
 {
 	class GameNetworker;
 	class Level;
-
+	class UserSession;
+	class LocalPlayer;
 
 	class GameCommon : public Singleton<GameCommon>
 	{
@@ -34,6 +35,8 @@ namespace Game
 
 		/** Networking */
 		GameNetworker*			mGameNetworker;
+		UserSession*			mLocalUserSession;		//Client
+		LocalPlayer*			mLocalPlayer;
 
 	protected:
 		double					mAppRuntime;

@@ -15,11 +15,12 @@ namespace Game
 		
 	public:
 		void			Init();
-		bool			ReadPacket(Network::Session* session);
+		//bool			ReadPacket(Network::Session* session);
+		//bool			ReadPacket(Network::Session* session);
+		bool			CallHandler(GamePacketBase* packet);
 
 	protected:
 		void			BindHanlder();
-		bool			CallHandler(GamePacketBase* packet);
 
 	protected :
 		//** Start Packet Handler 
