@@ -24,7 +24,6 @@
 
 
 ------------ Game ------------ 
-	- SessionEventObject Sub-Classing 구현
 	- Protobuf 적용 ? 
 
 

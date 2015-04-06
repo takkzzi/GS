@@ -54,13 +54,14 @@ void GameNetworker::Update(float dt)
 			ASSERT(user);
 			GamePacketBase* packet = user->GetRecvPacket();
 			if ( packet ) {
-				mPackeReader->CallHandler(packet);
+				mPackeReader->ProcessPacket(packet, user);
 				user->ClearRecvPacket(packet->mSize);
 			}
 		}
 		//Disconnected -> Delete
 		else if ( UserSession* user = mUserSessionMgr->GetUserSession(i) ) {
-			user->Destroy();
+			if ( ! user->IsDestroyed() )
+				user->Destroy();
 		}
 	}
 }

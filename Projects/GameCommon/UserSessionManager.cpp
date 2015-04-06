@@ -16,27 +16,48 @@ UserSessionManager::UserSessionManager(UINT reserveUserCount, UINT maxUserCount)
 
 UserSessionManager::~UserSessionManager()
 {
-}
-
-void UserSessionManager::CreateUserSession(UINT sessionIndex)
-{
-}
-
-UserSession* UserSessionManager::GetUserSession(Network::Session* session, bool bCreate)
-{
-	UINT sessionIndex = session->GetId();
-	UserSession* user = NULL;
-
-	if ( sessionIndex < mSessionVec.size() ) {
-		user = mSessionVec[sessionIndex];
-		if ( user ) {
-			if ( ! mSessionVec[sessionIndex]->IsDestroyed() )
-				user = mSessionVec[sessionIndex];
-			else if ( bCreate ) {
-				mSessionVec[sessionIndex]->Init(session);
-			}
+	for(auto & i : mSessionVec) {
+		if ( i ) {
+			delete i;
 		}
 	}
+}
+
+UserSession* UserSessionManager::CreateUserSession(UINT sessIdx)
+{
+	ASSERT(sessIdx > 0);
+
+	UserSession* user = NULL;
+
+	if ( sessIdx < mSessionVec.size() ) {
+		user = mSessionVec[sessIdx];
+	}
+	else {
+		while(sessIdx >= mSessionVec.size()) {
+			mSessionVec.push_back(NULL);
+		}
+	}
+
+	if ( ! user ) {
+		mSessionVec[sessIdx] = user =  new UserSession();
+	}
+
+	return user;
+}
+
+UserSession* UserSessionManager::GetUserSession(Network::Session* netSession, bool bCreate)
+{
+	ASSERT(netSession);
+
+	UINT sessionIndex = netSession->GetId();
+	UserSession* user = GetUserSession(sessionIndex);
+
+	if ( ! user && bCreate ) {
+		user = CreateUserSession(sessionIndex);
+	}
+
+	if ( user->IsDestroyed() )
+		user->Init(netSession);
 
 	return user;
 }

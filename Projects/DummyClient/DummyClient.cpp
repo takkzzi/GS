@@ -18,14 +18,14 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 const char* gServerIP = "127.0.0.1";//"192.168.0.14";
-const int	gServerPort = 42006;
+const int	gServerPort = 42999;
 
 
-class PingPongClient : public Thread 
+class ClientSimulator : public Thread 
 {
 public :
 
-	PingPongClient(int connCount) : Thread()
+	ClientSimulator(int connCount) : Thread()
 	{
 		mIocp = new Networker(true, 3, connCount, 100, 2048, 1024);
 
@@ -33,7 +33,7 @@ public :
 		ZeroMemory(mRecvCounters, 5000*sizeof(UINT64));
 	};
 
-	virtual ~PingPongClient() 
+	virtual ~ClientSimulator() 
 	{
 		SAFE_DELETE(mIocp);
 	};
@@ -58,78 +58,37 @@ public :
 
 		double currTime = Time::GetAppTime();
 		if ( currTime - mLastSendTime > 1.0) {
-			PushSend(10);
+
+			ActSimulation();
+
 			mLastSendTime = currTime;
 		};
 
-		PopRecv();
-
-		//mIocp->UpdateSessions();
 
 		Sleep(10);
 
 		return 1;
 	}
 
-	void PushSend(int pushCount)
+	void ActSimulation()
 	{
-		/*
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
-			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
-				
-				for (int j = 0 ; j < pushCount; ++j) {
-					AlphabetPacket alpha;
-					alpha.mPacketSize = sizeof(AlphabetPacket);
-				
-					bool bSend = se->WriteData((char*)&alpha, sizeof(AlphabetPacket));
-					ASSERT(bSend);
-				}
+			if ( se->IsConnected() ) {
+				if ( Core::Math::RandRange(0, 1000) > 500 )
+					se->Disconnect();
+			}
+			else {
+				if ( Core::Math::RandRange(0, 1000) > 500 )
+					se->Connect(gServerIP, gServerPort);
 			}
 		}
-		*/
-
-		
 	}
 
-	void PopRecv() 
-	{
-		/*
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			if ( se && se->IsState(SESSIONSTATE_CONNECTED) ) {
-				while(PacketBase* packet = se->ReadData())
-				{
-					ASSERT( packet->mPacketSize == sizeof(AlphabetPacket) );
-					AlphabetPacket* alpha = (AlphabetPacket*)packet;
-					//PrintDebugString("Recved : ", packet);
-					se->ClearRecv(packet->mPacketSize);
-				}
-			}
-		}
-		*/
-	}
-
-	/*
-	void PrintDebugString(char* msg, PacketBase* packet ) {
-		char totalMsg[2048];
-
-		sprintf_s(totalMsg, "%s (size:%d)\n", msg, packet->mPacketSize);
-		OutputDebugStringA(msg);
-	}
-	*/
 
 
 	virtual bool End()
 	{
-		/*
-		//DisconnectAll
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
-			se->Disconnect();
-		}
-		*/
-
 		return __super::End();
 	}
 
@@ -173,14 +132,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	CoreSystem::Init(_T("ClientLog"));
 	NetworkSystem::Init();
 
-	
-	PingPongClient* sessTester[5] = { 0, 0, 0, 0, 0 };
+	const int testObjCount = 5;
+	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new PingPongClient(1);
+	sessTester[0] = new ClientSimulator(1000);
 	sessTester[0]->Begin(false);
 	
-	//sessTester[1] = new PingPongClient(10);
-	//sessTester[1]->Begin(false);
+	sessTester[1] = new ClientSimulator(1000);
+	sessTester[1]->Begin(false);
 
 	//sessTester[2] = new PingPongClient(10);
 	//sessTester[2]->Begin(false);
@@ -213,23 +172,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-
-	sessTester[0]->End();
-	delete sessTester[0];
-
-	/*
-	sessTester[1]->End();
-	delete sessTester[1];
-	
-	sessTester[2]->End();
-	delete sessTester[2];
-
-	sessTester[3]->End();
-	delete sessTester[3];
-
-	sessTester[4]->End();
-	delete sessTester[4];
-	*/
+	for (int i = 0; i < testObjCount; ++i) {
+		if ( sessTester[i] ) {
+			sessTester[i]->End();
+			delete sessTester[i];
+		}
+	}
 
 	NetworkSystem::Shutdown();
 	CoreSystem::Shutdown();

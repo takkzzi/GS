@@ -15,7 +15,7 @@ Player::~Player()
 void Player::OnCreate()
 {
 	__super::OnCreate();
-	Logger::Log("Player", "Player Connected (Created) [id:%d]", mActorId);
+	
 }
 
 void Player::OnDestroy()

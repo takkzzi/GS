@@ -58,6 +58,8 @@ namespace Network
 		void					SetState(SessionState state);
 		bool					IsState(SessionState state)			{ return (mState == state); }
 		SessionState			GetState()							{ return mState; }
+		bool					IsConnected()						{ return IsState(SESSIONSTATE_CONNECTED); }
+
 		void					ResetState(bool bClearDataQ);
 
 		bool					Connect(const CHAR* addr, USHORT port);

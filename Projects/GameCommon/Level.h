@@ -47,15 +47,15 @@ namespace Game
 	public :
 		void					Update(float dt);
 
-
-		Player*					GetPlayer(UINT index, bool bCreate=false);
+		Actor*					GetActor(ActorType type, UINT64 actorId);
+		Player*					GetPlayer(UINT index);
 
 	//Actor Events
 		void					OnCreateActor(Actor* actor);
 		void					OnDestroyActor(Actor* actor);
 
-
 	protected :
+
 		CAtlMap<UINT64, Actor*>			mActorMap;
 		std::vector<StaticObject*>		mStaticVec;
 		std::vector<BreakableObject*>	mBreakableVec;

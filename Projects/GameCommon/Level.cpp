@@ -78,6 +78,7 @@ Level::Level()
 	mBreakableVec.reserve(1000);
 	mTriggerVec.reserve(1000);
 
+	/*
 #ifdef APP_SERVER
 	mActorMap.InitHashTable(100000);
 	mPlayerVec.reserve(5000);
@@ -85,6 +86,9 @@ Level::Level()
 	mActorMap.InitHashTable(95000);
 	mPlayerVec.reserve(500);	
 #endif
+	*/
+	mActorMap.InitHashTable(100000);
+	mPlayerVec.reserve(5000);
 }
 
 Level::~Level()
@@ -100,7 +104,8 @@ void Level::Update(float dt)
 		Actor* actor = mActorMap.GetValueAt(pos);
 		if ( actor->UpdateDestroy(dt) ) {
 			OnDestroyActor(actor);
-			POSITION nextPos = mActorMap.GetNext(pos);
+			POSITION nextPos = pos;
+			mActorMap.GetNext(nextPos);
 			mActorMap.RemoveAtPos(pos);
 			pos = nextPos;
 			delete actor;
@@ -108,6 +113,7 @@ void Level::Update(float dt)
 		}
 
 		actor->Update(dt);
+		mActorMap.GetNext(pos);
 	}
 }
 
@@ -125,14 +131,19 @@ void Level::OnCreateActor(Actor* actor)
 	case ACTOR_PLAYER :
 		{
 			Player* player = (Player*)actor;
+			bool bInserted = false;
 
-			ASSERT(player->GetPlayerIndex() <= mPlayerVec.size());
-
-			if ( player->GetPlayerIndex() < mPlayerVec.size() ) {
-				ASSERT(mPlayerVec[player->GetPlayerIndex() == NULL]);
-				mPlayerVec[player->GetPlayerIndex()] = player;
+			for (UINT i = 0, n = mPlayerVec.size(); i < n; ++i) {
+				if ( ! mPlayerVec[i] ) {
+					bInserted = true;
+					mPlayerVec[i] = player;
+					player->SetPlayerIndex(i);
+					break;
+				}
 			}
-			else {
+
+			if ( ! bInserted ) {
+				player->SetPlayerIndex(mPlayerVec.size());
 				mPlayerVec.push_back(player);
 			}
 		
@@ -174,26 +185,12 @@ void Level::OnDestroyActor(Actor* actor)
 	actor->OnDestroy();
 }
 
-Player*	Level::GetPlayer(UINT playerIndex, bool bCreate)
+Player*	Level::GetPlayer(UINT playerIndex)
 {
 	Player* player = NULL;
 	if ( playerIndex < mPlayerVec.size() )
 	{
 		player = mPlayerVec[playerIndex];
-	}
-
-	if ( ! player && bCreate )
-	{
-		if ( playerIndex = mPlayerVec.size()) {
-			player = LevelActorFactory::CreatePlayer();
-			player->SetPlayerIndex(playerIndex);
-		}
-		else if ( ! mPlayerVec[playerIndex] ) {
-			player = LevelActorFactory::CreatePlayer();
-			player->SetPlayerIndex(playerIndex);
-		}
-		else
-			ASSERT(0);
 	}
 
 	return player;

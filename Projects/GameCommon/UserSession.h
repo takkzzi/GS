@@ -4,6 +4,9 @@ namespace Game
 {
 	//class Network::Session;
 	struct GamePacketBase;
+	class Level;
+	class Player;
+
 
 	enum UserState 
 	{
@@ -26,9 +29,14 @@ namespace Game
 		void						Init(Network::Session* session);
 		void						Destroy();
 		bool						IsDestroyed()				{ return mUserState == USERSTATE_NONE; }
+		UserState					GetState()					{ return mUserState; }
 
 		GamePacketBase*				GetRecvPacket();
 		bool						ClearRecvPacket(UINT buffSize);
+
+		//TEST : State Transitions
+		void						EnterGame();
+		void						QuitGame();
 
 	protected:
 		void						ResetData();
@@ -39,6 +47,7 @@ namespace Game
 		Network::Session*			mSession;
 		UserState					mUserState;
 
-		UINT						mLastReadSize;
+		Level*						mLevel;
+		Player*						mPlayer;
 	};
 }

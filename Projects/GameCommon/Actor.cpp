@@ -8,8 +8,9 @@ using namespace Game;
 Actor::Actor() 
 	: mActorType(ACTOR_NONE)
 	, mActorId(0)
-	, mDeleteTimer(0.f)
 	, mLevel(NULL)
+	, mDeleteTimer(0.f)
+	, mDestroyed(false)
 {
 }
 
@@ -20,16 +21,17 @@ Actor::~Actor()
 void Actor::Destroy(float time)
 {
 	if ( time <= 0.f ) {
-		DestroyImmediate();
+		DoDestroy();
 	}
 	else {
 		mDeleteTimer = time;
 	}
 }
 
-void Actor::DestroyImmediate()
-{
+void Actor::DoDestroy()
+{	
 	OnDestroy();
+	mDestroyed = true;
 }
 
 bool Actor::UpdateDestroy(float dt)
@@ -37,10 +39,9 @@ bool Actor::UpdateDestroy(float dt)
 	if ( mDeleteTimer > 0.0f ) {
 		mDeleteTimer -= dt;
 		if ( mDeleteTimer <= 0.f) {
-			DestroyImmediate();
-			return true;
+			DoDestroy();
 		}
 	}
-	return false;
+	return mDestroyed;
 }
 

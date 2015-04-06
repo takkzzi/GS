@@ -34,6 +34,19 @@ LPFN_ACCEPTEX GetAcceptExFunction(SOCKET sock)
 	return fnAcceptEx;
 }
 
+LPFN_DISCONNECTEX GetDisconnectExFunction(SOCKET sock)
+{
+	static LPFN_DISCONNECTEX	fnDisconnectEx = NULL;
+	if ( fnDisconnectEx == NULL ) {
+		DWORD dwBytes;
+		GUID guidDisconn = WSAID_DISCONNECTEX;
+		int iRes = ::WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &guidDisconn, sizeof(guidDisconn), &fnDisconnectEx, sizeof(fnDisconnectEx), &dwBytes, NULL, NULL);
+		ASSERT(iRes == 0);
+	}
+
+	return fnDisconnectEx;
+}
+
 Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
 	: mNetworker(networker)
 	, mId(id)
@@ -95,10 +108,18 @@ void Session::ResetState(bool bClearDataQ)
 
 	if ( mSock != INVALID_SOCKET ) {
 		CS_LOCK;
-		::closesocket(mSock);
-		mSock = INVALID_SOCKET;
+		
+		//LPFN_DISCONNECTEX DisconnectEx = GetDisconnectExFunction(mSock);
+		//if (! DisconnectEx(mSock, NULL, 0, 0) ) {
+			::closesocket(mSock);
+			mSock = INVALID_SOCKET;
+		//}
+		
 		CS_UNLOCK;
 	}
+
+	mListenSock = INVALID_SOCKET;
+	mIsAccepter = false;
 
 	mbSendPending = false;
 	mbRecvStarted = false;
@@ -116,7 +137,9 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 	
 	CS_LOCK;
 
-	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
+	if ( mSock == INVALID_SOCKET )
+		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
+
 	if (mSock == INVALID_SOCKET) {
 		CS_UNLOCK;
 		return false;
@@ -173,7 +196,8 @@ bool Session::StartAccept(SOCKET listenSock) {
 
 	CS_LOCK;
     
-	mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
+	if ( mSock == INVALID_SOCKET )
+		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	ASSERT(mSock != INVALID_SOCKET);
 
 	LPFN_ACCEPTEX pfnAcceptEx = GetAcceptExFunction(listenSock);
@@ -194,14 +218,14 @@ bool Session::StartAccept(SOCKET listenSock) {
 			CS_UNLOCK;
 			return false;
 		}
+
+		SetState(SESSIONSTATE_ACCEPTING);
+		mListenSock = listenSock;
+		mIsAccepter = true;
 	}
-
-	SetState(SESSIONSTATE_ACCEPTING);
-	mListenSock = listenSock;
-	mIsAccepter = true;
-
+	
 	CS_UNLOCK;
-	return true;
+	return IsState(SESSIONSTATE_ACCEPTING);
 }
 
 bool Session::StartReceive()
@@ -233,8 +257,8 @@ bool Session::StartReceive()
 			SetState(SESSIONSTATE_DISCONNECTING);
 		}
 		else {
-			Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 			if ( res == 0 ) {  //Received Immediately
+				Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 			}
 		}
 	}
@@ -283,6 +307,7 @@ void Session::OnAccept(SOCKET listenSock)
 {
 	CS_LOCK;
 
+	//Call From SelectListener
 	if ( IsState(SESSIONSTATE_NONE) ){
 		int addrlen = sizeof(SOCKADDR);
 		mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);

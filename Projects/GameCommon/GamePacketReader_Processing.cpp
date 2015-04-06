@@ -11,7 +11,7 @@ void GamePacketReader::BindHanlder()
 	mHandlerArray[PT_ChatMsg] = &GamePacketReader::ChatMsg;
 }
 
-bool GamePacketReader::CallHandler(GamePacketBase* packet)
+bool GamePacketReader::ProcessPacket(GamePacketBase* packet, UserSession* user)
 {
 	if ( ! packet )
 		return false;

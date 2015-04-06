@@ -13,9 +13,11 @@ namespace Game
 		~UserSessionManager();
 
 	public :
-		void				CreateUserSession(UINT sessionIndex);
 		UserSession*		GetUserSession(Network::Session* netSession, bool bCreate);
 		UserSession*		GetUserSession(UINT sessoinId);
+
+	protected:
+		UserSession*		CreateUserSession(UINT sessionIndex);
 
 
 	protected :

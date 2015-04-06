@@ -1,27 +1,51 @@
 #include "pch.h"
 #include "UserSession.h"
 #include "GamePacketBase.h"
+#include "Level.h"
+#include "Player.h"
+
 
 
 using namespace Game;
 
+
+
 UserSession::UserSession()
 	: mSession(NULL)
 	, mUserState(USERSTATE_NONE)
+	, mLevel(NULL)
+	, mPlayer(NULL)
 {
+	mLevel = TheGame->GetLevel();
 }
 
 UserSession::~UserSession()
 {
+	if ( ! IsDestroyed() )
+		Destroy();
 }
 
 void UserSession::Init(Session* session)
 {
+	Logger::Log("UserSession", "UserSession Init() [id:%d]", session->GetId());
+
 	mSession = session;
+	mUserState = USERSTATE_CONNECTED;
+
+	//TEST
+	EnterGame();
 }
 
 void UserSession::Destroy()
 {
+	if ( IsDestroyed() )
+		return;
+
+	Logger::Log("UserSession", "UserSession Destroy() [id:%d]", mSession->GetId());
+
+	//TEST
+	QuitGame();
+
 	ResetData();
 }
 
@@ -57,4 +81,23 @@ GamePacketBase* UserSession::DoPacketize(UINT packetMinSize)
 		}
 	}
 	return NULL;
+}
+
+
+void UserSession::EnterGame()
+{
+	ASSERT(mPlayer == NULL);
+
+	mUserState = USERSTATE_GAME;
+	mPlayer = LevelActorFactory::CreatePlayer();
+}
+
+void UserSession::QuitGame()
+{
+	mUserState = USERSTATE_NONE;
+
+	if ( mPlayer ) {
+		mPlayer->Destroy();
+		mPlayer = NULL;
+	}
 }

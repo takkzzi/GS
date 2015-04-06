@@ -28,11 +28,13 @@ namespace Game
 
 	public :			
 						void		Destroy(float time=0.f);
-						void		DestroyImmediate();
+						
 
 						UINT64		GetId()					{ return mActorId; }
 
 	protected :
+		void						DoDestroy();
+
 		virtual			void		OnCreate()				{};
 		virtual			void		OnDestroy()				{};
 		virtual			void		Update(float dt)		{};
@@ -44,7 +46,9 @@ namespace Game
 
 		ActorType			mActorType;
 		UINT64				mActorId;
-		float				mDeleteTimer;
 		Level*				mLevel;
+
+		float				mDeleteTimer;
+		bool				mDestroyed;
 	};
 }

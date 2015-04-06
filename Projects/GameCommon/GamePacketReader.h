@@ -4,8 +4,9 @@
 
 namespace Game
 {
-	class		Network::Session;
 	struct		GamePacketBase;	
+	class		UserSession;
+
 
 	class GamePacketReader
 	{
@@ -15,9 +16,7 @@ namespace Game
 		
 	public:
 		void			Init();
-		//bool			ReadPacket(Network::Session* session);
-		//bool			ReadPacket(Network::Session* session);
-		bool			CallHandler(GamePacketBase* packet);
+		bool			ProcessPacket(GamePacketBase* packet, UserSession* user);
 
 	protected:
 		void			BindHanlder();
