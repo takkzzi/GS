@@ -27,7 +27,7 @@ void UserSession::Destroy()
 
 void UserSession::ResetData()
 {
-	//Reset User Infomation Data;
+	//Reset User Data;
 	mSession = NULL;
 	mUserState = USERSTATE_NONE;
 }

@@ -8,8 +8,6 @@ class IOCPThread;
 
 namespace Network
 {
-	using namespace Core;
-
 	struct OverlappedIoData;
 	class Session;
 	class Listener;

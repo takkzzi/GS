@@ -7,7 +7,7 @@
 
 using namespace Game;
 
-#define			RESERVE_USER_COUNT		1000
+#define			RESERVE_USER_COUNT		5000
 #define			MAX_USER_COUNT			5000
 #define			SEND_BUFFER_SIZE		10240
 #define			RECV_BUFFER_SIZE		10240
@@ -58,12 +58,9 @@ void GameNetworker::Update(float dt)
 				user->ClearRecvPacket(packet->mSize);
 			}
 		}
-
-		/*
 		//Disconnected -> Delete
-		else if ( Player* player = mLevel->GetPlayer(i, false) ) {
-			player->Destroy();
+		else if ( UserSession* user = mUserSessionMgr->GetUserSession(i) ) {
+			user->Destroy();
 		}
-		*/
 	}
 }

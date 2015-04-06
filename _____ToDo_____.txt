@@ -17,6 +17,10 @@
 	- Socket Reuse 를 위한 DisconnectEX 사용법 알아볼것. ( WSAIoctl() ) 
 	- connect 시 Data 전달법 (WSAConnect 에 대해 더욱 숙지할것)
 	- UDP Session 구현
+	
+* 의심부분 
+	- Session 상태가 UserSesson 에서 동기화 되는지 (서로다른 스레드에서 처리로)
+
 
 
 ------------ Game ------------ 

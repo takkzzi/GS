@@ -22,18 +22,29 @@ void UserSessionManager::CreateUserSession(UINT sessionIndex)
 {
 }
 
-UserSession* UserSessionManager::GetUserSession(Session* netSession, bool bCreate)
+UserSession* UserSessionManager::GetUserSession(Network::Session* session, bool bCreate)
 {
-	UINT sessionIndex = 0;
+	UINT sessionIndex = session->GetId();
 	UserSession* user = NULL;
 
 	if ( sessionIndex < mSessionVec.size() ) {
-		if ( ! mSessionVec[sessionIndex]->IsDestroyed() )
-			user = mSessionVec[sessionIndex];
-		else if ( bCreate ) {
-			mSessionVec[sessionIndex]->Init(netSession);
+		user = mSessionVec[sessionIndex];
+		if ( user ) {
+			if ( ! mSessionVec[sessionIndex]->IsDestroyed() )
+				user = mSessionVec[sessionIndex];
+			else if ( bCreate ) {
+				mSessionVec[sessionIndex]->Init(session);
+			}
 		}
 	}
 
 	return user;
+}
+
+UserSession* UserSessionManager::GetUserSession(UINT sessionId)
+{
+	if (sessionId < mSessionVec.size())
+		return mSessionVec[sessionId];
+
+	return NULL;
 }

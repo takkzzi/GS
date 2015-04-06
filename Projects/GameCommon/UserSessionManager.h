@@ -5,7 +5,6 @@
 
 namespace Game
 {
-	class Session;
 
 	class UserSessionManager
 	{
@@ -15,7 +14,8 @@ namespace Game
 
 	public :
 		void				CreateUserSession(UINT sessionIndex);
-		UserSession*		GetUserSession(Session* netSession, bool bCreate);
+		UserSession*		GetUserSession(Network::Session* netSession, bool bCreate);
+		UserSession*		GetUserSession(UINT sessoinId);
 
 
 	protected :

@@ -9,7 +9,6 @@
 #define		CS_LOCK				mCritiSect.Enter();
 #define		CS_UNLOCK			mCritiSect.Leave();
 
-using namespace Core;
 using namespace Network;
 
 

@@ -123,23 +123,24 @@ void Level::OnCreateActor(Actor* actor)
 	case ACTOR_TRIGGER :
 		break;
 	case ACTOR_PLAYER :
-		
-		Player* player = (Player*)actor;
+		{
+			Player* player = (Player*)actor;
 
-		ASSERT(player->GetPlayerIndex() <= mPlayerVec.size());
+			ASSERT(player->GetPlayerIndex() <= mPlayerVec.size());
 
-		if ( player->GetPlayerIndex() < mPlayerVec.size() ) {
-			ASSERT(mPlayerVec[player->GetPlayerIndex() == NULL]);
-			mPlayerVec[player->GetPlayerIndex()] = player;
-		}
-		else {
-			mPlayerVec.push_back(player);
-		}
+			if ( player->GetPlayerIndex() < mPlayerVec.size() ) {
+				ASSERT(mPlayerVec[player->GetPlayerIndex() == NULL]);
+				mPlayerVec[player->GetPlayerIndex()] = player;
+			}
+			else {
+				mPlayerVec.push_back(player);
+			}
 		
-		break;
+			break;
+		}
 	default : 
-		
 		ASSERT(0);
+		break;
 	}
 
 	mActorMap.SetAt(actor->GetId(), actor);
@@ -158,14 +159,17 @@ void Level::OnDestroyActor(Actor* actor)
 	case ACTOR_TRIGGER :
 		break;
 	case ACTOR_PLAYER :
-		Player* player = (Player*)actor;
-		UINT index = player->GetPlayerIndex();
-		ASSERT(mPlayerVec[index]);
-		mPlayerVec[index] = NULL;
-		break;
+		{
+			Player* player = (Player*)actor;
+			UINT index = player->GetPlayerIndex();
+			ASSERT(mPlayerVec[index]);
+			mPlayerVec[index] = NULL;
+			break;
+		}
 	default : 
 		ASSERT(0);
-	}
+		break;
+	};
 
 	actor->OnDestroy();
 }
