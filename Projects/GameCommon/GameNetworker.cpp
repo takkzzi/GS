@@ -7,7 +7,7 @@
 
 using namespace Game;
 
-#define			RESERVE_USER_COUNT		5000
+#define			RESERVE_USER_COUNT		2000
 #define			MAX_USER_COUNT			5000
 #define			SEND_BUFFER_SIZE		10240
 #define			RECV_BUFFER_SIZE		10240

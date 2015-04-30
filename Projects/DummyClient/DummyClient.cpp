@@ -44,7 +44,7 @@ public :
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
-
+			//Sleep(200);
 			ASSERT(bConn);
 		}
 
