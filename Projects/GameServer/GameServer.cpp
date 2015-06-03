@@ -2,8 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "TestServer.h"
-#include "EchoServer.h"
+#include "GameServer.h"
 
 #define MAX_LOADSTRING 100
 
@@ -34,7 +33,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	LoadString(hInstance, IDC_TESTSERVER, szWindowClass, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_GAMESERVER, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
 	// Perform application initialization:
@@ -43,7 +42,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		return FALSE;
 	}
 
-	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTSERVER));
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GAMESERVER));
 	
 	GameCommon* gameApp = GameCommon::Create();
 	gameApp->Init();
@@ -93,10 +92,10 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TESTSERVER));
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_GAMESERVER));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_TESTSERVER);
+	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_GAMESERVER);
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 

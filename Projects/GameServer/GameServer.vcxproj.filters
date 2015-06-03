@@ -14,9 +14,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EchoServer.h">
-      <Filter>Src</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Src</Filter>
     </ClInclude>
@@ -26,7 +23,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="TestServer.h">
+    <ClInclude Include="GameServer.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -34,24 +31,21 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="TestServer.cpp">
+    <ClCompile Include="GameServer.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="EchoServer.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="TestServer.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="TestServer.ico">
+    <Image Include="GameServer.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameServer.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
