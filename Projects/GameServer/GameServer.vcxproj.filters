@@ -34,6 +34,9 @@
     <ClCompile Include="GameServer.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">

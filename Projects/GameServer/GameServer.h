@@ -1,3 +1,14 @@
 #pragma once
 
-#include "resource.h"
+namespace Server 
+{
+	class GameServer : public GameCommon
+	{
+	public :
+		GameServer();
+		virtual ~GameServer();
+
+	protected:
+
+	};
+}
