@@ -4,7 +4,7 @@
 
 #include <mswsock.h>
 #include <mstcpip.h>
-
+#include <WS2tcpip.h>
 
 using namespace Core;
 using namespace Network;
@@ -87,11 +87,9 @@ Session::~Session(void)
 {
 	Disconnect();
 
-	if ( mAcceptBuffer ) {
-		CS_LOCK;
-		SAFE_DELETE_ARRAY(mAcceptBuffer);
-		CS_UNLOCK;
-	}
+	CS_LOCK;
+	SAFE_DELETE_ARRAY(mAcceptBuffer);
+	CS_UNLOCK;
 }
 
 void Session::SetState(SessionState state) 
@@ -99,23 +97,18 @@ void Session::SetState(SessionState state)
 	::InterlockedExchange((LONG*)&mState, (LONG)state);
 }
 
-void Session::ResetState(bool bClearDataQ) 
+void Session::ResetState(bool bClearDataQ)
 {
-	if ( IsState (SESSIONSTATE_NONE) )
+	if (IsState(SESSIONSTATE_NONE))
 		return;
+
+	CS_LOCK;
 
 	SetState(SESSIONSTATE_NONE);
 
-	if ( mSock != INVALID_SOCKET ) {
-		CS_LOCK;
-		
-		//LPFN_DISCONNECTEX DisconnectEx = GetDisconnectExFunction(mSock);
-		//if (! DisconnectEx(mSock, NULL, 0, 0) ) {
-			::closesocket(mSock);
-			mSock = INVALID_SOCKET;
-		//}
-		
-		CS_UNLOCK;
+	if (mSock != INVALID_SOCKET) {
+		::closesocket(mSock);
+		mSock = INVALID_SOCKET;
 	}
 
 	mListenSock = INVALID_SOCKET;
@@ -123,19 +116,24 @@ void Session::ResetState(bool bClearDataQ)
 
 	mbSendPending = false;
 	mbRecvStarted = false;
+	mbRecvLock = false;
 
-	if ( bClearDataQ ) {
+	if (bClearDataQ) {
 		mRecvBuffer.ClearAll();
 		mSendBuffer.ClearAll();
 	}
+
+	CS_UNLOCK;
 }
 
 bool Session::Connect(const CHAR* addr, USHORT port)
 {
-	if ( ! IsState(SESSIONSTATE_NONE) ) 
-		return FALSE;
-	
 	CS_LOCK;
+
+	if (!IsState(SESSIONSTATE_NONE)) {
+		CS_UNLOCK;
+		return FALSE;
+	}
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
@@ -152,16 +150,15 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 
 	mRemoteAddr.sin_family				= AF_INET;
 	mRemoteAddr.sin_port				= htons( port );
-	mRemoteAddr.sin_addr.S_un.S_addr	= inet_addr(addr);
+	//mRemoteAddr.sin_addr.S_un.S_addr	= inet_addr(addr);
+	InetPtonA(AF_INET, addr, &(mRemoteAddr.sin_addr));
 
 	if ( WSAConnect(mSock, (LPSOCKADDR) &mRemoteAddr, sizeof(SOCKADDR_IN), NULL, NULL, NULL, NULL) == SOCKET_ERROR ) 
 	{
 		DWORD errCode = WSAGetLastError();
 		if (errCode != WSAEWOULDBLOCK)
 		{
-			LOG_LASTERROR_A("Session", false);
 			CS_UNLOCK;
-
 			ResetState(true);
 			return FALSE;
 		}
@@ -176,26 +173,33 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 
 bool Session::Disconnect()
 {
-	if ( mSock == INVALID_SOCKET)
-		return false;
+	//CS_LOCK;		//Dead Lock
 
-	if ( IsState(SESSIONSTATE_CONNECTED) ) {
-		CS_LOCK;
-		::shutdown( mSock, SD_BOTH );
-		CS_UNLOCK;
+	if (mSock == INVALID_SOCKET) {
+		//CS_UNLOCK;
+		return false;
 	}
+
+	CS_LOCK;
+
+	if ( IsState(SESSIONSTATE_CONNECTED) )
+		::shutdown( mSock, SD_BOTH );
+
+	CS_UNLOCK;
 
 	ResetState(true);
 	return true;
 }
 
-bool Session::StartAccept(SOCKET listenSock) {
-
-	if ( ! IsState(SESSIONSTATE_NONE) )
-		return false;
-
+bool Session::StartAccept(SOCKET listenSock) 
+{
 	CS_LOCK;
-    
+
+	if (!IsState(SESSIONSTATE_NONE)) {
+		CS_UNLOCK;
+		return false;
+	}
+
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	ASSERT(mSock != INVALID_SOCKET);
@@ -206,6 +210,8 @@ bool Session::StartAccept(SOCKET listenSock) {
 	{
 		BOOL bOptVal = TRUE;
 		setsockopt(mSock, SOL_SOCKET, SO_REUSEADDR, (char *) &bOptVal, sizeof(bOptVal));
+
+		mAcceptIoData.Reset(NULL);
 
 		int bufferLen = 0;//((sizeof(sockaddr_in) + 16) * 2);
 		//BOOL bPreAccept = ::AcceptEx(listenSock, mSock, mAcceptBuffer, bufferLen, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16, 0, &(mAcceptIoData.ov));
@@ -229,14 +235,18 @@ bool Session::StartAccept(SOCKET listenSock) {
 }
 
 bool Session::StartReceive()
-{
-	if ( ! IsState(SESSIONSTATE_CONNECTED) )
-		return false;
-
-	if ( mbRecvStarted || mbRecvLock )
-		return false;
-
+{	
 	CS_LOCK;
+
+	if (!IsState(SESSIONSTATE_CONNECTED)) {
+		CS_UNLOCK;
+		return false;
+	}	
+
+	if (mbRecvStarted || mbRecvLock) {
+		CS_UNLOCK;
+		return false;
+	}
 
 	WSABUF wsabuf = { 0, NULL };	// len == 0 Much as Possible
 	wsabuf.buf = mRecvBuffer.GetEmpty((int*)&(wsabuf.len));
@@ -244,21 +254,20 @@ bool Session::StartReceive()
 	if ( wsabuf.buf && wsabuf.len > 0 ) {
 
 		mRecvIoData.Reset(wsabuf.buf);
-
 		DWORD transferBytes;
 		DWORD dwFlags = 0;
-
-		mbRecvStarted = true;
 
 		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
 
 		if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
 			LOG_LASTERROR(_T("WSARecv() Error!"), true);
+			ASSERT(0);
 			SetState(SESSIONSTATE_DISCONNECTING);
 		}
 		else {
+			mbRecvStarted = true;
 			if ( res == 0 ) {  //Received Immediately
-				Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
+				//Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 			}
 		}
 	}
@@ -269,13 +278,17 @@ bool Session::StartReceive()
 
 bool Session::Send()
 {
-	if ( ! IsState(SESSIONSTATE_CONNECTED) )
-		return false;
-
-	if ( mbSendPending )
-		return false;
-
 	CS_LOCK;
+
+	if (!IsState(SESSIONSTATE_CONNECTED)) {
+		CS_UNLOCK;
+		return false;
+	}
+
+	if (mbSendPending) {
+		CS_UNLOCK;
+		return false;
+	}
 
 	WSABUF wsabuf = { 0x0000ffff, NULL};	// len = Max TCP/IP Packet Size;
 	wsabuf.buf = mSendBuffer.Read((int*)&wsabuf.len, true, true);
@@ -313,9 +326,6 @@ void Session::OnAccept(SOCKET listenSock)
 		mSock = accept(listenSock, (SOCKADDR*)&mRemoteAddr, &addrlen);
 	}
 
-	//Test
-	Logger::Log("Session", "OnAccept() : %d", mId);
-
 	if ( IsState(SESSIONSTATE_ACCEPTING) ) {
 		/*TODO : Remote Session Info
 		GetAcceptExSockaddrs(mAcceptBuffer, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16,
@@ -344,9 +354,11 @@ void Session::OnConnect()
 }
 
 void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
-{
+{	
 	ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
+	//CS_LOCK;
 	mbSendPending = ! mSendBuffer.ClearData(sendSize);
+	//CS_UNLOCK;
 	ASSERT(!mbSendPending && "SendBuffer Clear Error !");
 }
 
@@ -359,6 +371,7 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	}
 	*/
 
+	//CS_LOCK;
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
 		mbRecvStarted = false;
 		Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
@@ -366,6 +379,7 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	else {
 		ASSERT(0 && "RecvBuffer.Reserve() Error !");
 	}
+	//CS_UNLOCK;
 }
 
 void Session::OnDisconnect()
@@ -375,42 +389,8 @@ void Session::OnDisconnect()
 
 bool Session::WriteSendBuffer(char* data, int dataLen)
 {
-	bool bResult = mSendBuffer.Write(data, dataLen);
-	return bResult;
+	return mSendBuffer.Write(data, dataLen);
 }
-
-/*
-//Note : Returned Buffer Must be "ClearRecv()" after Use.
-PacketBase* Session::ReadData()
-{
-	CS_LOCK;
-
-	bool bCanMakeCircleData = mbRecvLock = ! mbRecvStarted;	//Important : Don't Change DataTailPos in Recv-Progress.
-	char* data = NULL;
-
-	int minSize = sizeof(PacketBase);
-	PacketBase* packet = NULL;
-
-	if ( data = mRecvBuffer.Read(&minSize, false, bCanMakeCircleData) ) {
-		minSize = ((PacketBase*)data)->mPacketSize;
-		if ( data = mRecvBuffer.Read(&minSize, false, bCanMakeCircleData) ) {
-			packet = (PacketBase*)data;
-		}
-	}
-
-	//if ( dataTail != mRecvBuffer.GetDataTailPos() )	//If Tail Changed, Lock Recv Until ClearRecv.
-	mbRecvLock = false;
-
-	//TEST
-	if ( packet ) {
-		AlphabetPacket* alphaPacket = (AlphabetPacket*)packet;
-		LogPacket("PopData", alphaPacket);
-	}
-
-	CS_UNLOCK;
-	return packet;
-}
-*/
 
 char* Session::ReadRecvBuffer(int bufSize)
 {
@@ -458,6 +438,9 @@ void Session::Update()
 //Set KeepAlive Option
 void Session::SetKeepAliveOpt()
 {
+	if ( mSock == INVALID_SOCKET )
+		return;
+
 	bool optval = TRUE;
 	int valsize = sizeof(optval);
 	if ( 0 == ::getsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, &valsize) ) {
@@ -468,8 +451,8 @@ void Session::SetKeepAliveOpt()
 
 	tcp_keepalive keepalive;
 	keepalive.onoff = true;
-	keepalive.keepalivetime = KEEPALIVE_TIME;
-	keepalive.keepaliveinterval = KEEPALIVE_INTERVAL;
+	keepalive.keepalivetime = TCP_KEEPALIVE_TIME;
+	keepalive.keepaliveinterval = TCP_KEEPALIVE_INTERVAL;
 
 	DWORD bufferSize = sizeof(tcp_keepalive);
 	DWORD cbBytesReturned = 0;

@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "DummyClient.h"
 
+#include "GameCommon\GamePacketBase.h"
+
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -44,8 +47,7 @@ public :
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
-			//Sleep(200);
-			ASSERT(bConn);
+			//ASSERT(bConn);
 		}
 
 		mLastSendTime = Core::Time::GetAppTime();
@@ -79,8 +81,10 @@ public :
 					se->Disconnect();
 			}
 			else {
-				if ( Core::Math::RandRange(0, 1000) > 500 )
-					se->Connect(gServerIP, gServerPort);
+				if (Core::Math::RandRange(0, 1000) > 500) {
+					bool bCon = se->Connect(gServerIP, gServerPort);
+					//ASSERT(bCon);
+				}
 			}
 		}
 	}
@@ -136,19 +140,19 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
 	sessTester[0] = new ClientSimulator(1000);
-	sessTester[0]->Begin(false);
+	sessTester[0]->Begin();
 	
 	sessTester[1] = new ClientSimulator(1000);
-	sessTester[1]->Begin(false);
+	sessTester[1]->Begin();
 
-	//sessTester[2] = new PingPongClient(10);
-	//sessTester[2]->Begin(false);
+	sessTester[2] = new ClientSimulator(1000);
+	sessTester[2]->Begin();
 
-	//sessTester[3] = new PingPongClient(1000);
-	//sessTester[3]->Begin(false);
+	sessTester[3] = new ClientSimulator(1000);
+	sessTester[3]->Begin();
 
-	//sessTester[4] = new PingPongClient(1000);
-	//sessTester[4]->Begin(false);
+	sessTester[4] = new ClientSimulator(1000);
+	sessTester[4]->Begin();
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();

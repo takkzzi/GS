@@ -180,7 +180,7 @@ bool SessionBuffer::AddDataTail(size_t size)
 }
 
 //For Recv
-char* SessionBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possible
+char* SessionBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as Possible
 {
 	CS_LOCK
 	if ( mDataHead == mDataTail ) {
@@ -196,15 +196,15 @@ char* SessionBuffer::GetEmpty(int* size)	// size == 0 is Maximum Size as Possibl
 	char* resultBuf = NULL;
 	char* emptyStart = mCircleStart + mDataTail;
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
-	bool bEnough = (emptyEnd - emptyStart) >= *size;
-	bool muchAsPossible = ((*size) == 0);
+	bool bEnough = (emptyEnd - emptyStart) >= *requiredSize;
+	bool muchAsPossible = ((*requiredSize) == 0);
 
 	if ( bEnough ) {
 		resultBuf = emptyStart;
 
 		if ( muchAsPossible ) {
 			int emptySize = (emptyEnd - emptyStart);
-			(*size) = emptySize;	//size out
+			(*requiredSize) = emptySize;	//size out
 			bEnough = emptySize > 0;
 		}
 	}

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "UserSession.h"
+#include "NetUser.h"
 #include "GamePacketBase.h"
 #include "Level.h"
 #include "Player.h"
@@ -10,7 +10,7 @@ using namespace Game;
 
 
 
-UserSession::UserSession()
+NetUser::NetUser()
 	: mSession(NULL)
 	, mUserState(USERSTATE_NONE)
 	, mLevel(NULL)
@@ -19,15 +19,15 @@ UserSession::UserSession()
 	mLevel = TheGame->GetLevel();
 }
 
-UserSession::~UserSession()
+NetUser::~NetUser()
 {
 	if ( ! IsDestroyed() )
 		Destroy();
 }
 
-void UserSession::Init(Session* session)
+void NetUser::Init(Session* session)
 {
-	Logger::Log("UserSession", "UserSession Init() [id:%d]", session->GetId());
+	//Logger::Log("NetUser", "UserSession Init() [id:%d]", session->GetId());
 
 	mSession = session;
 	mUserState = USERSTATE_CONNECTED;
@@ -36,12 +36,12 @@ void UserSession::Init(Session* session)
 	EnterGame();
 }
 
-void UserSession::Destroy()
+void NetUser::Destroy()
 {
 	if ( IsDestroyed() )
 		return;
 
-	Logger::Log("UserSession", "UserSession Destroy() [id:%d]", mSession->GetId());
+	//Logger::Log("NetUser", "UserSession Destroy() [id:%d]", mSession->GetId());
 
 	//TEST
 	QuitGame();
@@ -49,26 +49,26 @@ void UserSession::Destroy()
 	ResetData();
 }
 
-void UserSession::ResetData()
+void NetUser::ResetData()
 {
 	//Reset User Data;
 	mSession = NULL;
 	mUserState = USERSTATE_NONE;
 }
 
-GamePacketBase* UserSession::GetRecvPacket()
+GamePacketBase* NetUser::GetRecvPacket()
 {
 	return DoPacketize(sizeof(GamePacketBase));
 }
 
-bool UserSession::ClearRecvPacket(UINT buffSize)
+bool NetUser::ClearRecvPacket(UINT buffSize)
 {
 	ASSERT(mSession);
 	return mSession->ClearRecvBuffer(buffSize);
 }
 
 //Packetizing from RecvBuffer
-GamePacketBase* UserSession::DoPacketize(UINT packetMinSize)
+GamePacketBase* NetUser::DoPacketize(UINT packetMinSize)
 {
 	ASSERT(mSession);
 	GamePacketBase* basePacket = NULL;
@@ -84,7 +84,7 @@ GamePacketBase* UserSession::DoPacketize(UINT packetMinSize)
 }
 
 
-void UserSession::EnterGame()
+void NetUser::EnterGame()
 {
 	ASSERT(mPlayer == NULL);
 
@@ -92,7 +92,7 @@ void UserSession::EnterGame()
 	mPlayer = LevelActorFactory::CreatePlayer();
 }
 
-void UserSession::QuitGame()
+void NetUser::QuitGame()
 {
 	mUserState = USERSTATE_NONE;
 

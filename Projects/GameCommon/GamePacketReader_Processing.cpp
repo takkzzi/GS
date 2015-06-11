@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "GamePacketReader.h"
-
+#include "NetUser.h"
 
 using namespace Game;
 
@@ -11,27 +11,33 @@ void GamePacketReader::BindHanlder()
 	mHandlerArray[PT_ChatMsg] = &GamePacketReader::ChatMsg;
 }
 
-bool GamePacketReader::ProcessPacket(GamePacketBase* packet, UserSession* user)
+bool GamePacketReader::ProcessUserPacket(NetUser* user)
 {
+	if ( ! user )
+		return false;
+
+	GamePacketBase* packet = user->GetRecvPacket();
 	if ( ! packet )
 		return false;
 
-	int protocol = (int)(packet->mType);
-	if ( mHandlerArray[protocol] ) { //Call Binded Func
-		(this->*(this->mHandlerArray[protocol])) ( (char*)packet, (int)packet->mSize );
+	USHORT protocol = packet->mType;
+	if ( mHandlerArray[protocol] ) { 
+		(this->*(this->mHandlerArray[protocol])) (user, (char*)packet, (int)packet->mSize);	//Call Binded Func
+		user->ClearRecvPacket(packet->mSize);
 		return true;
 	}
+	else
+		LOG_ERROR_A("Pakcket Handelr Missing !!!");
 
-	LOG_ERROR_A("Pakcket Handelr Missing !!!");
 	return false;
 }
 
-void GamePacketReader::Alphabet(char* data, int size)
+void GamePacketReader::Alphabet(NetUser* user, char* data, int size)
 {
-	
+	//LOG()
 }
 
-void GamePacketReader::ChatMsg(char* data, int size)
+void GamePacketReader::ChatMsg(NetUser* user, char* data, int size)
 {
 }
 

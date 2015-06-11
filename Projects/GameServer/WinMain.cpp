@@ -23,9 +23,9 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
-const int port			= 42006;
-const int sessionCount	= 1;
-const int sessionLimit	= 1000;
+const int port			= 42999;
+const int sessionCount	= 1000;
+const int sessionLimit	= 5000;
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,

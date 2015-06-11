@@ -5,7 +5,7 @@
 namespace Game
 {
 	struct		GamePacketBase;	
-	class		UserSession;
+	class		NetUser;
 
 
 	class GamePacketReader
@@ -16,7 +16,7 @@ namespace Game
 		
 	public:
 		void			Init();
-		bool			ProcessPacket(GamePacketBase* packet, UserSession* user);
+		bool			ProcessUserPacket(NetUser* user);
 
 	protected:
 		void			BindHanlder();
@@ -24,14 +24,14 @@ namespace Game
 	protected :
 		//** Start Packet Handler 
 
-		void			Alphabet(char* data, int size);
-		void			ChatMsg(char* data, int size);
+		void			Alphabet(NetUser* user, char* data, int size);
+		void			ChatMsg(NetUser* user, char* data, int size);
 
 		//** End Packet Handler
 
 	protected:
 
-		typedef		void(GamePacketReader::*PacketHandler)(char*, int);		//char:Data, int:Size
+		typedef		void(GamePacketReader::*PacketHandler)(NetUser*, char*, int);	//char:Data, int:Size
 		PacketHandler	mHandlerArray[PT_Max];
 	};
 }

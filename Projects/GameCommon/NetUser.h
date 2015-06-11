@@ -19,11 +19,11 @@ namespace Game
 	};
 
 
-	class UserSession
+	class NetUser
 	{
 	public :
-		UserSession();
-		~UserSession();
+		NetUser();
+		~NetUser();
 
 	public:
 		void						Init(Network::Session* session);

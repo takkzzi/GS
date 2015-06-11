@@ -22,11 +22,11 @@ namespace Network
 		void						ClearAll();
 
 		bool						Write(char* data, size_t size);
-		char*						Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge);
+		char*						Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge=false);
 
 		bool						AddDataTail(size_t size);
 
-		char*						GetEmpty(int* size);		//If Size 0, musch as possible;
+		char*						GetEmpty(int* requiredSize);		//If Size 0, musch as possible;
 		bool						ClearData(int size);
 	
 		size_t						GetDataSize();

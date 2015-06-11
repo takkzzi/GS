@@ -33,14 +33,14 @@
     <ClCompile Include="GamePacketReader_Processing.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="UserSessionManager.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="UserSession.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="LocalPlayer.cpp">
       <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="NetUser.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetUserManager.cpp">
+      <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,14 +80,14 @@
     <ClInclude Include="GamePacketReader.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="UserSessionManager.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="UserSession.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="LocalPlayer.h">
       <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="NetUser.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetUserManager.h">
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -65,8 +65,7 @@ namespace Network
 		bool					Connect(const CHAR* addr, USHORT port);
 		bool					Disconnect();
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
-		bool					Send();
-
+		
 		bool					WriteSendBuffer(char* data, int dataLen);
 		char*					ReadRecvBuffer(int bufSize);
 		bool					ClearRecvBuffer(int bufSize);
@@ -79,9 +78,9 @@ namespace Network
 		void					OnDisconnect();
 
 	protected:
-		void					Update();
 		void					OnConnect();
-	//End Event Callback
+		void					Update();
+		bool					Send();
 
 	protected:
 		bool					StartReceive();		//Receive Using Overlapped
