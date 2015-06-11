@@ -7,13 +7,12 @@
 
 using namespace Game;
 
-#define			RESERVE_USER_COUNT		5000
-#define			MAX_USER_COUNT			5000
-#define			SEND_BUFFER_SIZE		10240
-#define			RECV_BUFFER_SIZE		10240
+#define			RESERVE_USER_COUNT		30000
+#define			MAX_USER_COUNT			30000
+#define			SEND_BUFFER_SIZE		512
+#define			RECV_BUFFER_SIZE		512
 
 #define			PORT					42999
-#define			RECV_BUFFER_SIZE		10240
 
 //TEMP
 #define			APP_SERVER

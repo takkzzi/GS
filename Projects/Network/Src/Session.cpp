@@ -68,8 +68,10 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	mRecvIoData.Init(IO_RECV, this);
 
 	mAcceptBuffer = new char[64];
-	mSendBuffer.Init(sendBufferSize, 0x0000ffff);
-	mRecvBuffer.Init(recvBufferSize, 0x0000ffff);
+	//mSendBuffer.Init(sendBufferSize, 0x0000ffff);
+	//mRecvBuffer.Init(recvBufferSize, 0x0000ffff);
+	mSendBuffer.Init(sendBufferSize, 512);
+	mRecvBuffer.Init(recvBufferSize, 512);
 
 	CS_UNLOCK;
 

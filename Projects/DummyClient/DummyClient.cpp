@@ -30,10 +30,8 @@ public :
 
 	ClientSimulator(int connCount) : Thread()
 	{
-		mIocp = new Networker(true, 3, connCount, 100, 2048, 1024);
-
-		ZeroMemory(mSendCounters, 5000*sizeof(UINT64));
-		ZeroMemory(mRecvCounters, 5000*sizeof(UINT64));
+		//mIocp = new Networker(true, 3, connCount, 100, 2048, 1024);
+		mIocp = new Networker(true, 3, connCount, connCount+1, 256, 256);
 	};
 
 	virtual ~ClientSimulator() 
@@ -101,8 +99,6 @@ protected :
 	Networker*					mIocp;
 	std::vector<Session*>		mSessions;
 
-	UINT64						mSendCounters[5000];
-	UINT64						mRecvCounters[5000];
 
 	double						mLastSendTime;
 };
@@ -139,20 +135,21 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	const int testObjCount = 5;
 	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new ClientSimulator(1000);
+	sessTester[0] = new ClientSimulator(10000);
 	sessTester[0]->Begin();
 	
-	sessTester[1] = new ClientSimulator(1000);
+	sessTester[1] = new ClientSimulator(10000);
 	sessTester[1]->Begin();
-
-	sessTester[2] = new ClientSimulator(1000);
+	
+	sessTester[2] = new ClientSimulator(10000);
 	sessTester[2]->Begin();
-
-	sessTester[3] = new ClientSimulator(1000);
+	/*
+	sessTester[3] = new ClientSimulator(4000);
 	sessTester[3]->Begin();
 
-	sessTester[4] = new ClientSimulator(1000);
+	sessTester[4] = new ClientSimulator(4000);
 	sessTester[4]->Begin();
+	*/
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();
