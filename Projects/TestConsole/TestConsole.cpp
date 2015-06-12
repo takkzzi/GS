@@ -14,13 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	CoreSystem::Init(_T("TestLog"));
 	NetworkSystem::Init();
 
-	//Networker* net = NULL;
-	//net->BeginListen(40001, true);
-	//printf("Start\n");
-	int i = 1;
-	int j = 0;
-	i /= j;
-	printf("value : %d", i);
+	LOG_WARNING_A("asldkjflaskdjfl;ajsdfl");
 
 	CoreSystem::Shutdown();
 	NetworkSystem::Shutdown();

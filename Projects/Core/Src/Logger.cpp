@@ -274,10 +274,7 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		sprintf(logBuff, "[%s] %s\n", currTimeA, logBuff);
-		//fprintf(file, "[%s] %s\n", currTimeA, logBuff);
-		//fprintf(file, "[%s] %s", currTimeA, logBuff);
-		fprintf(file, logBuff);
+		fprintf(file, "[%s] %s\n", currTimeA, logBuff);
 		fflush(file);
 
 		//fclose(FilePtr);

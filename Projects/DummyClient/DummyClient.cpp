@@ -45,7 +45,9 @@ public :
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
 			Session* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
-			//ASSERT(bConn);
+			if (!bConn) {
+				LOG_WARNING_A("Connect Fail");
+			}
 		}
 
 		mLastSendTime = Core::Time::GetAppTime();
@@ -81,7 +83,7 @@ public :
 			else {
 				if (Core::Math::RandRange(0, 1000) > 500) {
 					bool bCon = se->Connect(gServerIP, gServerPort);
-					//ASSERT(bCon);
+					
 				}
 			}
 		}
@@ -135,13 +137,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	const int testObjCount = 5;
 	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new ClientSimulator(10000);
+	sessTester[0] = new ClientSimulator(3000);
 	sessTester[0]->Begin();
 	
-	sessTester[1] = new ClientSimulator(10000);
+	sessTester[1] = new ClientSimulator(3000);
 	sessTester[1]->Begin();
 	
-	sessTester[2] = new ClientSimulator(10000);
+	sessTester[2] = new ClientSimulator(3000);
 	sessTester[2]->Begin();
 	/*
 	sessTester[3] = new ClientSimulator(4000);

@@ -221,7 +221,7 @@ bool Session::StartAccept(SOCKET listenSock)
 	
 		DWORD lastErr = WSAGetLastError();
 		if ( ! bPreAccept && (lastErr != ERROR_IO_PENDING && lastErr != WSAEWOULDBLOCK) ) {
-			LOG_LASTERROR_A("Session",  true);
+			LOG_LASTERROR_A("Session",  IsDebuggerPresent());
 		
 			CS_UNLOCK;
 			return false;
@@ -262,14 +262,13 @@ bool Session::StartReceive()
 		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
 
 		if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-			LOG_LASTERROR(_T("WSARecv() Error!"), true);
+			LOG_LASTERROR(_T("WSARecv() Error!"), IsDebuggerPresent());
 			ASSERT(0);
 			SetState(SESSIONSTATE_DISCONNECTING);
 		}
 		else {
 			mbRecvStarted = true;
-			if ( res == 0 ) {  //Received Immediately
-				//Logger::LogDebugString("Recv %d (head %d, tail %d)", wsabuf.len, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
+			if ( res == 0 ) {  //Received Immediately : No Need (IOCP will call OnRecvComplete())
 			}
 		}
 	}
@@ -366,13 +365,6 @@ void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 
 void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
-	/*
-	if ( recvSize <= 0 ) {  //Remote Session Closed
-		OnDisconnect();
-		return;
-	}
-	*/
-
 	//CS_LOCK;
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
 		mbRecvStarted = false;
@@ -447,7 +439,7 @@ void Session::SetKeepAliveOpt()
 	int valsize = sizeof(optval);
 	if ( 0 == ::getsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, &valsize) ) {
 		if ( (false == optval) && (0 != ::setsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, valsize)) ) {
-			LOG_LASTERROR(_T("Socket"), true);
+			LOG_LASTERROR(_T("Socket"), IsDebuggerPresent());
 		}
 	}
 

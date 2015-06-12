@@ -8,6 +8,9 @@ namespace Server
 		GameServer();
 		virtual ~GameServer();
 
+	public:
+		virtual void Init();
+
 	protected:
 
 	};

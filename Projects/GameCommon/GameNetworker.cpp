@@ -7,36 +7,35 @@
 
 using namespace Game;
 
-#define			RESERVE_USER_COUNT		30000
-#define			MAX_USER_COUNT			30000
-#define			SEND_BUFFER_SIZE		512
-#define			RECV_BUFFER_SIZE		512
-
-#define			PORT					42999
-
-//TEMP
-#define			APP_SERVER
 
 
 
 GameNetworker::GameNetworker()
+	: mIocpNetworker(NULL)
+	, mUserManager(NULL)
+	, mPacketReader(NULL)
 {
-	mIocpNetworker = new Networker(true, 0, RESERVE_USER_COUNT, MAX_USER_COUNT, SEND_BUFFER_SIZE, RECV_BUFFER_SIZE);
-	mUserManager = new NetUserManager(RESERVE_USER_COUNT, MAX_USER_COUNT);
-
-#ifdef APP_SERVER
-	mIocpNetworker->BeginListen(PORT, true);
-#endif
-	
-	mPackeReader = new GamePacketReader();
-	mPackeReader->Init();
 }
 
 GameNetworker::~GameNetworker(void)
 {
-	SAFE_DELETE(mPackeReader);
+	SAFE_DELETE(mPacketReader);
 	SAFE_DELETE(mUserManager);
 	SAFE_DELETE(mIocpNetworker);
+}
+
+void GameNetworker::Init(int reservUserCount, int maxUserCount, int bufferSize)
+{
+	mIocpNetworker = new Networker(true, 0, reservUserCount, maxUserCount, bufferSize, bufferSize);
+	mUserManager = new NetUserManager(reservUserCount, maxUserCount);
+
+	mPacketReader = new GamePacketReader();
+	mPacketReader->Init();
+}
+
+void GameNetworker::ServerStart(UINT16 port)
+{
+	mIocpNetworker->BeginListen(port, true);
 }
 
 void GameNetworker::Update(float dt)
@@ -49,7 +48,7 @@ void GameNetworker::Update(float dt)
 
 		if ( sess->IsState(SESSIONSTATE_CONNECTED) ) {
 			NetUser* user = mUserManager->GetNetUser(sess, true);
-			mPackeReader->ProcessUserPacket(user);
+			mPacketReader->ProcessUserPacket(user);
 		}
 
 		//Disconnected

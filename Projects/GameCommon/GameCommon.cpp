@@ -3,6 +3,7 @@
 #include "GameNetworker.h"
 #include "Level.h"
 
+
 using namespace Game;
 
 GameCommon::GameCommon()
@@ -10,25 +11,26 @@ GameCommon::GameCommon()
 	, mLevel(NULL)
 	, mGameNetworker(NULL)
 {
+	CoreSystem::Init(_T("GameLog"));
+	NetworkSystem::Init();
+
+	mLevel = new Level();
+	mGameNetworker = new GameNetworker();
+
+	mAppRuntime = Core::Time::GetAppTime();
 }
 
 GameCommon::~GameCommon()
 {
+	NetworkSystem::Shutdown();
+	CoreSystem::Shutdown();
 }
 
 void GameCommon::Init()
 {
 	if ( mbInit )
 		return;
-
-	CoreSystem::Init(_T("GameLog"));
-	NetworkSystem::Init();
-
-	mLevel = new Level();
-	mGameNetworker = new GameNetworker();
 	
-	mAppRuntime = Core::Time::GetAppTime();
-
 	mbInit = true;
 }
 
@@ -38,10 +40,7 @@ void GameCommon::Shutdown()
 		return;
 
 	SAFE_DELETE(mGameNetworker);
-	SAFE_DELETE(mLevel);
-
-	NetworkSystem::Shutdown();
-	CoreSystem::Shutdown();
+	SAFE_DELETE(mLevel);	
 
 	mbInit = false;
 }

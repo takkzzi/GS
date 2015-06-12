@@ -42,6 +42,7 @@
     <ClCompile Include="NetUserManager.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="GameClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -89,6 +90,7 @@
     <ClInclude Include="NetUserManager.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="GameClient.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Network">

@@ -1,4 +1,7 @@
 ﻿------------ Core ------------ 
+* Logger 버그 
+	- Multi Thread 에서 동기화 안되어 잘못된 파일핸들
+	- Log_Warning 메시지 안찍힘
 
 
 * Math

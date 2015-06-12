@@ -27,13 +27,10 @@ NetUser::~NetUser()
 
 void NetUser::Init(Session* session)
 {
-	//Logger::Log("NetUser", "UserSession Init() [id:%d]", session->GetId());
-
 	mSession = session;
 	mUserState = USERSTATE_CONNECTED;
 
-	//TEST
-	EnterGame();
+	EnterGame();	//TEST
 }
 
 void NetUser::Destroy()
@@ -41,10 +38,7 @@ void NetUser::Destroy()
 	if ( IsDestroyed() )
 		return;
 
-	//Logger::Log("NetUser", "UserSession Destroy() [id:%d]", mSession->GetId());
-
-	//TEST
-	QuitGame();
+	QuitGame();		//TEST
 
 	ResetData();
 }
