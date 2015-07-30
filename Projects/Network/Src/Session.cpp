@@ -47,7 +47,7 @@ LPFN_DISCONNECTEX GetDisconnectExFunction(SOCKET sock)
 	return fnDisconnectEx;
 }
 
-Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize)
+Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize)
 	: mNetworker(networker)
 	, mId(id)
 	, mState(SESSIONSTATE_NONE)
@@ -70,8 +70,8 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	mAcceptBuffer = new char[64];
 	//mSendBuffer.Init(sendBufferSize, 0x0000ffff);
 	//mRecvBuffer.Init(recvBufferSize, 0x0000ffff);
-	mSendBuffer.Init(sendBufferSize, 512);
-	mRecvBuffer.Init(recvBufferSize, 512);
+	mSendBuffer.Init(sendBufferSize, maxPacketSize);
+	mRecvBuffer.Init(recvBufferSize, maxPacketSize);
 
 	CS_UNLOCK;
 
@@ -96,15 +96,16 @@ Session::~Session(void)
 
 void Session::SetState(SessionState state) 
 {
-	::InterlockedExchange((LONG*)&mState, (LONG)state);
+	//::InterlockedExchange((LONG*)&mState, (LONG)state);
+	mState = state;
 }
 
-void Session::ResetState(bool bClearDataQ)
+void Session::ResetState(bool bClearBuffer)
 {
 	if (IsState(SESSIONSTATE_NONE))
 		return;
 
-	CS_LOCK;
+	//CS_LOCK;
 
 	SetState(SESSIONSTATE_NONE);
 
@@ -120,22 +121,24 @@ void Session::ResetState(bool bClearDataQ)
 	mbRecvStarted = false;
 	mbRecvLock = false;
 
-	if (bClearDataQ) {
+	if (bClearBuffer) {
 		mRecvBuffer.ClearAll();
 		mSendBuffer.ClearAll();
 	}
 
-	CS_UNLOCK;
+	//CS_UNLOCK;
 }
 
 bool Session::Connect(const CHAR* addr, USHORT port)
 {
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_NONE)) {
-		CS_UNLOCK;
+		//CS_UNLOCK;
 		return FALSE;
 	}
+
+	CS_LOCK;
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
@@ -159,9 +162,9 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 	{
 		DWORD errCode = WSAGetLastError();
 		if (errCode != WSAEWOULDBLOCK)
-		{
-			CS_UNLOCK;
+		{	
 			ResetState(true);
+			CS_UNLOCK;
 			return FALSE;
 		}
 	}
@@ -187,26 +190,31 @@ bool Session::Disconnect()
 	if ( IsState(SESSIONSTATE_CONNECTED) )
 		::shutdown( mSock, SD_BOTH );
 
-	CS_UNLOCK;
-
 	ResetState(true);
+
+	CS_UNLOCK;
+	
 	return true;
 }
 
 bool Session::StartAccept(SOCKET listenSock) 
 {
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_NONE)) {
-		CS_UNLOCK;
+		//CS_UNLOCK;
 		return false;
 	}
+
+	CS_LOCK;
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
 	ASSERT(mSock != INVALID_SOCKET);
 
 	LPFN_ACCEPTEX pfnAcceptEx = GetAcceptExFunction(listenSock);
+
+	bool bSuccess = false;
 
 	if (mSock != INVALID_SOCKET && pfnAcceptEx) 
 	{
@@ -226,24 +234,29 @@ bool Session::StartAccept(SOCKET listenSock)
 			CS_UNLOCK;
 			return false;
 		}
-
-		SetState(SESSIONSTATE_ACCEPTING);
+		
 		mListenSock = listenSock;
 		mIsAccepter = true;
+
+		SetState(SESSIONSTATE_ACCEPTING);
+
+		bSuccess = true;
 	}
 	
 	CS_UNLOCK;
-	return IsState(SESSIONSTATE_ACCEPTING);
+	return bSuccess;
 }
 
 bool Session::StartReceive()
 {	
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_CONNECTED)) {
-		CS_UNLOCK;
+		//CS_UNLOCK;
 		return false;
 	}	
+
+	CS_LOCK;
 
 	if (mbRecvStarted || mbRecvLock) {
 		CS_UNLOCK;
@@ -279,12 +292,14 @@ bool Session::StartReceive()
 
 bool Session::Send()
 {
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_CONNECTED)) {
-		CS_UNLOCK;
+		//CS_UNLOCK;
 		return false;
 	}
+
+	CS_LOCK;
 
 	if (mbSendPending) {
 		CS_UNLOCK;
@@ -348,10 +363,10 @@ void Session::OnConnect()
 	mSendBuffer.ClearAll();
 	mRecvBuffer.ClearAll();
 
-	SetState(SESSIONSTATE_CONNECTED);
-
 	mbSendPending = false;
 	mbRecvStarted = false;
+
+	SetState(SESSIONSTATE_CONNECTED);
 }
 
 void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
@@ -378,12 +393,9 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 
 void Session::OnDisconnect()
 {
+	CS_LOCK;
 	ResetState(true);
-}
-
-bool Session::WriteSendBuffer(char* data, int dataLen)
-{
-	return mSendBuffer.Write(data, dataLen);
+	CS_UNLOCK;
 }
 
 char* Session::ReadRecvBuffer(int bufSize)

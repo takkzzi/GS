@@ -49,7 +49,7 @@ namespace Network
 		friend Networker;
 
 	public:
-		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize);
+		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize=1024);
 		~Session(void);
 
 	public:
@@ -66,7 +66,6 @@ namespace Network
 		bool					Disconnect();
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		
-		bool					WriteSendBuffer(char* data, int dataLen);
 		char*					ReadRecvBuffer(int bufSize);
 		bool					ClearRecvBuffer(int bufSize);
 
@@ -90,7 +89,7 @@ namespace Network
 
 		Networker*				mNetworker;
 		int						mId;
-		SessionState			mState;
+		volatile	SessionState	mState;
 		
 		SOCKET					mSock;
 		HANDLE					mEvent;

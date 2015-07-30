@@ -18,7 +18,7 @@ namespace Network
 		SessionBuffer();
 		virtual ~SessionBuffer();
 
-		void						Init(int size, int dataMaxSize);
+		void						Init(int bufferSize, int extraBufferSize);
 		void						ClearAll();
 
 		bool						Write(char* data, size_t size);

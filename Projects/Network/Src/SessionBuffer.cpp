@@ -25,11 +25,11 @@ SessionBuffer::~SessionBuffer()
 	CS_UNLOCK
 }
 
-void SessionBuffer::Init(int size, int extraBufferSize)
+void SessionBuffer::Init(int bufferSize, int extraBufferSize)
 {
 	CS_LOCK
 
-	int newBufferTotal = extraBufferSize + size;
+	int newBufferTotal = extraBufferSize + bufferSize;
 	int oldBufferTotal = mBufferSize + mBufferExtraSize;
 	
 	//Ring buffer
@@ -42,7 +42,7 @@ void SessionBuffer::Init(int size, int extraBufferSize)
 		mBuffer = new char[newBufferTotal];
 	}
 
-	mBufferSize = size;
+	mBufferSize = bufferSize;
 	mBufferExtraSize = extraBufferSize;
 
 	mCircleStart = mBuffer + extraBufferSize;
@@ -60,7 +60,7 @@ void SessionBuffer::ClearAll()
 	CS_UNLOCK
 }
 
-bool SessionBuffer::Write(char* data, size_t size)
+bool SessionBuffer::Write(char* data, size_t dataSize)
 {	
 	CS_LOCK
 
@@ -68,14 +68,14 @@ bool SessionBuffer::Write(char* data, size_t size)
 	char* emptyStart = mCircleStart + mDataTail;
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 
-	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
+	bool bEnough = (size_t)(emptyEnd - emptyStart) >= dataSize;
 
 	if ( bEnough ) {
-		memcpy(emptyStart, data, size);
-		mDataTail += size;
+		memcpy(emptyStart, data, dataSize);
+		mDataTail += dataSize;
 	}
 	else if ( bLinear && ! IsUsingExtraBuffer() ) {
-		bEnough = DoWriteSeparate(data, size);
+		bEnough = DoWriteSeparate(data, dataSize);
 	}
 
 	CS_UNLOCK
@@ -99,7 +99,7 @@ bool SessionBuffer::DoWriteSeparate(char* data, size_t size)
 	return bEnough;
 }
 
-char* SessionBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge)
+char* SessionBuffer::Read(IN OUT int* requestSize, bool bResize, bool bCircularMerge)
 {
 	CS_LOCK
 	
@@ -108,18 +108,18 @@ char* SessionBuffer::Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge
 	char* continousDataEnd = bLinear ? GetDataTail() : mCircleEnd;
 
 	size_t dataSize = (continousDataEnd - GetDataHead());
-	bool bDataEnough = dataSize >= (size_t)*reqSize;
+	bool bDataEnough = dataSize >= (size_t)*requestSize;
 
 	if ( bDataEnough ) {
 		resultBuf = (mCircleStart + mDataHead);
 	}
 	else if ( bResize && (dataSize > 0) ) {
 		resultBuf = (mCircleStart + mDataHead);
-		*reqSize = dataSize;
+		*requestSize = dataSize;
 	}
 	
 	if ( (resultBuf == NULL) && ! bLinear && bCircularMerge && ! IsUsingExtraBuffer() ) {    
-		resultBuf = DoReadAndMergeData(reqSize, bResize);	//Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
+		resultBuf = DoReadAndMergeData(requestSize, bResize);	//Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
 	}
 
 	CS_UNLOCK
@@ -160,7 +160,7 @@ char* SessionBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 	return resultBuf;
 }
 
-//Set DataTail without data-memcpy (Linear);
+//Set DataTail without data-memcpy (Linear) :  Using for OnRecvComplete.
 bool SessionBuffer::AddDataTail(size_t size) 
 {
 	CS_LOCK
