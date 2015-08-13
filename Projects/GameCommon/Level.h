@@ -1,6 +1,6 @@
 #pragma once
 
-#include "atlcoll.h"
+#include  <atlcoll.h>
 
 namespace Game
 {
