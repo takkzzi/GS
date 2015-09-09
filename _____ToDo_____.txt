@@ -20,7 +20,6 @@
 	- connect 시 Data 전달법 (WSAConnect 에 대해 더욱 숙지할것)
 	- UDP Session 구현
 	- Session 순회 및 Buffer 접근시 Lock-Free 방법 연구
-	- SessionBuffer 에서 Read - Clear 와 Pop 후 MemCopy 하는것과 속도 비교
 	
 * 의심부분 
 	- Session 상태가 NetUser 에서 동기화 되는지 (서로다른 스레드에서 처리로)

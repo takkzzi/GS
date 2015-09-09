@@ -398,6 +398,7 @@ void Session::OnDisconnect()
 	CS_UNLOCK;
 }
 
+/*
 char* Session::ReadRecvBuffer(int bufSize)
 {
 	if ( mbRecvLock )
@@ -425,6 +426,7 @@ bool Session::ClearRecvBuffer(int bufSize)
 	CS_UNLOCK;
 	return bClear;
 }
+*/
 
 void Session::Update()
 {

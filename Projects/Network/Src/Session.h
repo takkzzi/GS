@@ -66,8 +66,11 @@ namespace Network
 		bool					Disconnect();
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		
-		char*					ReadRecvBuffer(int bufSize);
-		bool					ClearRecvBuffer(int bufSize);
+		//char*					ReadRecvBuffer(int bufSize);
+		//bool					ClearRecvBuffer(int bufSize);
+
+		SessionBuffer*			GetReadBuffer()	{ return &mRecvBuffer; }
+		SessionBuffer*			GetSendBuffer() { return &mSendBuffer; }
 
 	//Start Event Callback
 	public :
