@@ -171,7 +171,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Network</C
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Src\Listener.cpp" />
+    <ClCompile Include="Src\TcpListener.cpp" />
     <ClCompile Include="Src\Network.cpp" />
     <ClCompile Include="Src\TcpNetWorker.cpp" />
     <ClCompile Include="Src\CircleBuffer.cpp" />
@@ -180,7 +180,7 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Network</C
   <ItemGroup>
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Defines.h" />
-    <ClInclude Include="Src\Listener.h" />
+    <ClInclude Include="Src\TcpListener.h" />
     <ClInclude Include="Src\Network.h" />
     <ClInclude Include="Src\TcpNetWorker.h" />
     <ClInclude Include="Src\CircleBuffer.h" />

@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Src\Listener.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Network.cpp">
       <Filter>Src</Filter>
     </ClCompile>
@@ -17,13 +14,13 @@
     <ClCompile Include="Src\TcpNetWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="Src\TcpListener.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Network.h">
-      <Filter>Src</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Listener.h">
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h" />
@@ -37,6 +34,9 @@
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\TcpNetWorker.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TcpListener.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
