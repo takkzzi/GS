@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SessionBuffer.h"
+#include "CircleBuffer.h"
 
 namespace Network
 {
@@ -19,7 +19,7 @@ namespace Network
 
 	struct OverlappedIoData 
 	{
-		void Init(OverlappedIoType overlappedIoType, Session* ownSession) {
+		void Init(OverlappedIoType overlappedIoType, TCPSession* ownSession) {
 			::ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
 			ioType = overlappedIoType;
 			session = ownSession;
@@ -32,7 +32,7 @@ namespace Network
 
 		WSAOVERLAPPED		ov;
 		OverlappedIoType	ioType;
-		Session*			session;
+		TCPSession*			session;
 		char*				bufPtr;
 	};
 
@@ -44,15 +44,20 @@ namespace Network
 	};
 
 
-	class Session
+	class TCPSession
 	{
 		friend Networker;
 
-	public:
-		Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize=1024);
-		~Session(void);
+	protected:
+		TCPSession(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize=1024);
+		virtual ~TCPSession(void);
 
 	public:
+		static TCPSession*			Create(int sendBufferSize, int recevBufferSize, int maxPacketSize = 1024);
+		static void					Destroy(TCPSession* session);
+
+	public:
+
 		void					Init();
 		int						GetId()		{ return mId; }
 		void					SetState(SessionState state);
@@ -66,11 +71,13 @@ namespace Network
 		bool					Disconnect();
 		bool					StartAccept(SOCKET listenSock);		//Using AcceptEx()
 		
-		//char*					ReadRecvBuffer(int bufSize);
-		//bool					ClearRecvBuffer(int bufSize);
+		char*					ReadRecvBuffer(int bufSize);
+		bool					ClearRecvBuffer(int bufSize);
 
-		SessionBuffer*			GetReadBuffer()	{ return &mRecvBuffer; }
-		SessionBuffer*			GetSendBuffer() { return &mSendBuffer; }
+		bool					WriteToSend(char* data, int dataSize);
+
+		CircleBuffer*			GetReadBuffer()	{ return &mRecvBuffer; }
+		CircleBuffer*			GetSendBuffer() { return &mSendBuffer; }
 
 	//Start Event Callback
 	public :
@@ -90,6 +97,7 @@ namespace Network
 
 	protected:
 
+		static	Networker*		msDefaultNetworker;
 		Networker*				mNetworker;
 		int						mId;
 		volatile	SessionState	mState;
@@ -103,8 +111,8 @@ namespace Network
 		OverlappedIoData		mRecvIoData;
 
 		char*					mAcceptBuffer;
-		SessionBuffer			mSendBuffer;
-		SessionBuffer			mRecvBuffer;
+		CircleBuffer			mSendBuffer;
+		CircleBuffer			mRecvBuffer;
 
 		SOCKET					mListenSock;
 		bool					mIsAccepter;

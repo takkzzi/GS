@@ -20,8 +20,8 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-const char* gServerIP = "127.0.0.1";//"192.168.0.14";
-const int	gServerPort = 42999;
+const char* gServerIP = "58.121.156.234";//"192.168.0.14";
+const int	gServerPort = 9500;
 
 
 class ClientSimulator : public Thread 
@@ -46,7 +46,6 @@ public :
 			Session* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
 			if (!bConn) {
-				LOG_WARNING_A("Connect Fail");
 			}
 		}
 
@@ -83,7 +82,8 @@ public :
 			else {
 				if (Core::Math::RandRange(0, 1000) > 500) {
 					bool bCon = se->Connect(gServerIP, gServerPort);
-					
+					if (!bCon) {
+					}
 				}
 			}
 		}

@@ -9,7 +9,7 @@ class IOCPThread;
 namespace Network
 {
 	struct OverlappedIoData;
-	class Session;
+	class TCPSession;
 	class Listener;
 	class NetEventDelegator;
 
@@ -28,11 +28,10 @@ namespace Network
 
 		HANDLE					GetIocpHandle()					{ return mIocp; }
 
-		Session*				GetSession(int id);
-		Session*				GetNewSession();
-		void					ClearSession(int id);
+		TCPSession*				GetSession(int id);
+		TCPSession*				GetNewSession();
 		int						GetSessionCount()				{ return mSessionVec.size(); }
-		const std::vector<Session*>*	GetSessionVec()			{ return &mSessionVec; };
+		const std::vector<TCPSession*>*	GetSessionVec()			{ return &mSessionVec; };
 
 		
 		bool					IsPreAccept()					{ return (mListener && mbPreAccept); }
@@ -51,7 +50,7 @@ namespace Network
 		void					BeginSessionUpdate();
 		void					EndSessionUpdate();
 
-		Session*				AddSession();
+		TCPSession*				AddSession();
 
 		void					StartAcceptAll();
 		void					DeleteAllSessions();
@@ -69,7 +68,7 @@ namespace Network
 		INT								mSendBufferSize;
 		INT								mRecvBufferSize;
 
-		std::vector<Session*>			mSessionVec;
+		std::vector<TCPSession*>		mSessionVec;
 		volatile	bool				mbThreadUpdateSessions;
 		HANDLE							mSessUpdateThread;
 		CriticalSection					mCritiSect;
@@ -88,10 +87,10 @@ namespace Network
 		virtual		void		SetNetworker(Networker* networker)	{ mNetworker = networker; }
 
 		//Session Event
-		virtual		void		OnConnect(Session* session)			=	0;
-		virtual		void		OnDisconnect(Session* session)		=	0;
-		virtual		void		OnReceived(Session* session)		=	0;
-		virtual		void		OnSend(Session* session)			=	0;
+		virtual		void		OnConnect(TCPSession* session)			=	0;
+		virtual		void		OnDisconnect(TCPSession* session)		=	0;
+		virtual		void		OnReceived(TCPSession* session)		=	0;
+		virtual		void		OnSend(TCPSession* session)			=	0;
 
 	protected :
 		Networker*				mNetworker;

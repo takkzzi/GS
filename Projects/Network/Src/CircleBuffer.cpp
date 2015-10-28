@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include "SessionBuffer.h"
+#include "CircleBuffer.h"
 
 using namespace Network;
 
@@ -7,7 +7,7 @@ using namespace Network;
 #define		CS_UNLOCK				mCritiSect.Leave();
 #define		CIRCULAR_DATATAIL_MAX	(mDataHead - 1)
 
-SessionBuffer::SessionBuffer()
+CircleBuffer::CircleBuffer()
 	: mBufferSize(0)
 	, mBufferExtraSize(0)
 	, mBuffer(NULL)
@@ -18,14 +18,14 @@ SessionBuffer::SessionBuffer()
 {
 }
 
-SessionBuffer::~SessionBuffer()
+CircleBuffer::~CircleBuffer()
 {
 	CS_LOCK
 	delete[] mBuffer;
 	CS_UNLOCK
 }
 
-void SessionBuffer::Init(int bufferSize, int extraBufferSize)
+void CircleBuffer::Init(int bufferSize, int extraBufferSize)
 {
 	CS_LOCK
 
@@ -53,19 +53,19 @@ void SessionBuffer::Init(int bufferSize, int extraBufferSize)
 	ClearAll();
 }
 
-void SessionBuffer::ClearAll()
+void CircleBuffer::ClearAll()
 {
 	CS_LOCK
 	mDataHead = mDataTail = 0;
 	CS_UNLOCK
 }
 
-bool SessionBuffer::Write(char* data, size_t dataSize)
+bool CircleBuffer::Write(char* data, size_t dataSize)
 {	
 	CS_LOCK
 
 	bool bLinear = ! IsCircularData();
-	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyStart = GetDataTail(); // mCircleStart + mDataTail;
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 
 	bool bEnough = (size_t)(emptyEnd - emptyStart) >= dataSize;
@@ -83,23 +83,25 @@ bool SessionBuffer::Write(char* data, size_t dataSize)
 	return bEnough;
 }
 
-bool SessionBuffer::DoWriteSeparate(char* data, size_t size)
+bool CircleBuffer::DoWriteSeparate(char* data, size_t size)
 {
-	size_t tail_end = (mCircleEnd - (mCircleStart + mDataTail));
+	ASSERT(!IsCircularData());
+
+	size_t tail_end = (mCircleEnd - GetDataTail());
 	size_t start_head = CIRCULAR_DATATAIL_MAX;
 
 	bool bEnough = ( tail_end + start_head ) >= (size_t)size;
 
 	if ( bEnough ) {   //Separate Tail-End, Start-Head
 		size_t start_tail = (size - tail_end);
-		memcpy(mCircleStart + mDataTail, data, tail_end);
+		memcpy(GetDataTail(), data, tail_end);
 		memcpy(mCircleStart, (data + tail_end), start_tail);
 		mDataTail = start_tail;
 	}
 	return bEnough;
 }
 
-char* SessionBuffer::Read(IN OUT int* requestSize, bool bResize, bool bCircularMerge)
+char* CircleBuffer::Read(IN OUT int* requestSize, bool canBeResized, bool bCircularMerge)
 {
 	CS_LOCK
 	
@@ -113,13 +115,13 @@ char* SessionBuffer::Read(IN OUT int* requestSize, bool bResize, bool bCircularM
 	if ( bDataEnough ) {
 		resultBuf = (mCircleStart + mDataHead);
 	}
-	else if ( bResize && (dataSize > 0) ) {
+	else if (canBeResized && (dataSize > 0) ) {
 		resultBuf = (mCircleStart + mDataHead);
 		*requestSize = dataSize;
 	}
 	
 	if ( (resultBuf == NULL) && ! bLinear && bCircularMerge && ! IsUsingExtraBuffer() ) {    
-		resultBuf = DoReadAndMergeData(requestSize, bResize);	//Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
+		resultBuf = DoReadAndMergeData(requestSize, canBeResized);	//Separate End-Start. Merge it! (Make it Linear by Using Extra Buffer)
 	}
 
 	CS_UNLOCK
@@ -128,7 +130,7 @@ char* SessionBuffer::Read(IN OUT int* requestSize, bool bResize, bool bCircularM
 }
 
 //Use Only Separated Data. Make buffer Linear
-char* SessionBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
+char* CircleBuffer::DoReadAndMergeData(int* reqSize, bool canBeResized)
 {
 	size_t head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
 	bool bResult = false;
@@ -149,7 +151,7 @@ char* SessionBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			bResult = true;
 		}
-		else if ( bResize && (dataFullSize > 0) ) {
+		else if (canBeResized && (dataFullSize > 0) ) {
 			resultBuf = newHeadPos;
 			mDataHead = -(int)head_end_size;//Set New Head Position in Extra Buffer
 			*reqSize = dataFullSize;
@@ -161,12 +163,12 @@ char* SessionBuffer::DoReadAndMergeData(int* reqSize, bool bResize)
 }
 
 //Set DataTail without data-memcpy (Linear) :  Using for OnRecvComplete.
-bool SessionBuffer::AddDataTail(size_t size) 
+bool CircleBuffer::AddDataTail(size_t size)
 {
 	CS_LOCK
 
 	bool bLinear = ! IsCircularData();
-	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyStart = GetDataTail();
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
 
@@ -180,7 +182,7 @@ bool SessionBuffer::AddDataTail(size_t size)
 }
 
 //For Recv
-char* SessionBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as Possible
+char* CircleBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as Possible
 {
 	CS_LOCK
 	if ( mDataHead == mDataTail ) {
@@ -194,7 +196,7 @@ char* SessionBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as
 	}
 
 	char* resultBuf = NULL;
-	char* emptyStart = mCircleStart + mDataTail;
+	char* emptyStart = GetDataTail();
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 	bool bEnough = (emptyEnd - emptyStart) >= *requiredSize;
 	bool muchAsPossible = ((*requiredSize) == 0);
@@ -213,7 +215,7 @@ char* SessionBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as
 	return resultBuf;
 }
 
-bool SessionBuffer::ClearData(int size)
+bool CircleBuffer::ClearData(int size)
 {
 	char* dataHead = Read(&size, false, false);
 
@@ -231,7 +233,7 @@ bool SessionBuffer::ClearData(int size)
 	return (dataHead && (size > 0));
 }
 
-size_t SessionBuffer::GetDataSize()
+size_t CircleBuffer::GetDataSize()
 {
 	size_t size = 0;
 	if ( IsCircularData() ) {

@@ -32,6 +32,17 @@ void GameCommon::Init()
 		return;
 	
 	mbInit = true;
+
+//TEST start
+#define			RESERVE_USER_COUNT		10000
+#define			MAX_USER_COUNT			30000
+#define			BUFFER_SIZE				1024
+
+#define			PORT					42999
+
+	mGameNetworker->Init(RESERVE_USER_COUNT, MAX_USER_COUNT, BUFFER_SIZE);
+	mGameNetworker->ServerStart(PORT);
+	//TEST end
 }
 
 void GameCommon::Shutdown()

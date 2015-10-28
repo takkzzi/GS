@@ -49,7 +49,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GAMESERVER));
 	
-	GameCommon* gameApp = GameServer::Create();
+	GameCommon* gameApp = GameCommon::Create();
 	gameApp->Init();
 
 	//Main message loop:

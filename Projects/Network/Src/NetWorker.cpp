@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Networker.h"
 #include "Listener.h"
-#include "Session.h"
+#include "TCPSession.h"
 
 #include <process.h>
 
@@ -30,7 +30,7 @@ unsigned __stdcall IOCPWorker (void* arg)
 
 		if ( ioKey && overlapped && overlapped->session ) {
 
-			Session* sess = overlapped->session;
+			TCPSession* sess = overlapped->session;
 			OverlappedIoType io = overlapped->ioType;
 			if ( result ) {
 				if ( io == IO_ACCEPT ) {
@@ -89,7 +89,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 	mSessionVec.reserve(mSessionLimitCount);
 
 	for(int i = 0; i < sessionReserveCount; ++i) {
-		Session* s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
+		TCPSession* s = new TCPSession(this, i, mSendBufferSize, mRecvBufferSize);
 		mSessionVec.push_back(s);
 	}
 
@@ -194,21 +194,21 @@ void Networker::EndSessionUpdate()
 	}
 }
 
-Session* Networker::GetSession(int id)			
+TCPSession* Networker::GetSession(int id)
 { 
 	ASSERT(0 <= id && id < GetSessionCount() );
 	return mSessionVec[id]; 
 }
 
-Session* Networker::GetNewSession()
+TCPSession* Networker::GetNewSession()
 {
 	CS_LOCK
 
-	Session* newSession = NULL;
+		TCPSession* newSession = NULL;
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
-		Session* s = mSessionVec[i];
+		TCPSession* s = mSessionVec[i];
 		if ( s == NULL ) {
-			s = new Session(this, i, mSendBufferSize, mRecvBufferSize);
+			s = new TCPSession(this, i, mSendBufferSize, mRecvBufferSize);
 			mSessionVec[i] = s;
 			newSession = s;
 			break;
@@ -228,11 +228,11 @@ Session* Networker::GetNewSession()
 	return newSession;
 }
 
-Session* Networker::AddSession()
+TCPSession* Networker::AddSession()
 {
-	Session* newSess = NULL;
+	TCPSession* newSess = NULL;
 	if ( mSessionVec.size() < (std::size_t)mSessionLimitCount ) {
-		newSess = new Session(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
+		newSess = new TCPSession(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
 		mSessionVec.push_back(newSess);
 	}
 	return newSess;
@@ -254,7 +254,7 @@ void Networker::UpdateSessions()
 
 	bool isPreaccepting = IsPreAccept();
 
-	Session* acceptingSession = NULL;
+	TCPSession* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
 		if ( sess ) {
 			sess->Update();

@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include "Session.h"
+#include "TCPSession.h"
 #include "Networker.h"
 
 #include <mswsock.h>
@@ -47,7 +47,7 @@ LPFN_DISCONNECTEX GetDisconnectExFunction(SOCKET sock)
 	return fnDisconnectEx;
 }
 
-Session::Session(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize)
+TCPSession::TCPSession(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize)
 	: mNetworker(networker)
 	, mId(id)
 	, mState(SESSIONSTATE_NONE)
@@ -78,14 +78,14 @@ Session::Session(Networker* networker, int id, int sendBufferSize, int recvBuffe
 	Init();
 }
 
-void Session::Init()
+void TCPSession::Init()
 {
 	if ( mNetworker->IsPreAccept() ) {
 		StartAccept(mNetworker->GetListnerSocket());
 	}
 }
 
-Session::~Session(void)
+TCPSession::~TCPSession(void)
 {
 	Disconnect();
 
@@ -94,18 +94,17 @@ Session::~Session(void)
 	CS_UNLOCK;
 }
 
-void Session::SetState(SessionState state) 
+void TCPSession::SetState(SessionState state)
 {
-	//::InterlockedExchange((LONG*)&mState, (LONG)state);
-	mState = state;
+	::InterlockedExchange((LONG*)&mState, (LONG)state);
+	//mState = state;
 }
 
-void Session::ResetState(bool bClearBuffer)
+void TCPSession::ResetState(bool bClearBuffer)
 {
 	if (IsState(SESSIONSTATE_NONE))
 		return;
 
-	//CS_LOCK;
 
 	SetState(SESSIONSTATE_NONE);
 
@@ -126,19 +125,18 @@ void Session::ResetState(bool bClearBuffer)
 		mSendBuffer.ClearAll();
 	}
 
-	//CS_UNLOCK;
 }
 
-bool Session::Connect(const CHAR* addr, USHORT port)
+bool TCPSession::Connect(const CHAR* addr, USHORT port)
 {
-	//CS_LOCK;
+	CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_NONE)) {
-		//CS_UNLOCK;
+		CS_UNLOCK;
 		return FALSE;
 	}
 
-	CS_LOCK;
+	//CS_LOCK;
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
@@ -176,7 +174,7 @@ bool Session::Connect(const CHAR* addr, USHORT port)
 	return true;
 }
 
-bool Session::Disconnect()
+bool TCPSession::Disconnect()
 {
 	//CS_LOCK;		//Dead Lock
 
@@ -197,16 +195,16 @@ bool Session::Disconnect()
 	return true;
 }
 
-bool Session::StartAccept(SOCKET listenSock) 
+bool TCPSession::StartAccept(SOCKET listenSock)
 {
-	//CS_LOCK;
+	CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_NONE)) {
-		//CS_UNLOCK;
+		CS_UNLOCK;
 		return false;
 	}
 
-	CS_LOCK;
+	//CS_LOCK;
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
@@ -247,16 +245,16 @@ bool Session::StartAccept(SOCKET listenSock)
 	return bSuccess;
 }
 
-bool Session::StartReceive()
+bool TCPSession::StartReceive()
 {	
-	//CS_LOCK;
+	CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_CONNECTED)) {
-		//CS_UNLOCK;
+		CS_UNLOCK;
 		return false;
 	}	
 
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (mbRecvStarted || mbRecvLock) {
 		CS_UNLOCK;
@@ -290,16 +288,16 @@ bool Session::StartReceive()
 	return mbRecvStarted;
 }
 
-bool Session::Send()
+bool TCPSession::Send()
 {
-	//CS_LOCK;
+	CS_LOCK;
 
 	if (!IsState(SESSIONSTATE_CONNECTED)) {
-		//CS_UNLOCK;
+		CS_UNLOCK;
 		return false;
 	}
 
-	CS_LOCK;
+	//CS_LOCK;
 
 	if (mbSendPending) {
 		CS_UNLOCK;
@@ -332,7 +330,7 @@ bool Session::Send()
 	return mbSendPending;
 }
 
-void Session::OnAccept(SOCKET listenSock)
+void TCPSession::OnAccept(SOCKET listenSock)
 {
 	CS_LOCK;
 
@@ -356,7 +354,7 @@ void Session::OnAccept(SOCKET listenSock)
 	CS_UNLOCK;
 }
 
-void Session::OnConnect() 
+void TCPSession::OnConnect()
 {
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
@@ -369,18 +367,18 @@ void Session::OnConnect()
 	SetState(SESSIONSTATE_CONNECTED);
 }
 
-void Session::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
+void TCPSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {	
 	ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
-	//CS_LOCK;
+	CS_LOCK;
 	mbSendPending = ! mSendBuffer.ClearData(sendSize);
-	//CS_UNLOCK;
+	CS_UNLOCK;
 	ASSERT(!mbSendPending && "SendBuffer Clear Error !");
 }
 
-void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
+void TCPSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
-	//CS_LOCK;
+	CS_LOCK;
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
 		mbRecvStarted = false;
 		Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
@@ -388,18 +386,18 @@ void Session::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	else {
 		ASSERT(0 && "RecvBuffer.Reserve() Error !");
 	}
-	//CS_UNLOCK;
+	CS_UNLOCK;
 }
 
-void Session::OnDisconnect()
+void TCPSession::OnDisconnect()
 {
 	CS_LOCK;
 	ResetState(true);
 	CS_UNLOCK;
 }
 
-/*
-char* Session::ReadRecvBuffer(int bufSize)
+
+char* TCPSession::ReadRecvBuffer(int bufSize)
 {
 	if ( mbRecvLock )
 		return NULL;
@@ -414,7 +412,7 @@ char* Session::ReadRecvBuffer(int bufSize)
 	return data;
 }
 
-bool Session::ClearRecvBuffer(int bufSize)
+bool TCPSession::ClearRecvBuffer(int bufSize)
 {
 	if ( mbRecvLock )
 		return false;
@@ -426,9 +424,14 @@ bool Session::ClearRecvBuffer(int bufSize)
 	CS_UNLOCK;
 	return bClear;
 }
-*/
 
-void Session::Update()
+bool TCPSession::WriteToSend(char* data, int dataSize)
+{
+
+	return false;
+}
+
+void TCPSession::Update()
 {
 	if ( IsState(SESSIONSTATE_DISCONNECTING) ) {
 		Disconnect();
@@ -444,7 +447,7 @@ void Session::Update()
 }
 
 //Set KeepAlive Option
-void Session::SetKeepAliveOpt()
+void TCPSession::SetKeepAliveOpt()
 {
 	if ( mSock == INVALID_SOCKET )
 		return;

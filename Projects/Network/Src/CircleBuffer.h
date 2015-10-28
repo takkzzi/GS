@@ -2,21 +2,21 @@
 
 namespace Network
 {
-	class Session;
+	class TCPSession;
 
-	class SessionBuffer
+	class CircleBuffer
 	{
 		/* <Circulary Buffer Structure>
 
-		mBuffer			mBufferStart	mDataHead(Moving)		mDataTail(Moving)		mBufferEnd
+		mBuffer			mCircleStart	mDataHead(Moving)		mDataTail(Moving)		mCircleEnd
 		|----------------------|-----------------|-------------------------|-------------------|
 		|-- (Circular Buffer) -|
 
 		*/
 
 	public :
-		SessionBuffer();
-		virtual ~SessionBuffer();
+		CircleBuffer();
+		virtual ~CircleBuffer();
 
 		void						Init(int bufferSize, int extraBufferSize);
 		void						ClearAll();

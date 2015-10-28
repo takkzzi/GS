@@ -40,6 +40,9 @@ void GameNetworker::ServerStart(UINT16 port)
 
 void GameNetworker::Update(float dt)
 {
+	if (!mIocpNetworker)
+		return;
+
 	for(int i = 0, n = mIocpNetworker->GetSessionCount(); i < n; ++i) 
 	{
 		Network::Session* sess = mIocpNetworker->GetSession(i);

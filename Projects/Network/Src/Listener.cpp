@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Listener.h"
 #include "Networker.h"
-#include "Session.h"
+#include "TCPSession.h"
 //#include <process.h>
 
 
@@ -121,7 +121,7 @@ void SelectListener::OnEnd(bool bTerminated)
 
 void SelectListener::OnAccept()
 {
-	Session* se = mNetworker->GetNewSession();
+	TCPSession* se = mNetworker->GetNewSession();
 	se->OnAccept(mSock);
 }
 

@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Src\Session.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Listener.cpp">
       <Filter>Src</Filter>
     </ClCompile>
@@ -14,16 +11,16 @@
     <ClCompile Include="Src\NetWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Src\SessionBuffer.cpp">
+    <ClCompile Include="Src\TCPSession.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CircleBuffer.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Network.h">
-      <Filter>Src</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Session.h">
       <Filter>Src</Filter>
     </ClInclude>
     <ClInclude Include="Src\Listener.h">
@@ -36,7 +33,10 @@
     <ClInclude Include="Src\NetWorker.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\SessionBuffer.h">
+    <ClInclude Include="Src\TCPSession.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CircleBuffer.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,9 +14,10 @@
 ------------ Network ------------ 
 
 * Session
-	- Session Buffer 에 직접 접근하여 사용 가능한 방법 연구
-	- ConnectEx 사용 - 비동기 접속
-	- DisconnectEX 사용 - Socket Reuse 를 위함
+	- Session Buffer 에 직접 접근하여 사용 가능한 방법 연구 (꼭)
+	- ConnectEx 사용 - 비동기 접속 (꼭)
+	- DisconnectEX 사용 - Socket Reuse 를 위함 (꼭)
+
 	- connect 시 Data 전달법 (WSAConnect 에 대해 더욱 숙지할것)
 	- UDP Session 구현
 	- Session 순회 및 Buffer 접근시 Lock-Free 방법 연구

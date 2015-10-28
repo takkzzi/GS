@@ -2,7 +2,7 @@
 
 namespace Server 
 {
-	class GameServer : public GameCommon
+	class GameServer : public GameCommon// , public Singleton<GameServer>
 	{
 	public :
 		GameServer();
