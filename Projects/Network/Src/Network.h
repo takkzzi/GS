@@ -31,7 +31,7 @@ namespace Network
 
 #include "Core/Core.h"
 #include "Defines.h"
-#include "Networker.h"
-#include "TCPSession.h"
+#include "TcpNetworker.h"
+#include "TcpSession.h"
 
 using namespace Network;

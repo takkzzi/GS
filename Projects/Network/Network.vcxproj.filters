@@ -8,13 +8,13 @@
     <ClCompile Include="Src\Network.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NetWorker.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\TCPSession.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
     <ClCompile Include="Src\CircleBuffer.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TcpSession.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TcpNetWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,13 +30,13 @@
     <ClInclude Include="Src\Defines.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\NetWorker.h">
-      <Filter>Src</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\TCPSession.h">
-      <Filter>Src</Filter>
-    </ClInclude>
     <ClInclude Include="Src\CircleBuffer.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TcpSession.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TcpNetWorker.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>

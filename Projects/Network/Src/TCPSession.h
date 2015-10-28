@@ -4,8 +4,9 @@
 
 namespace Network
 {
-	class Networker;
+	class TcpNetworker;
 	class Listener;
+	class TcpSession;
 	class SessionEventObject;
 
 
@@ -19,7 +20,7 @@ namespace Network
 
 	struct OverlappedIoData 
 	{
-		void Init(OverlappedIoType overlappedIoType, TCPSession* ownSession) {
+		void Init(OverlappedIoType overlappedIoType, TcpSession* ownSession) {
 			::ZeroMemory(&ov, sizeof(WSAOVERLAPPED));
 			ioType = overlappedIoType;
 			session = ownSession;
@@ -32,7 +33,7 @@ namespace Network
 
 		WSAOVERLAPPED		ov;
 		OverlappedIoType	ioType;
-		TCPSession*			session;
+		TcpSession*			session;
 		char*				bufPtr;
 	};
 
@@ -44,17 +45,17 @@ namespace Network
 	};
 
 
-	class TCPSession
+	class TcpSession
 	{
-		friend Networker;
+		friend TcpNetworker;
 
 	protected:
-		TCPSession(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize=1024);
-		virtual ~TCPSession(void);
+		TcpSession(TcpNetworker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize=1024);
+		virtual ~TcpSession(void);
 
 	public:
-		static TCPSession*			Create(int sendBufferSize, int recevBufferSize, int maxPacketSize = 1024);
-		static void					Destroy(TCPSession* session);
+		static TcpSession*			Create(int sendBufferSize, int recevBufferSize, int maxPacketSize = 1024);
+		static void					Destroy(TcpSession* session);
 
 	public:
 
@@ -97,8 +98,8 @@ namespace Network
 
 	protected:
 
-		static	Networker*		msDefaultNetworker;
-		Networker*				mNetworker;
+		static	TcpNetworker*	msDefaultNetworker;
+		TcpNetworker*			mNetworker;
 		int						mId;
 		volatile	SessionState	mState;
 		

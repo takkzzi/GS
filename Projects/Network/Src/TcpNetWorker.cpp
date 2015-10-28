@@ -1,7 +1,7 @@
 #include "PCH.h"
-#include "Networker.h"
+#include "TcpNetworker.h"
 #include "Listener.h"
-#include "TCPSession.h"
+#include "TcpSession.h"
 
 #include <process.h>
 
@@ -15,7 +15,7 @@ using namespace Network;
 
 unsigned __stdcall IOCPWorker (void* arg)
 {
-	Networker* networker = (Networker*)arg;
+	TcpNetworker* networker = (TcpNetworker*)arg;
 	while(1) 
 	{
 		DWORD				transferBytes;
@@ -30,7 +30,7 @@ unsigned __stdcall IOCPWorker (void* arg)
 
 		if ( ioKey && overlapped && overlapped->session ) {
 
-			TCPSession* sess = overlapped->session;
+			TcpSession* sess = overlapped->session;
 			OverlappedIoType io = overlapped->ioType;
 			if ( result ) {
 				if ( io == IO_ACCEPT ) {
@@ -58,7 +58,7 @@ unsigned __stdcall IOCPWorker (void* arg)
 
 unsigned __stdcall SessionUpdater (void* arg) 
 {
-	Networker* networker = (Networker*)arg;
+	TcpNetworker* networker = (TcpNetworker*)arg;
 
 	while (networker->IsThreadUpdatingSessions()) {
 		networker->UpdateSessions();
@@ -68,7 +68,7 @@ unsigned __stdcall SessionUpdater (void* arg)
 }
 
 
-Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessionReserveCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
+TcpNetworker::TcpNetworker(bool bUseThreadUpdateSession, int ioThreadCount, int sessionReserveCount, int sessionLimitCount, int sendBufferSize, int recvBufferSize)
 	: mIocp(INVALID_HANDLE_VALUE)
 	, mIoThreadCount(ioThreadCount)
 	, mListener(NULL)
@@ -89,7 +89,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 	mSessionVec.reserve(mSessionLimitCount);
 
 	for(int i = 0; i < sessionReserveCount; ++i) {
-		TCPSession* s = new TCPSession(this, i, mSendBufferSize, mRecvBufferSize);
+		TcpSession* s = new TcpSession(this, i, mSendBufferSize, mRecvBufferSize);
 		mSessionVec.push_back(s);
 	}
 
@@ -98,7 +98,7 @@ Networker::Networker(bool bUseThreadUpdateSession, int ioThreadCount, int sessio
 		BeginSessionUpdate();
 }
 
-Networker::~Networker(void)
+TcpNetworker::~TcpNetworker(void)
 {
 	EndSessionUpdate();
 	EndListen();
@@ -107,7 +107,7 @@ Networker::~Networker(void)
 }
 
 //Thread Creation & Start Thread
-void Networker::BeginIo()
+void TcpNetworker::BeginIo()
 {
 	CS_LOCK
 	
@@ -132,7 +132,7 @@ void Networker::BeginIo()
 	CS_UNLOCK
 }
 
-void Networker::EndIo()
+void TcpNetworker::EndIo()
 {	
 	CS_LOCK
 	for (UINT i = 0; i < mIoThreadCount; i++)
@@ -151,7 +151,7 @@ void Networker::EndIo()
 	CS_UNLOCK
 }
 
-bool Networker::BeginListen(UINT16 port, bool bPreAccept)
+bool TcpNetworker::BeginListen(UINT16 port, bool bPreAccept)
 {
 	EndListen();
 
@@ -170,7 +170,7 @@ bool Networker::BeginListen(UINT16 port, bool bPreAccept)
 	return bListen;
 }
 
-void Networker::EndListen()
+void TcpNetworker::EndListen()
 {	
 	CS_LOCK
 	if ( mListener ) {
@@ -181,12 +181,12 @@ void Networker::EndListen()
 	CS_UNLOCK
 }
 
-void Networker::BeginSessionUpdate()
+void TcpNetworker::BeginSessionUpdate()
 {
 	mSessUpdateThread = (HANDLE) ::_beginthreadex(NULL, 0, SessionUpdater, this, 0, NULL);
 }
 
-void Networker::EndSessionUpdate()
+void TcpNetworker::EndSessionUpdate()
 {
 	if ( mbThreadUpdateSessions ) {
 		mbThreadUpdateSessions = false;
@@ -194,21 +194,21 @@ void Networker::EndSessionUpdate()
 	}
 }
 
-TCPSession* Networker::GetSession(int id)
+TcpSession* TcpNetworker::GetSession(int id)
 { 
 	ASSERT(0 <= id && id < GetSessionCount() );
 	return mSessionVec[id]; 
 }
 
-TCPSession* Networker::GetNewSession()
+TcpSession* TcpNetworker::GetNewSession()
 {
 	CS_LOCK
 
-		TCPSession* newSession = NULL;
+	TcpSession* newSession = NULL;
 	for(int i = 0, n = mSessionVec.size(); i < n; ++i) {
-		TCPSession* s = mSessionVec[i];
+		TcpSession* s = mSessionVec[i];
 		if ( s == NULL ) {
-			s = new TCPSession(this, i, mSendBufferSize, mRecvBufferSize);
+			s = new TcpSession(this, i, mSendBufferSize, mRecvBufferSize);
 			mSessionVec[i] = s;
 			newSession = s;
 			break;
@@ -228,17 +228,17 @@ TCPSession* Networker::GetNewSession()
 	return newSession;
 }
 
-TCPSession* Networker::AddSession()
+TcpSession* TcpNetworker::AddSession()
 {
-	TCPSession* newSess = NULL;
+	TcpSession* newSess = NULL;
 	if ( mSessionVec.size() < (std::size_t)mSessionLimitCount ) {
-		newSess = new TCPSession(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
+		newSess = new TcpSession(this, GetSessionCount(), mSendBufferSize, mRecvBufferSize);
 		mSessionVec.push_back(newSess);
 	}
 	return newSess;
 }
 
-void Networker::DeleteAllSessions()
+void TcpNetworker::DeleteAllSessions()
 {
 	CS_LOCK
 	for(auto &i : mSessionVec) {
@@ -248,13 +248,13 @@ void Networker::DeleteAllSessions()
 	CS_UNLOCK
 }
 
-void Networker::UpdateSessions()
+void TcpNetworker::UpdateSessions()
 {
 	CS_LOCK
 
 	bool isPreaccepting = IsPreAccept();
 
-	TCPSession* acceptingSession = NULL;
+	TcpSession* acceptingSession = NULL;
 	for(auto &sess : mSessionVec) {
 		if ( sess ) {
 			sess->Update();
@@ -272,12 +272,12 @@ void Networker::UpdateSessions()
 	CS_UNLOCK
 }
 
-SOCKET Networker::GetListnerSocket()			
+SOCKET TcpNetworker::GetListnerSocket()
 { 
 	return (mListener ? mListener->GetSocket() : NULL);
 }
 
-void Networker::SetEventDelegator(NetEventDelegator* eventDelegator)
+void TcpNetworker::SetEventDelegator(NetEventDelegator* eventDelegator)
 {
 	mNetEventDelegator = eventDelegator;
 	if ( mNetEventDelegator ) {

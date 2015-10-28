@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Listener.h"
-#include "Networker.h"
-#include "TCPSession.h"
+#include "TcpNetworker.h"
+#include "TcpSession.h"
 //#include <process.h>
 
 
@@ -22,7 +22,7 @@ bool Listener::EndListen()
 //////////////// End of Listener ///////////////////////
 
 
-SelectListener::SelectListener(Networker* networker, UINT16 port)
+SelectListener::SelectListener(TcpNetworker* networker, UINT16 port)
 	: Listener(networker, port)
 {
 	mEvents[0] = WSA_INVALID_EVENT;
@@ -121,7 +121,7 @@ void SelectListener::OnEnd(bool bTerminated)
 
 void SelectListener::OnAccept()
 {
-	TCPSession* se = mNetworker->GetNewSession();
+	TcpSession* se = mNetworker->GetNewSession();
 	se->OnAccept(mSock);
 }
 
@@ -129,7 +129,7 @@ void SelectListener::OnAccept()
 
 
 
-IocpListener::IocpListener(Networker* networker, UINT16 port)
+IocpListener::IocpListener(TcpNetworker* networker, UINT16 port)
 	: Listener(networker, port)
 {
 }

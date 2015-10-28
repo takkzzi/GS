@@ -4,14 +4,14 @@
 
 namespace Network
 {
-	class Networker;
+	class TcpNetworker;
 
 
 	class Listener 
 	{
 	public :
 
-		Listener(Networker* networker, UINT16 port) 
+		Listener(TcpNetworker* networker, UINT16 port)
 			: mNetworker(networker), mPort(port), mSock(INVALID_SOCKET)		
 		{};
 
@@ -26,7 +26,7 @@ namespace Network
 	protected:
 		UINT16					mPort;
 		SOCKET					mSock;
-		Networker*				mNetworker;
+		TcpNetworker*				mNetworker;
 
 	};
 
@@ -35,7 +35,7 @@ namespace Network
 	class SelectListener : public Listener, public Core::Thread
 	{
 	public:
-		SelectListener(Networker* networker, UINT16 port);
+		SelectListener(TcpNetworker* networker, UINT16 port);
 		~SelectListener(void);
 
 		virtual bool		BeginListen();
@@ -56,7 +56,7 @@ namespace Network
 	class IocpListener : public Listener
 	{
 	public:
-		IocpListener(Networker* networker, UINT16 port);
+		IocpListener(TcpNetworker* networker, UINT16 port);
 		~IocpListener(void);
 
 	private:

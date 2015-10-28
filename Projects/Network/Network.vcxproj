@@ -173,18 +173,18 @@ if exist Src\*.inl    xcopy /D /F /I /R /Y Src\*.inl    ..\..\Include\Network</C
     </ClCompile>
     <ClCompile Include="Src\Listener.cpp" />
     <ClCompile Include="Src\Network.cpp" />
-    <ClCompile Include="Src\NetWorker.cpp" />
-    <ClCompile Include="Src\TCPSession.cpp" />
+    <ClCompile Include="Src\TcpNetWorker.cpp" />
     <ClCompile Include="Src\CircleBuffer.cpp" />
+    <ClCompile Include="Src\TcpSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Src\Defines.h" />
     <ClInclude Include="Src\Listener.h" />
     <ClInclude Include="Src\Network.h" />
-    <ClInclude Include="Src\NetWorker.h" />
-    <ClInclude Include="Src\TCPSession.h" />
+    <ClInclude Include="Src\TcpNetWorker.h" />
     <ClInclude Include="Src\CircleBuffer.h" />
+    <ClInclude Include="Src\TcpSession.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

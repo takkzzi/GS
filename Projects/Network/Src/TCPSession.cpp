@@ -1,6 +1,6 @@
 #include "PCH.h"
-#include "TCPSession.h"
-#include "Networker.h"
+#include "TcpSession.h"
+#include "TcpNetworker.h"
 
 #include <mswsock.h>
 #include <mstcpip.h>
@@ -47,7 +47,7 @@ LPFN_DISCONNECTEX GetDisconnectExFunction(SOCKET sock)
 	return fnDisconnectEx;
 }
 
-TCPSession::TCPSession(Networker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize)
+TcpSession::TcpSession(TcpNetworker* networker, int id, int sendBufferSize, int recvBufferSize, int maxPacketSize)
 	: mNetworker(networker)
 	, mId(id)
 	, mState(SESSIONSTATE_NONE)
@@ -78,14 +78,7 @@ TCPSession::TCPSession(Networker* networker, int id, int sendBufferSize, int rec
 	Init();
 }
 
-void TCPSession::Init()
-{
-	if ( mNetworker->IsPreAccept() ) {
-		StartAccept(mNetworker->GetListnerSocket());
-	}
-}
-
-TCPSession::~TCPSession(void)
+TcpSession::~TcpSession(void)
 {
 	Disconnect();
 
@@ -94,13 +87,20 @@ TCPSession::~TCPSession(void)
 	CS_UNLOCK;
 }
 
-void TCPSession::SetState(SessionState state)
+void TcpSession::Init()
+{
+	if (mNetworker->IsPreAccept()) {
+		StartAccept(mNetworker->GetListnerSocket());
+	}
+}
+
+void TcpSession::SetState(SessionState state)
 {
 	::InterlockedExchange((LONG*)&mState, (LONG)state);
 	//mState = state;
 }
 
-void TCPSession::ResetState(bool bClearBuffer)
+void TcpSession::ResetState(bool bClearBuffer)
 {
 	if (IsState(SESSIONSTATE_NONE))
 		return;
@@ -127,7 +127,7 @@ void TCPSession::ResetState(bool bClearBuffer)
 
 }
 
-bool TCPSession::Connect(const CHAR* addr, USHORT port)
+bool TcpSession::Connect(const CHAR* addr, USHORT port)
 {
 	CS_LOCK;
 
@@ -174,7 +174,7 @@ bool TCPSession::Connect(const CHAR* addr, USHORT port)
 	return true;
 }
 
-bool TCPSession::Disconnect()
+bool TcpSession::Disconnect()
 {
 	//CS_LOCK;		//Dead Lock
 
@@ -195,7 +195,7 @@ bool TCPSession::Disconnect()
 	return true;
 }
 
-bool TCPSession::StartAccept(SOCKET listenSock)
+bool TcpSession::StartAccept(SOCKET listenSock)
 {
 	CS_LOCK;
 
@@ -245,7 +245,7 @@ bool TCPSession::StartAccept(SOCKET listenSock)
 	return bSuccess;
 }
 
-bool TCPSession::StartReceive()
+bool TcpSession::StartReceive()
 {	
 	CS_LOCK;
 
@@ -288,7 +288,7 @@ bool TCPSession::StartReceive()
 	return mbRecvStarted;
 }
 
-bool TCPSession::Send()
+bool TcpSession::Send()
 {
 	CS_LOCK;
 
@@ -330,7 +330,7 @@ bool TCPSession::Send()
 	return mbSendPending;
 }
 
-void TCPSession::OnAccept(SOCKET listenSock)
+void TcpSession::OnAccept(SOCKET listenSock)
 {
 	CS_LOCK;
 
@@ -354,7 +354,7 @@ void TCPSession::OnAccept(SOCKET listenSock)
 	CS_UNLOCK;
 }
 
-void TCPSession::OnConnect()
+void TcpSession::OnConnect()
 {
 	::CreateIoCompletionPort((HANDLE)mSock, mNetworker->GetIocpHandle(), (ULONG_PTR)this, 0);
 
@@ -367,7 +367,7 @@ void TCPSession::OnConnect()
 	SetState(SESSIONSTATE_CONNECTED);
 }
 
-void TCPSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
+void TcpSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {	
 	ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
 	CS_LOCK;
@@ -376,7 +376,7 @@ void TCPSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 	ASSERT(!mbSendPending && "SendBuffer Clear Error !");
 }
 
-void TCPSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
+void TcpSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
 	CS_LOCK;
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
@@ -389,7 +389,7 @@ void TCPSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 	CS_UNLOCK;
 }
 
-void TCPSession::OnDisconnect()
+void TcpSession::OnDisconnect()
 {
 	CS_LOCK;
 	ResetState(true);
@@ -397,7 +397,7 @@ void TCPSession::OnDisconnect()
 }
 
 
-char* TCPSession::ReadRecvBuffer(int bufSize)
+char* TcpSession::ReadRecvBuffer(int bufSize)
 {
 	if ( mbRecvLock )
 		return NULL;
@@ -412,7 +412,7 @@ char* TCPSession::ReadRecvBuffer(int bufSize)
 	return data;
 }
 
-bool TCPSession::ClearRecvBuffer(int bufSize)
+bool TcpSession::ClearRecvBuffer(int bufSize)
 {
 	if ( mbRecvLock )
 		return false;
@@ -425,13 +425,13 @@ bool TCPSession::ClearRecvBuffer(int bufSize)
 	return bClear;
 }
 
-bool TCPSession::WriteToSend(char* data, int dataSize)
+bool TcpSession::WriteToSend(char* data, int dataSize)
 {
 
 	return false;
 }
 
-void TCPSession::Update()
+void TcpSession::Update()
 {
 	if ( IsState(SESSIONSTATE_DISCONNECTING) ) {
 		Disconnect();
@@ -447,7 +447,7 @@ void TCPSession::Update()
 }
 
 //Set KeepAlive Option
-void TCPSession::SetKeepAliveOpt()
+void TcpSession::SetKeepAliveOpt()
 {
 	if ( mSock == INVALID_SOCKET )
 		return;
