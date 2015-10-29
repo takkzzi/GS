@@ -26,7 +26,7 @@ GameNetworker::~GameNetworker(void)
 
 void GameNetworker::Init(int reservUserCount, int maxUserCount, int bufferSize)
 {
-	mIocpNetworker = new Networker(true, 0, reservUserCount, maxUserCount, bufferSize, bufferSize);
+	mIocpNetworker = new TcpNetworker(true, 0, reservUserCount, maxUserCount, bufferSize, bufferSize);
 	mUserManager = new NetUserManager(reservUserCount, maxUserCount);
 
 	mPacketReader = new GamePacketReader();
@@ -45,7 +45,7 @@ void GameNetworker::Update(float dt)
 
 	for(int i = 0, n = mIocpNetworker->GetSessionCount(); i < n; ++i) 
 	{
-		Network::Session* sess = mIocpNetworker->GetSession(i);
+		Network::TcpSession* sess = mIocpNetworker->GetSession(i);
 		if ( ! sess )
 			continue;
 

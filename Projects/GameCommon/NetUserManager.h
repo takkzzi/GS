@@ -14,7 +14,7 @@ namespace Game
 		~NetUserManager();
 
 	public :
-		NetUser*		GetNetUser(Network::Session* netSession, bool bCreate);
+		NetUser*		GetNetUser(Network::TcpSession* netSession, bool bCreate);
 		NetUser*		GetNetUser(UINT sessoinId);
 
 	protected:

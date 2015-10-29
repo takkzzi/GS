@@ -18,7 +18,7 @@ namespace Game
 		virtual		void	Update(float dt);
 
 	protected:
-		Networker*					mIocpNetworker;
+		TcpNetworker*				mIocpNetworker;
 		NetUserManager*				mUserManager;
 		GamePacketReader*			mPacketReader;		//Buffer-Reading & Packetizing & Calling Packet Handler
 	};

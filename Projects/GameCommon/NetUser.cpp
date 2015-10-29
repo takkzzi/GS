@@ -25,7 +25,7 @@ NetUser::~NetUser()
 		Destroy();
 }
 
-void NetUser::Init(Session* session)
+void NetUser::Init(TcpSession* session)
 {
 	mSession = session;
 	mUserState = USERSTATE_CONNECTED;

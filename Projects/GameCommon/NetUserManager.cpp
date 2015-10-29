@@ -44,7 +44,7 @@ NetUser* NetUserManager::CreateNetUser(UINT sessIdx)
 	return user;
 }
 
-NetUser* NetUserManager::GetNetUser(Network::Session* netSession, bool bCreate)
+NetUser* NetUserManager::GetNetUser(Network::TcpSession* netSession, bool bCreate)
 {
 	ASSERT(netSession);
 

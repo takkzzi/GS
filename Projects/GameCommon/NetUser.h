@@ -26,7 +26,7 @@ namespace Game
 		~NetUser();
 
 	public:
-		void						Init(Network::Session* session);
+		void						Init(Network::TcpSession* session);
 		void						Destroy();
 		bool						IsDestroyed()				{ return mUserState == USERSTATE_NONE; }
 		UserState					GetState()					{ return mUserState; }
@@ -44,7 +44,7 @@ namespace Game
 		
 		
 	protected:
-		Network::Session*			mSession;
+		Network::TcpSession*		mSession;
 		UserState					mUserState;
 
 		Level*						mLevel;
