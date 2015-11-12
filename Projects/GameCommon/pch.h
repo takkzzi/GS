@@ -22,5 +22,5 @@
 #include "Core\Core.h"
 #include "Network\Network.h"
 
-#include "GameCommon.h"
-#include "Actor.h"
+//#include "Src/GameCommon.h"
+#include "Src/Actor.h"

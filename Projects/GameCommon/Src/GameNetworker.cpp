@@ -11,7 +11,8 @@ using namespace Game;
 
 
 GameNetworker::GameNetworker()
-	: mIocpNetworker(NULL)
+	: mbInit(false)
+	, mTcpNetworker(NULL)
 	, mUserManager(NULL)
 	, mPacketReader(NULL)
 {
@@ -21,31 +22,39 @@ GameNetworker::~GameNetworker(void)
 {
 	SAFE_DELETE(mPacketReader);
 	SAFE_DELETE(mUserManager);
-	SAFE_DELETE(mIocpNetworker);
+	SAFE_DELETE(mTcpNetworker);
 }
 
-void GameNetworker::Init(int reservUserCount, int maxUserCount, int bufferSize)
+void GameNetworker::Init(int reserveSessionCount, int maxUserCount, int bufferSize)
 {
-	mIocpNetworker = new TcpNetworker(true, 0, reservUserCount, maxUserCount, bufferSize, bufferSize);
-	mUserManager = new NetUserManager(reservUserCount, maxUserCount);
+	if (mbInit) return;
+
+	mbInit = true;
+
+	mUserManager = new NetUserManager(reserveSessionCount, maxUserCount);
+	mTcpNetworker = new TcpNetworker(true, 0, reserveSessionCount, maxUserCount, bufferSize, bufferSize);
 
 	mPacketReader = new GamePacketReader();
 	mPacketReader->Init();
 }
 
-void GameNetworker::ServerStart(UINT16 port)
+void GameNetworker::BeginListen(UINT16 port)
 {
-	mIocpNetworker->BeginListen(port, true);
+	if (!mbInit) return;
+
+	mTcpNetworker->BeginListen(port, true);
 }
 
 void GameNetworker::Update(float dt)
 {
-	if (!mIocpNetworker)
+	if (!mTcpNetworker)
 		return;
 
-	for(int i = 0, n = mIocpNetworker->GetSessionCount(); i < n; ++i) 
+	//mTcpNetworker->UpdateSessions();
+
+	for(int i = 0, n = mTcpNetworker->GetSessionCount(); i < n; ++i)
 	{
-		Network::TcpSession* sess = mIocpNetworker->GetSession(i);
+		Network::TcpSession* sess = mTcpNetworker->GetSession(i);
 		if ( ! sess )
 			continue;
 

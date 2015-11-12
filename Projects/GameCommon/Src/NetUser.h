@@ -34,9 +34,11 @@ namespace Game
 		GamePacketBase*				GetRecvPacket();
 		bool						ClearRecvPacket(UINT buffSize);
 
-		//TEST : State Transitions
-		void						EnterGame();
+		//State Transitions
+		void						EnterGame(Level* level);
 		void						QuitGame();
+
+		void						SetLevel(Level* level);
 
 	protected:
 		void						ResetData();

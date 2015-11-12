@@ -1,17 +1,25 @@
 #pragma once
 
+class Game::GameNetworker;
+
 namespace Server 
 {
-	class GameServer : public GameCommon// , public Singleton<GameServer>
+	class GameServer
 	{
 	public :
 		GameServer();
-		virtual ~GameServer();
+		~GameServer();
 
 	public:
-		virtual void Init();
+		void					Init();
+		void					Shutdown();
+		void					BeginServer(int port);
+		void					MainLoop();
 
 	protected:
+
+		GameNetworker*			mGameNetworker;
+		double					mAppRuntime;
 
 	};
 }

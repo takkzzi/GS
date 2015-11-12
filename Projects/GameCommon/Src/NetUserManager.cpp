@@ -13,6 +13,7 @@ NetUserManager::NetUserManager(UINT reserveUserCount, UINT maxUserCount)
 	}
 }
 
+
 NetUserManager::~NetUserManager()
 {
 	for(auto & i : mUserVec) {

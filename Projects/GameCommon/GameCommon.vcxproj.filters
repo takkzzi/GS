@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Src">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -17,100 +9,100 @@
   <ItemGroup>
     <ClInclude Include="targetver.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="BreakableObject.h">
+    <ClInclude Include="Src\GameClient.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GameClient.h">
+    <ClInclude Include="Src\GameCommon.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GameCommon.h">
+    <ClInclude Include="Src\GameNetworker.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Actor.h">
+    <ClInclude Include="Src\GameObject.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GamePacketProtocol.h">
+    <ClInclude Include="Src\GamePacketBase.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GamePacketReader.h">
+    <ClInclude Include="Src\GamePacketProtocol.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Level.h">
+    <ClInclude Include="Src\GamePacketReader.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="LocalPlayer.h">
+    <ClInclude Include="Src\Level.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="NetUser.h">
+    <ClInclude Include="Src\LocalPlayer.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="NetUserManager.h">
+    <ClInclude Include="Src\NetUser.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GameNetworker.h">
+    <ClInclude Include="Src\NetUserManager.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
+    <ClInclude Include="Src\Player.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="GamePacketBase.h">
+    <ClInclude Include="Src\StaticObject.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
+    <ClInclude Include="Src\Trigger.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="StaticObject.h">
+    <ClInclude Include="Src\Actor.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Trigger.h">
+    <ClInclude Include="Src\BreakableObject.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BreakableObject.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="GameClient.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="GameCommon.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="Actor.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="GamePacketReader.cpp">
+    <ClCompile Include="Src\GameClient.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="GamePacketReader_Processing.cpp">
+    <ClCompile Include="Src\GameCommon.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Level.cpp">
+    <ClCompile Include="Src\GameNetworker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="LocalPlayer.cpp">
+    <ClCompile Include="Src\GameObject.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="NetUser.cpp">
+    <ClCompile Include="Src\GamePacketReader.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="NetUserManager.cpp">
+    <ClCompile Include="Src\GamePacketReader_Processing.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="GameNetworker.cpp">
+    <ClCompile Include="Src\Level.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
+    <ClCompile Include="Src\LocalPlayer.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="StaticObject.cpp">
+    <ClCompile Include="Src\NetUser.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Trigger.cpp">
+    <ClCompile Include="Src\NetUserManager.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="Src\Player.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\StaticObject.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Trigger.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Actor.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BreakableObject.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>

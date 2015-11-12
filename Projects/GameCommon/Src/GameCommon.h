@@ -6,12 +6,13 @@ namespace Game
 {
 	class GameNetworker;
 	class Level;
+	class NetUserManager;
 	class UserSession;
 	class LocalPlayer;
 
-	class GameCommon : public Singleton<GameCommon>
+	class GameCommon //: public Singleton<GameCommon>
 	{
-	friend Singleton<GameCommon>;
+	//friend Singleton<GameCommon>;
 	protected :
 		GameCommon();
 		virtual ~GameCommon();
@@ -19,6 +20,8 @@ namespace Game
 	public :
 		virtual void			Init();
 		virtual void			Shutdown();
+
+		void					StartServer(int reserveUserCount, int maxUserCount, int bufferSize, int port);
 		virtual void			MainLoop();
 
 		Level*					GetLevel()			{ return mLevel; };
@@ -35,8 +38,10 @@ namespace Game
 
 		/** Networking */
 		GameNetworker*			mGameNetworker;
+
+
 		UserSession*			mLocalUserSession;		//Client
-		LocalPlayer*			mLocalPlayer;
+		LocalPlayer*			mLocalPlayer;			//Client
 
 	protected:
 		double					mAppRuntime;
@@ -45,4 +50,4 @@ namespace Game
 
 }
 
-#define			TheGame			GameCommon::Instance()
+//#define			TheGame			GameCommon::Instance()

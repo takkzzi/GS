@@ -24,8 +24,6 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
 const int port			= 42999;
-const int sessionCount	= 1000;
-const int sessionLimit	= 5000;
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -49,8 +47,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GAMESERVER));
 	
-	GameCommon* gameApp = GameCommon::Create();
-	gameApp->Init();
+	GameServer* gameServer = new GameServer();
+	gameServer->Init();
+	gameServer->BeginServer(42999);
 
 	//Main message loop:
 	MSG msg;
@@ -68,13 +67,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 		else {
-			gameApp->MainLoop();
+			gameServer->MainLoop();
 		}
 	}
 
 
-	gameApp->Shutdown();
-	GameServer::Destroy();
+	gameServer->Shutdown();
+	delete gameServer;
 
 	return (int) msg.wParam;
 }

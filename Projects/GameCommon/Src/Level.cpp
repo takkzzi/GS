@@ -26,8 +26,10 @@ UINT LevelActorFactory::GetActorSubId(Actor* actor)
 	return (UINT)( actor->GetId() % ((UINT64)1 << ACTORTYPE_BIT_POS));
 }
 
-Actor* LevelActorFactory::CreateActor(ActorType actorType)
+Actor* LevelActorFactory::CreateActor(Level* level, ActorType actorType)
 {
+	if (!level) return NULL;
+
 	Actor* actor = NULL;
 
 	switch (actorType) {
@@ -47,28 +49,30 @@ Actor* LevelActorFactory::CreateActor(ActorType actorType)
 		ASSERT(0);
 	}
 	actor->mActorId = CreateActorId(actorType);
-	TheGame->GetLevel()->OnCreateActor(actor);
+	if (level)
+		level->OnCreateActor(actor);
+
 	return actor;
 }
 
-StaticObject* LevelActorFactory::CreateStaticObject()
+StaticObject* LevelActorFactory::CreateStaticObject(Level *level)
 {
-	return (StaticObject*)CreateActor(ACTOR_STATIC);
+	return (StaticObject*)CreateActor(level, ACTOR_STATIC);
 }
 
-BreakableObject* LevelActorFactory::CreateBreakable()
+BreakableObject* LevelActorFactory::CreateBreakable(Level *level)
 {
-	return (BreakableObject*)CreateActor(ACTOR_BREAKABLE);
+	return (BreakableObject*)CreateActor(level, ACTOR_BREAKABLE);
 }
 
-Trigger* LevelActorFactory::CreateTrigger()
+Trigger* LevelActorFactory::CreateTrigger(Level *level)
 {
-	return (Trigger*)CreateActor(ACTOR_TRIGGER);
+	return (Trigger*)CreateActor(level, ACTOR_TRIGGER);
 }
 
-Player* LevelActorFactory::CreatePlayer()
+Player* LevelActorFactory::CreatePlayer(Level *level)
 {
-	return (Player*)CreateActor(ACTOR_PLAYER);
+	return (Player*)CreateActor(level, ACTOR_PLAYER);
 }
 
 

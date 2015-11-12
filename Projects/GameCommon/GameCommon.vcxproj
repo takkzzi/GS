@@ -95,7 +95,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,6 +104,9 @@
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
+    <PostBuildEvent>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\GameCommon</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -112,13 +115,16 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\GameCommon</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -130,7 +136,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +147,9 @@
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
+    <PostBuildEvent>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\GameCommon</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -151,7 +160,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -160,49 +169,52 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist Src\*.h    xcopy /D /F /I /R /Y Src\*.h    ..\..\Include\GameCommon</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Actor.h" />
-    <ClInclude Include="BreakableObject.h" />
-    <ClInclude Include="GameClient.h" />
-    <ClInclude Include="GameCommon.h" />
-    <ClInclude Include="GameNetworker.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GamePacketBase.h" />
-    <ClInclude Include="GamePacketProtocol.h" />
-    <ClInclude Include="GamePacketReader.h" />
-    <ClInclude Include="Level.h" />
-    <ClInclude Include="LocalPlayer.h" />
-    <ClInclude Include="NetUser.h" />
-    <ClInclude Include="NetUserManager.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="StaticObject.h" />
+    <ClInclude Include="Src\Actor.h" />
+    <ClInclude Include="Src\BreakableObject.h" />
+    <ClInclude Include="Src\GameClient.h" />
+    <ClInclude Include="Src\GameCommon.h" />
+    <ClInclude Include="Src\GameNetworker.h" />
+    <ClInclude Include="Src\GameObject.h" />
+    <ClInclude Include="Src\GamePacketBase.h" />
+    <ClInclude Include="Src\GamePacketProtocol.h" />
+    <ClInclude Include="Src\GamePacketReader.h" />
+    <ClInclude Include="Src\Level.h" />
+    <ClInclude Include="Src\LocalPlayer.h" />
+    <ClInclude Include="Src\NetUser.h" />
+    <ClInclude Include="Src\NetUserManager.h" />
+    <ClInclude Include="Src\Player.h" />
+    <ClInclude Include="Src\StaticObject.h" />
+    <ClInclude Include="Src\Trigger.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Trigger.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="BreakableObject.cpp" />
-    <ClCompile Include="GameClient.cpp" />
-    <ClCompile Include="GameCommon.cpp" />
-    <ClCompile Include="GameNetworker.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GamePacketReader.cpp" />
-    <ClCompile Include="GamePacketReader_Processing.cpp" />
-    <ClCompile Include="Level.cpp" />
-    <ClCompile Include="LocalPlayer.cpp" />
-    <ClCompile Include="NetUser.cpp" />
-    <ClCompile Include="NetUserManager.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="StaticObject.cpp" />
-    <ClCompile Include="Trigger.cpp" />
+    <ClCompile Include="Src\Actor.cpp" />
+    <ClCompile Include="Src\BreakableObject.cpp" />
+    <ClCompile Include="Src\GameClient.cpp" />
+    <ClCompile Include="Src\GameCommon.cpp" />
+    <ClCompile Include="Src\GameNetworker.cpp" />
+    <ClCompile Include="Src\GameObject.cpp" />
+    <ClCompile Include="Src\GamePacketReader.cpp" />
+    <ClCompile Include="Src\GamePacketReader_Processing.cpp" />
+    <ClCompile Include="Src\Level.cpp" />
+    <ClCompile Include="Src\LocalPlayer.cpp" />
+    <ClCompile Include="Src\NetUser.cpp" />
+    <ClCompile Include="Src\NetUserManager.cpp" />
+    <ClCompile Include="Src\Player.cpp" />
+    <ClCompile Include="Src\StaticObject.cpp" />
+    <ClCompile Include="Src\Trigger.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

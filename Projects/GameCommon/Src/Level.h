@@ -19,11 +19,11 @@ namespace Game
 
 	public:
 
-		static	Actor*				CreateActor(ActorType actorType);
-		static	StaticObject*		CreateStaticObject();
-		static	BreakableObject*	CreateBreakable();
-		static	Trigger*			CreateTrigger();
-		static	Player*				CreatePlayer();
+		static	Actor*				CreateActor(Level *level, ActorType actorType);
+		static	StaticObject*		CreateStaticObject(Level *level);
+		static	BreakableObject*	CreateBreakable(Level *level);
+		static	Trigger*			CreateTrigger(Level *level);
+		static	Player*				CreatePlayer(Level *level);
 
 		static	UINT				GetActorSubId(Actor* actor);
 

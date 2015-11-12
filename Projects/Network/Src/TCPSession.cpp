@@ -208,7 +208,14 @@ bool TcpSession::StartAccept(SOCKET listenSock)
 
 	if ( mSock == INVALID_SOCKET )
 		mSock = WSASocket( AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED );
-	ASSERT(mSock != INVALID_SOCKET);
+
+	if (mSock == INVALID_SOCKET)
+	{
+		LOG_LASTERROR_A("Session", IsDebuggerPresent());
+		ASSERT(0);
+	}
+
+	
 
 	LPFN_ACCEPTEX pfnAcceptEx = GetAcceptExFunction(listenSock);
 

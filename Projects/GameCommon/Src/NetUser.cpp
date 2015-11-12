@@ -16,7 +16,6 @@ NetUser::NetUser()
 	, mLevel(NULL)
 	, mPlayer(NULL)
 {
-	mLevel = TheGame->GetLevel();
 }
 
 NetUser::~NetUser()
@@ -30,7 +29,7 @@ void NetUser::Init(TcpSession* session)
 	mSession = session;
 	mUserState = USERSTATE_CONNECTED;
 
-	EnterGame();	//TEST
+	EnterGame(NULL);	//TEST
 }
 
 void NetUser::Destroy()
@@ -78,12 +77,14 @@ GamePacketBase* NetUser::DoPacketize(UINT packetMinSize)
 }
 
 
-void NetUser::EnterGame()
+void NetUser::EnterGame(Level* level)
 {
 	ASSERT(mPlayer == NULL);
 
 	mUserState = USERSTATE_GAME;
-	mPlayer = LevelActorFactory::CreatePlayer();
+	mPlayer = LevelActorFactory::CreatePlayer(NULL);
+
+	SetLevel(level);
 }
 
 void NetUser::QuitGame()
@@ -94,4 +95,9 @@ void NetUser::QuitGame()
 		mPlayer->Destroy();
 		mPlayer = NULL;
 	}
+}
+
+void NetUser::SetLevel(Level* level)
+{
+	mLevel = level;
 }
