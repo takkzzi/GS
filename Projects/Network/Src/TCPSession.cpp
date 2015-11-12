@@ -213,6 +213,8 @@ bool TcpSession::StartAccept(SOCKET listenSock)
 	{
 		LOG_LASTERROR_A("Session", IsDebuggerPresent());
 		ASSERT(0);
+		CS_UNLOCK;
+		return false;
 	}
 
 	

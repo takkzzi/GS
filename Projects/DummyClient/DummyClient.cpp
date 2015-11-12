@@ -31,7 +31,7 @@ public :
 	ClientSimulator(int connCount) : Thread()
 	{
 		//mIocp = new Networker(true, 3, connCount, 100, 2048, 1024);
-		mIocp = new Networker(true, 3, connCount, connCount+1, 256, 256);
+		mIocp = new TcpNetworker(true, 3, connCount, connCount+1, 256, 256);
 	};
 
 	virtual ~ClientSimulator() 
@@ -43,7 +43,7 @@ public :
 	{
 		//ConnectAll
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
+			TcpSession* se = mIocp->GetSession(i);
 			bool bConn = se->Connect(gServerIP, gServerPort);
 			if (!bConn) {
 			}
@@ -74,7 +74,7 @@ public :
 	void ActSimulation()
 	{
 		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			Session* se = mIocp->GetSession(i);
+			TcpSession* se = mIocp->GetSession(i);
 			if ( se->IsConnected() ) {
 				if ( Core::Math::RandRange(0, 1000) > 500 )
 					se->Disconnect();
@@ -98,11 +98,16 @@ public :
 
 
 protected :
-	Networker*					mIocp;
-	std::vector<Session*>		mSessions;
+	TcpNetworker*					mIocp;
+	std::vector<TcpSession*>		mSessions;
 
 
 	double						mLastSendTime;
+};
+
+
+class SimClient
+{
 };
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
