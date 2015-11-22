@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "GamePacketReader.h"
 #include "NetUser.h"
+#include "GamePacketBase.h"
+
 
 using namespace Game;
 
@@ -39,5 +41,8 @@ void GamePacketReader::Alphabet(NetUser* user, char* data, int size)
 
 void GamePacketReader::ChatMsg(NetUser* user, char* data, int size)
 {
+	Game::ChatMsg* chatMsg = (Game::ChatMsg*)data;
+	LOG(_T("ChatTest"), chatMsg->mChatData);
+
 }
 

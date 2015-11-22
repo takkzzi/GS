@@ -6,7 +6,7 @@
 
 namespace Game
 {
-
+	//Header
 	struct GamePacketBase
 	{
 		GamePacketBase() : mSize(sizeof(GamePacketBase)), mType(GamePacketProtocol::PT_Base) {
@@ -14,6 +14,9 @@ namespace Game
 
 		USHORT		mSize;
 		USHORT		mType;
+		//TODO :
+		//USHORT	mUserId;
+		//USHORT	mCRC;
 	};
 
 	//TEST
@@ -30,15 +33,18 @@ namespace Game
 	};
 
 	//TEST
-#define		MAX_CHAT_MSG			100
+#define		MAX_CHAT_MSG			512
 
 	struct ChatMsg : GamePacketBase 
 	{
+		널 터미네이터를 잘 붙여줘야 함 !!!
 		ChatMsg(TCHAR* msgStr) {
 			mType = GamePacketProtocol::PT_ChatMsg;
 			mChatSize = min( MAX_CHAT_MSG, (USHORT)(_tcslen(msgStr) * sizeof(TCHAR)) );
 			memcpy(mChatData, msgStr, mChatSize);
-			mChatData[mChatSize] = NULL;
+			mChatData[mChatSize/sizeof(TCHAR)] = _T('\0');// NULL;
+
+			mSize += sizeof(mChatSize) + mChatSize;
 		}
 
 		USHORT	mChatSize;	

@@ -5,11 +5,6 @@
 #include "GameServer.h"
 #include "GameCommon/GameNetworker.h"
 
-#define			RESERVE_USER_COUNT		10000
-#define			MAX_USER_COUNT			30000
-#define			BUFFER_SIZE				1024
-
-#define			PORT					42999
 
 using namespace Game;
 using namespace Server;

@@ -28,6 +28,7 @@
 
 
 ------------ Game ------------ 
+	- Packet Header 에 담을것 알아내기
 	- Protobuf 적용 ? 
 
 

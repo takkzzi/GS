@@ -23,7 +23,7 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
-const int port			= 42999;
+
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -49,7 +49,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	
 	GameServer* gameServer = new GameServer();
 	gameServer->Init();
-	gameServer->BeginServer(42999);
+	gameServer->BeginServer(9500);
 
 	//Main message loop:
 	MSG msg;

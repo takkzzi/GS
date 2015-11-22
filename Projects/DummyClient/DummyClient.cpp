@@ -5,7 +5,7 @@
 #include "DummyClient.h"
 
 #include "GameCommon\GamePacketBase.h"
-
+#include "Client.h"
 
 #define MAX_LOADSTRING 100
 
@@ -20,95 +20,13 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-const char* gServerIP = "58.121.156.234";//"192.168.0.14";
-const int	gServerPort = 9500;
-
-
-class ClientSimulator : public Thread 
-{
-public :
-
-	ClientSimulator(int connCount) : Thread()
-	{
-		//mIocp = new Networker(true, 3, connCount, 100, 2048, 1024);
-		mIocp = new TcpNetworker(true, 3, connCount, connCount+1, 256, 256);
-	};
-
-	virtual ~ClientSimulator() 
-	{
-		SAFE_DELETE(mIocp);
-	};
-
-	virtual bool Begin(bool bSuspend=false)
-	{
-		//ConnectAll
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			TcpSession* se = mIocp->GetSession(i);
-			bool bConn = se->Connect(gServerIP, gServerPort);
-			if (!bConn) {
-			}
-		}
-
-		mLastSendTime = Core::Time::GetAppTime();
-
-		return __super::Begin(bSuspend);
-	}
-
-	virtual DWORD ThreadTick()
-	{
-
-		double currTime = Time::GetAppTime();
-		if ( currTime - mLastSendTime > 1.0) {
-
-			ActSimulation();
-
-			mLastSendTime = currTime;
-		};
-
-
-		Sleep(10);
-
-		return 1;
-	}
-
-	void ActSimulation()
-	{
-		for(int i = 0; i < mIocp->GetSessionCount(); ++i) {
-			TcpSession* se = mIocp->GetSession(i);
-			if ( se->IsConnected() ) {
-				if ( Core::Math::RandRange(0, 1000) > 500 )
-					se->Disconnect();
-			}
-			else {
-				if (Core::Math::RandRange(0, 1000) > 500) {
-					bool bCon = se->Connect(gServerIP, gServerPort);
-					if (!bCon) {
-					}
-				}
-			}
-		}
-	}
 
 
 
-	virtual bool End()
-	{
-		return __super::End();
-	}
 
 
-protected :
-	TcpNetworker*					mIocp;
-	std::vector<TcpSession*>		mSessions;
 
 
-	double						mLastSendTime;
-};
-
-
-class SimClient
-{
-};
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -145,11 +63,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	sessTester[0] = new ClientSimulator(3000);
 	sessTester[0]->Begin();
 	
-	sessTester[1] = new ClientSimulator(3000);
-	sessTester[1]->Begin();
+	//sessTester[1] = new ClientSimulator(3000);
+	//sessTester[1]->Begin();
 	
-	sessTester[2] = new ClientSimulator(3000);
-	sessTester[2]->Begin();
+	//sessTester[2] = new ClientSimulator(3000);
+	//sessTester[2]->Begin();
 	/*
 	sessTester[3] = new ClientSimulator(4000);
 	sessTester[3]->Begin();

@@ -436,8 +436,10 @@ bool TcpSession::ClearRecvBuffer(int bufSize)
 
 bool TcpSession::WriteToSend(char* data, int dataSize)
 {
+	if (!IsConnected())
+		return false;
 
-	return false;
+	return mSendBuffer.Write(data, dataSize);
 }
 
 void TcpSession::Update()
