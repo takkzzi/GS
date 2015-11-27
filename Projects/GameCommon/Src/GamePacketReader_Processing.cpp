@@ -42,7 +42,9 @@ void GamePacketReader::Alphabet(NetUser* user, char* data, int size)
 void GamePacketReader::ChatMsg(NetUser* user, char* data, int size)
 {
 	Game::ChatMsg* chatMsg = (Game::ChatMsg*)data;
-	LOG(_T("ChatTest"), chatMsg->mChatData);
-
+	
+	//if (user->SendData((char*)chatMsg, chatMsg->mSize)) {
+		LOG(_T("ChatTest"), chatMsg->mChatData);
+	//}
 }
 

@@ -40,6 +40,9 @@ namespace Game
 
 		void						SetLevel(Level* level);
 
+		//Networking
+		bool						SendData(char* data, int dataSize);
+
 	protected:
 		void						ResetData();
 		GamePacketBase*				DoPacketize(UINT packetMinSize);

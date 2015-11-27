@@ -101,3 +101,8 @@ void NetUser::SetLevel(Level* level)
 {
 	mLevel = level;
 }
+
+bool NetUser::SendData(char* data, int dataSize)
+{
+	return mSession->WriteToSend(data, dataSize);
+}

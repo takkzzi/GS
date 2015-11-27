@@ -60,7 +60,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	const int testObjCount = 5;
 	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new ClientSimulator(3000);
+	sessTester[0] = new ClientSimulator(1);
 	sessTester[0]->Begin();
 	
 	//sessTester[1] = new ClientSimulator(3000);

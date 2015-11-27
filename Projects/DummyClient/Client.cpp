@@ -10,9 +10,9 @@ Client::Client(TcpSession* session)
 {
 }
 
-
 Client::~Client()
 {
+	mSession->Disconnect();
 }
 
 bool Client::Connect(const CHAR* addr, const int port)
@@ -27,15 +27,42 @@ void Client::Disconnect()
 
 void Client::SendPacket()
 {
-	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세.\0 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세.");
+	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세.");
 	ChatMsg chatmsg(chatStr);
 
+	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
 	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
 
 }
 
 void Client::RecvPacket()
 {
+	//mSession->ReadRecvBuffer()
+	//ChatMsg* chatMsg = GetChatPacket();
+
+	ChatMsg* chatMsg = (ChatMsg*)GetChatPacket();
+	if (chatMsg) {
+
+		LOG(_T("ChatTest"), _T("(%d) %s"), mSession->GetId(), chatMsg->mChatData);
+		
+		mSession->ClearRecvBuffer(chatMsg->mSize);
+	}
+}
+
+void* Client::GetChatPacket()
+{
+	GamePacketBase* basePacket = NULL;
+	char* baseData = mSession->ReadRecvBuffer(sizeof(GamePacketBase));
+	if (baseData) {
+		basePacket = (GamePacketBase*)baseData;
+		char* entireData = mSession->ReadRecvBuffer(basePacket->mSize);
+		if (entireData) {
+			return basePacket;
+		}
+	}
+	return NULL;
 }
 
 void Client::Update()
@@ -55,15 +82,18 @@ const char* gServerIP = "127.0.0.1";//"192.168.0.14";
 const int	gServerPort = 9500;
 
 
-ClientSimulator::ClientSimulator(int connCount) : Thread()
+ClientSimulator::ClientSimulator(int clientCount) : Thread()
 {
-	mIocp = new TcpNetworker(true, 3, connCount, connCount + 1, 256, 256);
+	mIocp = new TcpNetworker(true, 3, clientCount, clientCount + 1, 1024, 1024);
+	mClients.reserve(clientCount);
 };
 
 ClientSimulator::~ClientSimulator()
 {
 	SAFE_DELETE(mIocp);
-	SAFE_DELETE(mClient);
+	for (auto &c : mClients) {
+		SAFE_DELETE(c);
+	}
 };
 
 bool ClientSimulator::Begin(bool bSuspend)
@@ -78,9 +108,11 @@ bool ClientSimulator::Begin(bool bSuspend)
 	}
 	*/
 
-	TcpSession* sess = mIocp->GetNewSession();
-	mClient = new Client(sess);
-	mClient->Connect(gServerIP, gServerPort);
+	for (int i = 0, n = mIocp->GetSessionCount(); i < n; ++i) {
+		Client* newClient = new Client(mIocp->GetSession(i));
+		mClients.push_back(newClient);
+		newClient->Connect(gServerIP, gServerPort);
+	}
 
 	mLastSendTime = Core::Time::GetAppTime();
 
@@ -123,7 +155,9 @@ void ClientSimulator::RunSimulation()
 	}
 	*/
 
-	mClient->Update();
+	for (auto &c : mClients) {
+		c->Update();
+	}
 }
 
 

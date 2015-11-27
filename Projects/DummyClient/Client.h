@@ -8,14 +8,14 @@ public:
 	~Client();
 
 	bool			Connect(const CHAR* addr, const int port);
-	
 	void			Disconnect();
-
 	void			Update();
 
 protected:
 	void			SendPacket();
 	void			RecvPacket();
+
+	void*			GetChatPacket();
 
 protected:
 
@@ -28,7 +28,7 @@ class ClientSimulator : public Thread
 {
 public:
 
-	ClientSimulator(int connCount);
+	ClientSimulator(int clientCount);
 	virtual ~ClientSimulator();
 
 	virtual bool Begin(bool bSuspend = false);
@@ -37,10 +37,12 @@ public:
 	virtual		DWORD	ThreadTick();
 	void				RunSimulation();
 
+
+
+
 protected:
 	TcpNetworker*					mIocp;
-	//std::vector<Client*>			mClients;
-	Client*							mClient;
+	std::vector<Client*>			mClients;
 
 
 	double							mLastSendTime;
