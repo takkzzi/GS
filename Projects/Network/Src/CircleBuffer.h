@@ -21,15 +21,15 @@ namespace Network
 		void						Init(int bufferSize, int extraBufferSize);
 		void						ClearAll();
 
-		bool						Write(char* data, size_t size);
+		bool						Write(char* data, int size);
 		char*						Read(IN OUT int* reqSize, bool bResize, bool bCircularMerge=false);
 
-		bool						AddDataTail(size_t size);
+		bool						AddDataTail(int size);
 
 		char*						GetEmpty(int* requiredSize);		//If Size 0, musch as possible;
 		bool						ClearData(int size);
 	
-		size_t						GetDataSize();
+		int							GetDataSize();
 		char*						GetDataHead()					{ return mCircleStart + mDataHead; };
 		char*						GetDataTail()					{ return mCircleStart + mDataTail; };
 
@@ -37,7 +37,7 @@ namespace Network
 		int							GetDataTailPos()				{ return mDataTail; };
 
 	protected:
-		bool						DoWriteSeparate(char* data, size_t size);
+		bool						DoWriteSeparate(char* data, int size);
 		char*						DoReadAndMergeData(int* reqSize, bool bResize);		//Use Only Separated Data.
 
 		bool						IsCircularData()				{ return (0 < mDataHead) && (mDataTail < mDataHead); }

@@ -60,7 +60,7 @@ void CircleBuffer::ClearAll()
 	CS_UNLOCK
 }
 
-bool CircleBuffer::Write(char* data, size_t dataSize)
+bool CircleBuffer::Write(char* data, int dataSize)
 {	
 	CS_LOCK
 
@@ -68,7 +68,7 @@ bool CircleBuffer::Write(char* data, size_t dataSize)
 	char* emptyStart = GetDataTail(); // mCircleStart + mDataTail;
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
 
-	bool bEnough = (size_t)(emptyEnd - emptyStart) >= dataSize;
+	bool bEnough = (emptyEnd - emptyStart) >= dataSize;
 
 	if ( bEnough ) {
 		memcpy(emptyStart, data, dataSize);
@@ -83,17 +83,17 @@ bool CircleBuffer::Write(char* data, size_t dataSize)
 	return bEnough;
 }
 
-bool CircleBuffer::DoWriteSeparate(char* data, size_t size)
+bool CircleBuffer::DoWriteSeparate(char* data, int size)
 {
 	ASSERT(!IsCircularData());
 
-	size_t tail_end = (mCircleEnd - GetDataTail());
-	size_t start_head = CIRCULAR_DATATAIL_MAX;
+	int tail_end = (mCircleEnd - GetDataTail());
+	int start_head = CIRCULAR_DATATAIL_MAX;
 
-	bool bEnough = ( tail_end + start_head ) >= (size_t)size;
+	bool bEnough = ( tail_end + start_head ) >= size;
 
 	if ( bEnough ) {   //Separate Tail-End, Start-Head
-		size_t start_tail = (size - tail_end);
+		int start_tail = (size - tail_end);
 		memcpy(GetDataTail(), data, tail_end);
 		memcpy(mCircleStart, (data + tail_end), start_tail);
 		mDataTail = start_tail;
@@ -132,16 +132,16 @@ char* CircleBuffer::Read(IN OUT int* requestSize, bool canBeResized, bool bCircu
 //Use Only Separated Data. Make buffer Linear
 char* CircleBuffer::DoReadAndMergeData(int* reqSize, bool canBeResized)
 {
-	size_t head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
+	int head_end_size = (mCircleEnd - (mCircleStart + mDataHead));
 	bool bResult = false;
 
 	char* resultBuf = NULL;
-	if ( head_end_size <= (size_t)mBufferExtraSize ) {
+	if ( head_end_size <= mBufferExtraSize ) {
 
-		size_t start_tail_size = (mDataTail);
-		size_t dataFullSize = (head_end_size + start_tail_size);
+		int start_tail_size = (mDataTail);
+		int dataFullSize = (head_end_size + start_tail_size);
 
-		bool bDataEnough = dataFullSize >= (size_t)(*reqSize);
+		bool bDataEnough = dataFullSize >= (*reqSize);
 
 		char* newHeadPos = (mCircleStart - head_end_size);
 		memcpy(newHeadPos, mCircleStart + mDataHead, head_end_size);
@@ -163,17 +163,21 @@ char* CircleBuffer::DoReadAndMergeData(int* reqSize, bool canBeResized)
 }
 
 //Set DataTail without data-memcpy (Linear) :  Using for OnRecvComplete.
-bool CircleBuffer::AddDataTail(size_t size)
+bool CircleBuffer::AddDataTail(int size)
 {
 	CS_LOCK
 
 	bool bLinear = ! IsCircularData();
 	char* emptyStart = GetDataTail();
 	char* emptyEnd = bLinear ? mCircleEnd : (mCircleStart + CIRCULAR_DATATAIL_MAX);
-	bool bEnough = (size_t)(emptyEnd - emptyStart) >= size;
+	bool bEnough = (emptyEnd - emptyStart) >= size;
 
 	if ( bEnough ) {
 		mDataTail += size;
+		if (mDataTail >= mBufferSize) {
+			if ( mDataHead > 0 )
+				mDataTail = 0;
+		}
 	}
 
 	CS_UNLOCK
@@ -233,9 +237,9 @@ bool CircleBuffer::ClearData(int size)
 	return (dataHead && (size > 0));
 }
 
-size_t CircleBuffer::GetDataSize()
+int CircleBuffer::GetDataSize()
 {
-	size_t size = 0;
+	int size = 0;
 	if ( IsCircularData() ) {
 		size = (mBufferSize - mDataHead) + (mDataTail);
 	} 
