@@ -11,7 +11,7 @@ public:
 	void			Disconnect();
 	void			Update();
 
-protected:
+//protected:
 	void			SendPacket();
 	void			RecvPacket();
 

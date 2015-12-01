@@ -27,13 +27,22 @@ void Client::Disconnect()
 
 void Client::SendPacket()
 {
-	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세.");
+	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 .");
 	ChatMsg chatmsg(chatStr);
 
-	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
-	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
-	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
-	mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+	static bool bTest = true;
+
+	//if (bTest) 
+	{
+		mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+		mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+
+		bTest = false;
+	}
+
+	AlphabetPacket alphabet;
+	mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
+	mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
 
 }
 
@@ -81,10 +90,11 @@ void Client::Update()
 const char* gServerIP = "127.0.0.1";//"192.168.0.14";
 const int	gServerPort = 9500;
 
+const int	gBufferSize = 1024;
 
 ClientSimulator::ClientSimulator(int clientCount) : Thread()
 {
-	mIocp = new TcpNetworker(true, 3, clientCount, clientCount + 1, 1024, 1024);
+	mIocp = new TcpNetworker(true, 3, clientCount, clientCount + 1, gBufferSize, gBufferSize);
 	mClients.reserve(clientCount);
 };
 
