@@ -51,7 +51,7 @@ void NetUser::ResetData()
 
 GamePacketBase* NetUser::GetRecvPacket()
 {
-	return DoPacketize(sizeof(GamePacketBase));
+	return DoPacketize();
 }
 
 bool NetUser::ClearRecvPacket(UINT buffSize)
@@ -61,16 +61,17 @@ bool NetUser::ClearRecvPacket(UINT buffSize)
 }
 
 //Packetizing from RecvBuffer
-GamePacketBase* NetUser::DoPacketize(UINT packetMinSize)
+GamePacketBase* NetUser::DoPacketize()
 {
 	ASSERT(mSession);
 	GamePacketBase* basePacket = NULL;
-	char* baseData = mSession->ReadRecvBuffer(packetMinSize);
+	char* baseData = mSession->ReadRecvBuffer(sizeof(GamePacketBase));
+
 	if ( baseData ) {
 		basePacket = (GamePacketBase*)baseData;
 		char* entireData = mSession->ReadRecvBuffer(basePacket->mSize);
 		if ( entireData ) {
-			return basePacket;
+			return (GamePacketBase*)entireData;
 		}
 	}
 	return NULL;

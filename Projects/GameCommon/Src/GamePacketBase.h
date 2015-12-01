@@ -26,7 +26,7 @@ namespace Game
 			mSize = sizeof(AlphabetPacket);
 			mType = GamePacketProtocol::PT_Alphabet;
 
-			memcpy(mData, ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), sizeof(mData));
+			memcpy(mData, ("ABCDEFGHIJKLMNOPQRSTUVWXYZ\0"), sizeof(mData));
 		}
 		      
 		char	mData[27];

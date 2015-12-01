@@ -45,7 +45,7 @@ namespace Game
 
 	protected:
 		void						ResetData();
-		GamePacketBase*				DoPacketize(UINT packetMinSize);
+		GamePacketBase*				DoPacketize();
 		
 		
 	protected:
