@@ -213,8 +213,31 @@ void Logger::LogDebugString(const CHAR* logMsg, ...)
 		OutputDebugStringA(logBuff);
 
 	#ifdef _CONSOLE
-			_tprintf("%s", logBuff);
+			printf("%s", logBuff);
 	#endif
+	}
+	CS_UNLOCK
+}
+
+void Logger::LogDebugString(const LPTSTR logMsg, ...)
+{
+	if (!msInit) return;
+
+	CS_LOCK
+	{
+		static TCHAR logBuff[MAX_LOG_BUFFER] = { 0, };
+
+		va_list		ap;
+		va_start(ap, logMsg);
+		_vstprintf(logBuff, MAX_LOG_BUFFER, logMsg, ap);
+		va_end(ap);
+
+		_tprintf_s(logBuff, _T("%s\n"), logBuff);
+		OutputDebugStringW(logBuff);
+
+#ifdef _CONSOLE
+	_tprintf(_T("%s"), logBuff);
+#endif
 	}
 	CS_UNLOCK
 }
