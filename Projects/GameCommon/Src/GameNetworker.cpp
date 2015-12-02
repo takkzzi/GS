@@ -69,4 +69,6 @@ void GameNetworker::Update(float dt)
 				user->Destroy();
 		}
 	}
+
+	mPacketReader->Update(dt);
 }

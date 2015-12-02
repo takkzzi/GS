@@ -26,7 +26,7 @@ GameServer::~GameServer()
 
 #define			RESERVE_USER_COUNT		10000
 #define			MAX_USER_COUNT			30000
-#define			BUFFER_SIZE				256
+#define			BUFFER_SIZE				4096
 
 void GameServer::Init()
 {

@@ -7,6 +7,8 @@ using namespace Game;
 
 Client::Client(TcpSession* session)
 	: mSession(session)
+	, mPacketSequence(1)
+	, mSentElapsedTime(0.0f)
 {
 }
 
@@ -27,40 +29,63 @@ void Client::Disconnect()
 
 void Client::SendPacket()
 {
-	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 .");
+	if (!mSession->IsConnected())
+		return;
+
+	static TCHAR* chatStr = _T("동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세.");
 	ChatMsg chatmsg(chatStr);
 
-	static bool bTest = true;
+	chatmsg.mSequence = mPacketSequence;
+	bool bSent = mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+	if (bSent) {
+		mPacketSequence++;
+	}
 
-	//if (bTest) 
-	{
-		mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
-		mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
-
-		bTest = false;
+	chatmsg.mSequence = mPacketSequence;
+	bSent = mSession->WriteToSend((char*)&chatmsg, chatmsg.mSize);
+	if (bSent) {
+		mPacketSequence++;
 	}
 
 	AlphabetPacket alphabet;
-	mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
-	mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
+
+	alphabet.mSequence = mPacketSequence;
+	bSent = mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
+	if (bSent) {
+		mPacketSequence++;
+	}
+
+	alphabet.mSequence = mPacketSequence;
+	bSent = mSession->WriteToSend((char*)&alphabet, alphabet.mSize);
+	if (bSent) {
+		mPacketSequence++;
+	}
+
 
 }
 
 void Client::RecvPacket()
 {
-	//mSession->ReadRecvBuffer()
-	//ChatMsg* chatMsg = GetChatPacket();
+	if (!mSession->IsConnected())
+		return;
 
-	ChatMsg* chatMsg = (ChatMsg*)GetChatPacket();
-	if (chatMsg) {
+	GamePacketBase* packetData = (GamePacketBase*)GetPacket();
+	if (packetData) {
 
-		LOG(_T("ChatTest"), _T("(%d) %s"), mSession->GetId(), chatMsg->mChatData);
-		
-		mSession->ClearRecvBuffer(chatMsg->mSize);
+		if (packetData->mType == (USHORT)PT_ChatMsg) {
+			//LOG(_T("ChatTest"), _T("(%d) %s"), mSession->GetId(), chatMsg->mChatData);
+		}
+		else if (packetData->mType == (USHORT)PT_Alphabet) {
+		}
+		else {
+			ASSERT(0);
+		}
+
+		mSession->ClearRecvBuffer(packetData->mSize);
 	}
 }
 
-void* Client::GetChatPacket()
+void* Client::GetPacket()
 {
 	GamePacketBase* basePacket = NULL;
 	char* baseData = mSession->ReadRecvBuffer(sizeof(GamePacketBase));
@@ -74,6 +99,7 @@ void* Client::GetChatPacket()
 	return NULL;
 }
 
+/*
 void Client::Update()
 {
 	if (!mSession->IsConnected())
@@ -82,6 +108,7 @@ void Client::Update()
 	SendPacket();
 	RecvPacket();
 }
+*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +117,7 @@ void Client::Update()
 const char* gServerIP = "127.0.0.1";//"192.168.0.14";
 const int	gServerPort = 9500;
 
-const int	gBufferSize = 1024;
+const int	gBufferSize = 4096;
 
 ClientSimulator::ClientSimulator(int clientCount) : Thread()
 {
@@ -124,7 +151,7 @@ bool ClientSimulator::Begin(bool bSuspend)
 		newClient->Connect(gServerIP, gServerPort);
 	}
 
-	mLastSendTime = Core::Time::GetAppTime();
+	mPrevAppTime = Core::Time::GetAppTime();
 
 	return __super::Begin(bSuspend);
 }
@@ -132,15 +159,7 @@ bool ClientSimulator::Begin(bool bSuspend)
 DWORD ClientSimulator::ThreadTick()
 {
 
-	double currTime = Time::GetAppTime();
-	if (currTime - mLastSendTime > 0.2) {
-
-		RunSimulation();
-
-		mLastSendTime = currTime;
-	};
-
-
+	RunSimulation();
 	Sleep(0);
 
 	return 1;
@@ -148,26 +167,17 @@ DWORD ClientSimulator::ThreadTick()
 
 void ClientSimulator::RunSimulation()
 {
-	/*
-	for (int i = 0; i < mIocp->GetSessionCount(); ++i) {
-		TcpSession* se = mIocp->GetSession(i);
-		if (se->IsConnected()) {
-			if (Core::Math::RandRange(0, 1000) > 500)
-				se->Disconnect();
-		}
-		else {
-			if (Core::Math::RandRange(0, 1000) > 500) {
-				bool bCon = se->Connect(gServerIP, gServerPort);
-				if (!bCon) {
-				}
-			}
-		}
-	}
-	*/
+
+	double currentTime = Core::Time::GetAppTime();
 
 	for (auto &c : mClients) {
-		c->Update();
+		if (currentTime - mPrevAppTime >= 0.001)
+			c->SendPacket();
+
+		c->RecvPacket();
 	}
+
+	mPrevAppTime = currentTime;
 }
 
 

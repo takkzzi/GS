@@ -219,22 +219,47 @@ char* CircleBuffer::GetEmpty(int* requiredSize)	// size == 0 is Maximum Size as 
 	return resultBuf;
 }
 
-bool CircleBuffer::ClearData(int size)
+bool CircleBuffer::ClearData(int clearSize)
 {
-	char* dataHead = Read(&size, false, false);
+	//char* dataHead = Read(&size, false, false);
 
 	CS_LOCK
-	if ( dataHead ) {
-		mDataHead += size;
-		/*
-		ASSERT(mDataHead <= mDataTail);
-		if ( mDataHead == mDataTail) {
-			mDataHead = mDataTail = 0;
+	if (clearSize <= 0) {
+		CS_UNLOCK
+		return false;
+	}
+
+	int currDataSize = GetDataSize();
+	bool bEnough = (currDataSize >= clearSize);
+	if (bEnough) {
+		
+		bool bLinear = !IsCircularData();
+		if (bLinear) {
+			mDataHead += clearSize;
 		}
+		else {
+			int head_end = mBufferSize - mDataHead;
+			int start_tail = mDataTail;
+
+			if (clearSize > head_end) {
+				int newHead = clearSize - head_end;
+				mDataHead = newHead;
+			}
+			else {
+				mDataHead += clearSize;
+				if (mDataHead >= mBufferSize)
+					mDataHead = 0;
+			}
+		}
+
+		/*Error
+		if (mDataHead == mDataTail)
+			mDataHead = mDataTail = 0;	//Clear All
 		*/
 	}
 	CS_UNLOCK
-	return (dataHead && (size > 0));
+
+	return bEnough;
 }
 
 int CircleBuffer::GetDataSize()

@@ -22,12 +22,17 @@ bool GamePacketReader::ProcessUserPacket(NetUser* user)
 	if ( ! packet )
 		return false;
 
-	char* data = (char*)packet;
+	mRecvDataSize += packet->mSize;
+
+	//Check 'Packet Sequence'
+	ASSERT((user->mLastPacketNumber + 1) == packet->mSequence);
+	user->mLastPacketNumber = packet->mSequence;
 
 	USHORT protocol = packet->mType;
 	if ( mHandlerArray[protocol] ) { 
-		(this->*(this->mHandlerArray[protocol])) (user, data, (int)packet->mSize);	//Call Binded Func
-		user->ClearRecvPacket(packet->mSize);
+		(this->*(this->mHandlerArray[protocol])) (user, (char*)packet, (int)packet->mSize);	//Call Binded Func
+		bool bCleared = user->ClearRecvPacket(packet->mSize);
+		ASSERT(bCleared);
 		return true;
 	}
 	else
@@ -39,12 +44,14 @@ bool GamePacketReader::ProcessUserPacket(NetUser* user)
 void GamePacketReader::Alphabet(NetUser* user, char* data, int size)
 {
 	Game::AlphabetPacket* alphabet = (Game::AlphabetPacket*)data;
-	Logger::LogDebugString(alphabet->mData);
+	
+	//Logger::LogDebugString(alphabet->mData);
 }
 
 void GamePacketReader::ChatMsg(NetUser* user, char* data, int size)
 {
 	Game::ChatMsg* chatMsg = (Game::ChatMsg*)data;
-	Logger::LogDebugString(chatMsg->mChatData);
+
+	//Logger::LogDebugString(chatMsg->mChatData);
 }
 

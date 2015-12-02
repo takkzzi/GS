@@ -15,6 +15,7 @@ NetUser::NetUser()
 	, mUserState(USERSTATE_NONE)
 	, mLevel(NULL)
 	, mPlayer(NULL)
+	, mLastPacketNumber(0)
 {
 }
 
@@ -28,6 +29,7 @@ void NetUser::Init(TcpSession* session)
 {
 	mSession = session;
 	mUserState = USERSTATE_CONNECTED;
+	mLastPacketNumber = 0;
 
 	EnterGame(NULL);	//TEST
 }

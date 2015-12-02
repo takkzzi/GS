@@ -54,5 +54,8 @@ namespace Game
 
 		Level*						mLevel;
 		Player*						mPlayer;
+
+	public :
+		UINT64						mLastPacketNumber;
 	};
 }

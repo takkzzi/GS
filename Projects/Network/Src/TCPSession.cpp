@@ -378,6 +378,9 @@ void TcpSession::OnConnect()
 
 void TcpSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 {	
+	if (!IsState(SESSIONSTATE_CONNECTED))
+		return;
+
 	ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
 	CS_LOCK;
 	mbSendPending = ! mSendBuffer.ClearData(sendSize);
@@ -387,10 +390,13 @@ void TcpSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 
 void TcpSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 {
+	if (!IsState(SESSIONSTATE_CONNECTED))
+		return;
+
 	CS_LOCK;
 	if ( mRecvBuffer.AddDataTail(recvSize) ) {
 		mbRecvStarted = false;
-		Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
+		//Logger::LogDebugString("Recved %d (Head %d, Tail %d)", recvSize, mRecvBuffer.GetDataHeadPos(), mRecvBuffer.GetDataTailPos());
 	}
 	else {
 		ASSERT(0 && "RecvBuffer.Reserve() Error !");

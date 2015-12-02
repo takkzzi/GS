@@ -11,15 +11,19 @@ public:
 	void			Disconnect();
 	void			Update();
 
-//protected:
+public:
 	void			SendPacket();
 	void			RecvPacket();
 
-	void*			GetChatPacket();
+protected:
+	void*			GetPacket();
 
 protected:
 
 	TcpSession*			mSession;
+	UINT64				mPacketSequence;
+
+	float				mSentElapsedTime;
 };
 
 
@@ -38,13 +42,11 @@ public:
 	void				RunSimulation();
 
 
-
-
 protected:
 	TcpNetworker*					mIocp;
 	std::vector<Client*>			mClients;
 
+	double							mPrevAppTime;
 
-	double							mLastSendTime;
 };
 

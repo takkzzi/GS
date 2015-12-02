@@ -17,6 +17,7 @@ namespace Game
 	public:
 		void			Init();
 		bool			ProcessUserPacket(NetUser* user);
+		void			Update(float dt);
 
 	protected:
 		void			BindHanlder();
@@ -33,5 +34,12 @@ namespace Game
 
 		typedef		void(GamePacketReader::*PacketHandler)(NetUser*, char*, int);	//char:Data, int:Size
 		PacketHandler	mHandlerArray[PT_Max];
+
+	protected:
+
+		int				mRecvDataSize;
+		int				mSentDataSize;
+
+		float			mElapsedTime;
 	};
 }

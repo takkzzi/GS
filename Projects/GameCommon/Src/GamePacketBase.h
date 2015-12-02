@@ -9,12 +9,17 @@ namespace Game
 	//Header
 	struct GamePacketBase
 	{
-		GamePacketBase() : mSize(sizeof(GamePacketBase)), mType(GamePacketProtocol::PT_Base) {
+		GamePacketBase() 
+			: mSize(sizeof(GamePacketBase))
+			, mType(GamePacketProtocol::PT_Base) 
+			, mSequence(0)
+		{
 		}
 
 		USHORT		mSize;
 		USHORT		mType;
-		//TODO :
+		UINT64		mSequence;
+		//TODO:
 		//USHORT	mUserId;
 		//USHORT	mCRC;
 	};
