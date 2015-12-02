@@ -196,52 +196,6 @@ void Logger::Log(const CHAR* category, const CHAR* logData, ...)
 	CS_UNLOCK
 }
 
-void Logger::LogDebugString(const CHAR* logMsg, ...)
-{
-	if ( ! msInit  ) return;
-
-	CS_LOCK
-	{
-		static CHAR logBuff[MAX_LOG_BUFFER]				= {0,};
-
-		va_list		ap;
-		va_start(ap, logMsg);
-		vsprintf(logBuff, logMsg, ap);
-		va_end(ap);
-
-		sprintf_s(logBuff, "%s\n", logBuff);
-		OutputDebugStringA(logBuff);
-
-	#ifdef _CONSOLE
-			printf("%s", logBuff);
-	#endif
-	}
-	CS_UNLOCK
-}
-
-void Logger::LogDebugString(const LPTSTR logMsg, ...)
-{
-	if (!msInit) return;
-
-	CS_LOCK
-	{
-		static TCHAR logBuff[MAX_LOG_BUFFER] = { 0, };
-
-		va_list		ap;
-		va_start(ap, logMsg);
-		_vstprintf(logBuff, MAX_LOG_BUFFER, logMsg, ap);
-		va_end(ap);
-
-		_tprintf_s(logBuff, _T("%s\n"), logBuff);
-		OutputDebugStringW(logBuff);
-
-#ifdef _CONSOLE
-	_tprintf(_T("%s"), logBuff);
-#endif
-	}
-	CS_UNLOCK
-}
-
 void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 {
 	if ( ! msInit  ) return;
@@ -253,21 +207,22 @@ void Logger::LogWithDate(const LPTSTR category, const LPTSTR logData, ...)
 	{
 		const TCHAR* timeStr = Time::GetSystemTimeStr();
 
-		static TCHAR logBuff[MAX_LOG_BUFFER]			= {0,};
+		static TCHAR logBuff[MAX_LOG_BUFFER] = {0,};
+		static TCHAR resultBuff[MAX_LOG_BUFFER] = { 0, };
 
 		va_list		ap;
 		va_start(ap, logData);
 		_vstprintf(logBuff, MAX_LOG_BUFFER, logData, ap);
 		va_end(ap);
 
-		_tprintf_s(logBuff, _T("[%s] %s\n"), timeStr, logBuff);
+		_stprintf_s(resultBuff, MAX_LOG_BUFFER, _T("[%s] %s\n"), timeStr, logBuff);
 
 		//_ftprintf(file, _T("[%s] %s\n"), timeStr, logBuff);
-		_ftprintf(file, logBuff);
+		_ftprintf(file, resultBuff);
 		fflush(file);
 
 		if ( IsDebuggerPresent() ) {
-			OutputDebugString(logBuff);
+			OutputDebugString(resultBuff);
 
 	#ifdef _CONSOLE
 			_tprintf(_T("%s"), logBuff);
@@ -290,20 +245,23 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		const TCHAR* currTime = Time::GetSystemTimeStr();
 		const CHAR* currTimeA = StringUtil::AnsiFromTCHAR(currTime);
 
-		static CHAR logBuff[MAX_LOG_BUFFER]			= {0,};
+		static CHAR logBuff[MAX_LOG_BUFFER]	= {0,};
+		static CHAR resultBuff[MAX_LOG_BUFFER] = { 0, };
 
 		va_list		ap;
 		va_start(ap, logData);
 		vsprintf(logBuff, logData, ap);
 		va_end(ap);
 
-		fprintf(file, "[%s] %s\n", currTimeA, logBuff);
+		sprintf(resultBuff, "[%s] %s\n", currTimeA, logBuff);
+		fprintf(file, resultBuff);
 		fflush(file);
 
 		//fclose(FilePtr);
 
-		if ( IsDebuggerPresent() ) {
-			OutputDebugStringA(logBuff);
+		if (IsDebuggerPresent())
+		{
+			OutputDebugStringA(resultBuff);
 
 	#ifdef _CONSOLE
 			printf("%s", debugBuff);
@@ -311,6 +269,53 @@ void Logger::LogWithDate(const CHAR* category, const CHAR* logData, ...)
 		}
 	}
 	CS_UNLOCK
+}
+
+void Logger::LogDebugString(const CHAR* logMsg, ...)
+{
+	if (!msInit) return;
+
+	CS_LOCK
+	{
+		static CHAR logBuff[MAX_LOG_BUFFER] = { 0, };
+
+	va_list		ap;
+	va_start(ap, logMsg);
+	vsprintf(logBuff, logMsg, ap);
+	va_end(ap);
+
+	sprintf_s(logBuff, "%s\n", logBuff);
+	OutputDebugStringA(logBuff);
+
+#ifdef _CONSOLE
+	printf("%s\n", logBuff);
+#endif
+	}
+		CS_UNLOCK
+}
+
+void Logger::LogDebugString(const LPTSTR logMsg, ...)
+{
+	if (!msInit) return;
+
+	CS_LOCK
+	{
+		static TCHAR logBuff[MAX_LOG_BUFFER] = { 0, };
+
+	va_list		ap;
+	va_start(ap, logMsg);
+	_vstprintf(logBuff, MAX_LOG_BUFFER, logMsg, ap);
+	va_end(ap);
+
+	_stprintf_s(logBuff, _T("%s\n"), logBuff);
+
+	OutputDebugString(logBuff);
+
+#ifdef _CONSOLE
+	_tprintf(_T("%s\n"), logBuff);
+#endif
+	}
+		CS_UNLOCK
 }
 
 FILE* Logger::FindFile(const LPTSTR name)
