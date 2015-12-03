@@ -46,9 +46,16 @@ unsigned __stdcall IOCPWorker (void* arg)
 						sess->OnRecvComplete(overlapped, transferBytes);
 				}
 			}
-			else {
-				//Remote Socket Closed
-				sess->OnDisconnect();
+			else { 
+				if (io == IO_ACCEPT) {	
+					sess->OnCancelAccept();	//Cosing Listen Socket
+				}
+				else if (io == IO_SEND) {
+					sess->OnDisconnect();	//Remote Socket Shutdown (send)
+				}
+				else if (io == IO_RECV) {	//Remote Socket Shutdown (recv)
+					sess->OnDisconnect();
+				}
 			}
 		}
 	}

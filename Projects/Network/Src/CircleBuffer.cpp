@@ -228,6 +228,9 @@ bool CircleBuffer::ClearData(int clearSize)
 		CS_UNLOCK
 		return false;
 	}
+	int head_end = 0;
+	int start_tail = 0;
+	int newHead = 0;
 
 	int currDataSize = GetDataSize();
 	bool bEnough = (currDataSize >= clearSize);
@@ -238,11 +241,11 @@ bool CircleBuffer::ClearData(int clearSize)
 			mDataHead += clearSize;
 		}
 		else {
-			int head_end = mBufferSize - mDataHead;
-			int start_tail = mDataTail;
+			head_end = mBufferSize - mDataHead;
+			start_tail = mDataTail;
 
 			if (clearSize > head_end) {
-				int newHead = clearSize - head_end;
+				newHead = clearSize - head_end;
 				mDataHead = newHead;
 			}
 			else {
@@ -256,6 +259,9 @@ bool CircleBuffer::ClearData(int clearSize)
 		if (mDataHead == mDataTail)
 			mDataHead = mDataTail = 0;	//Clear All
 		*/
+	}
+	else {
+		ASSERT(0);
 	}
 	CS_UNLOCK
 

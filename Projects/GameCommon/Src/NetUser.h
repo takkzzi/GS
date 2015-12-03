@@ -1,5 +1,7 @@
 #pragma once
 
+//#include "Network/TcpSession.h"
+
 namespace Game
 {
 	//class Network::Session;
@@ -19,7 +21,7 @@ namespace Game
 	};
 
 
-	class NetUser
+	class NetUser : public SessionEventObject
 	{
 	public :
 		NetUser();
@@ -47,9 +49,10 @@ namespace Game
 		void						ResetData();
 		GamePacketBase*				DoPacketize();
 		
-		
+		virtual void				OnDisconnect();
+
 	protected:
-		Network::TcpSession*		mSession;
+		TcpSession*					mSession;
 		UserState					mUserState;
 
 		Level*						mLevel;

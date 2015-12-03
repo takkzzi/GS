@@ -1,7 +1,7 @@
 #pragma once
 
 
-class Client
+class Client : public SessionEventObject
 {
 public:
 	Client(TcpSession* session);
@@ -14,6 +14,8 @@ public:
 public:
 	void			SendPacket();
 	void			RecvPacket();
+
+	virtual	void	OnDisconnect();
 
 protected:
 	void*			GetPacket();
@@ -32,7 +34,7 @@ class ClientSimulator : public Thread
 {
 public:
 
-	ClientSimulator(int clientCount);
+	ClientSimulator();
 	virtual ~ClientSimulator();
 
 	virtual bool Begin(bool bSuspend = false);
@@ -41,12 +43,16 @@ public:
 	virtual		DWORD	ThreadTick();
 	void				RunSimulation();
 
+	static void			Update();
 
 protected:
 	TcpNetworker*					mIocp;
 	std::vector<Client*>			mClients;
 
+	
 	double							mPrevAppTime;
 
+public:
+	static	volatile	UINT64		msRecvedData;
 };
 

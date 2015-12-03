@@ -28,6 +28,9 @@ NetUser::~NetUser()
 void NetUser::Init(TcpSession* session)
 {
 	mSession = session;
+	if (mSession)
+		mSession->SetEventObject(this);
+
 	mUserState = USERSTATE_CONNECTED;
 	mLastPacketNumber = 0;
 
@@ -47,6 +50,9 @@ void NetUser::Destroy()
 void NetUser::ResetData()
 {
 	//Reset User Data;
+	if (mSession)
+		mSession->SetEventObject(NULL);
+
 	mSession = NULL;
 	mUserState = USERSTATE_NONE;
 }
@@ -108,4 +114,9 @@ void NetUser::SetLevel(Level* level)
 bool NetUser::SendData(char* data, int dataSize)
 {
 	return mSession->WriteToSend(data, dataSize);
+}
+
+void NetUser::OnDisconnect()
+{
+	Logger::LogDebugString("[%d] Disconnected!", mSession->GetId());
 }

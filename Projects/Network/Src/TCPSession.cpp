@@ -52,13 +52,13 @@ TcpSession::TcpSession(TcpNetworker* networker, int id, int sendBufferSize, int 
 	, mId(id)
 	, mState(SESSIONSTATE_NONE)
 	, mSock(INVALID_SOCKET)
-	, mEvent(WSA_INVALID_EVENT)
 	, mAcceptBuffer(NULL)
 	, mListenSock(INVALID_SOCKET)
 	, mIsAccepter(false)
 	, mbSendPending(false)
 	, mbRecvStarted(false)
 	, mbRecvLock(false)
+	, mEventObj(NULL)
 {	
 	CS_LOCK;
 
@@ -282,8 +282,9 @@ bool TcpSession::StartReceive()
 		int res = ::WSARecv(mSock, &wsabuf, 1, &transferBytes, &dwFlags, (WSAOVERLAPPED*)&(mRecvIoData), NULL);
 
 		if ( (res == SOCKET_ERROR) && ( WSAGetLastError() != ERROR_IO_PENDING ) ) {
-			LOG_LASTERROR(_T("WSARecv() Error!"), IsDebuggerPresent());
-			ASSERT(0);
+			//bool bDebuggerPresent = IsDebuggerPresent();
+			//LOG_LASTERROR(_T("WSARecv() Error!"), false );
+			//ASSERT(0);
 			SetState(SESSIONSTATE_DISCONNECTING);
 		}
 		else {
@@ -384,8 +385,9 @@ void TcpSession::OnSendComplete(OverlappedIoData* ioData, DWORD sendSize)
 	ASSERT( ioData->bufPtr == mSendBuffer.GetDataHead() );
 	CS_LOCK;
 	mbSendPending = ! mSendBuffer.ClearData(sendSize);
-	CS_UNLOCK;
 	ASSERT(!mbSendPending && "SendBuffer Clear Error !");
+	CS_UNLOCK;
+	
 }
 
 void TcpSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
@@ -407,10 +409,25 @@ void TcpSession::OnRecvComplete(OverlappedIoData* ioData, DWORD recvSize)
 void TcpSession::OnDisconnect()
 {
 	CS_LOCK;
-	ResetState(true);
+	if (!IsState(SESSIONSTATE_NONE))
+	{
+		ResetState(true);
+
+		if (mEventObj)
+			mEventObj->OnDisconnect();
+	}
 	CS_UNLOCK;
 }
 
+void TcpSession::OnCancelAccept()
+{
+	CS_LOCK;
+	if (IsState(SESSIONSTATE_ACCEPTING))
+		ResetState(true);
+	else
+		ASSERT(0);
+	CS_UNLOCK;
+}
 
 char* TcpSession::ReadRecvBuffer(int bufSize)
 {

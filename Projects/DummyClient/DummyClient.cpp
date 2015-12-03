@@ -60,22 +60,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	const int testObjCount = 5;
 	ClientSimulator* sessTester[testObjCount] = { 0, 0, 0, 0, 0 };
 
-	sessTester[0] = new ClientSimulator(2500);
+	sessTester[0] = new ClientSimulator();
 	sessTester[0]->Begin();
 	
-	sessTester[1] = new ClientSimulator(2500);
+	sessTester[1] = new ClientSimulator();
 	sessTester[1]->Begin();
 	
-	/*
-	sessTester[2] = new ClientSimulator(5000);
+	
+	sessTester[2] = new ClientSimulator();
 	sessTester[2]->Begin();
 
-	sessTester[3] = new ClientSimulator(5000);
+	sessTester[3] = new ClientSimulator();
 	sessTester[3]->Begin();
 
-	sessTester[4] = new ClientSimulator(5000);
+	sessTester[4] = new ClientSimulator();
 	sessTester[4]->Begin();
-	*/
+	
 
 	// Main message loop:
 	double startTime = Time::GetAppTime();
@@ -95,7 +95,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 		else {
-			//sessTester[0]->Update();
+			ClientSimulator::Update();
 		}
 	}
 

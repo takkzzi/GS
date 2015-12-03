@@ -44,14 +44,14 @@ bool GamePacketReader::ProcessUserPacket(NetUser* user)
 void GamePacketReader::Alphabet(NetUser* user, char* data, int size)
 {
 	Game::AlphabetPacket* alphabet = (Game::AlphabetPacket*)data;
-	
+	user->SendData((char*)alphabet, alphabet->mSize);
 	//Logger::LogDebugString(alphabet->mData);
 }
 
 void GamePacketReader::ChatMsg(NetUser* user, char* data, int size)
 {
 	Game::ChatMsg* chatMsg = (Game::ChatMsg*)data;
-
+	user->SendData((char*)chatMsg, chatMsg->mSize);
 	//Logger::LogDebugString(chatMsg->mChatData);
 }
 

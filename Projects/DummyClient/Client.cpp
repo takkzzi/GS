@@ -14,12 +14,15 @@ Client::Client(TcpSession* session)
 
 Client::~Client()
 {
-	mSession->Disconnect();
 }
 
 bool Client::Connect(const CHAR* addr, const int port)
 {
-	return mSession->Connect(addr, port);
+	bool bConn = mSession->Connect(addr, port);
+	if (bConn)
+		mSession->SetEventObject(this);
+
+	return bConn;
 }
 
 void Client::Disconnect()
@@ -69,17 +72,21 @@ void Client::RecvPacket()
 	if (!mSession->IsConnected())
 		return;
 
-	GamePacketBase* packetData = (GamePacketBase*)GetPacket();
-	if (packetData) {
-
+	while(GamePacketBase* packetData = (GamePacketBase*)GetPacket())
+	{ 
 		if (packetData->mType == (USHORT)PT_ChatMsg) {
-			//LOG(_T("ChatTest"), _T("(%d) %s"), mSession->GetId(), chatMsg->mChatData);
+			ChatMsg* chatMsg = (ChatMsg*)packetData;
+			//Logger::LogDebugString(_T("(%d) %s"), mSession->GetId(), chatMsg->mChatData);
 		}
 		else if (packetData->mType == (USHORT)PT_Alphabet) {
+			AlphabetPacket* alphabet = (AlphabetPacket*)packetData;
+			//Logger::LogDebugString("(%d) %s", mSession->GetId(), alphabet->mData);
 		}
 		else {
 			ASSERT(0);
 		}
+
+		ClientSimulator::msRecvedData += packetData->mSize;
 
 		mSession->ClearRecvBuffer(packetData->mSize);
 	}
@@ -111,26 +118,39 @@ void Client::Update()
 */
 
 
+void Client::OnDisconnect()
+{
+	Logger::LogDebugString("[%d] Disconnected !", mSession->GetId());
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* gServerIP = "127.0.0.1";//"192.168.0.14";
 const int	gServerPort = 9500;
 
+const int	gClientCount = 1000;
 const int	gBufferSize = 4096;
 
-ClientSimulator::ClientSimulator(int clientCount) : Thread()
+
+volatile UINT64 ClientSimulator::msRecvedData = 0;
+
+ClientSimulator::ClientSimulator() : Thread()
 {
-	mIocp = new TcpNetworker(true, 3, clientCount, clientCount + 1, gBufferSize, gBufferSize);
-	mClients.reserve(clientCount);
+	mIocp = new TcpNetworker(true, 3, gClientCount, gClientCount + 1, gBufferSize, gBufferSize);
+	mClients.reserve(gClientCount);
 };
 
 ClientSimulator::~ClientSimulator()
 {
+
 	SAFE_DELETE(mIocp);
+
 	for (auto &c : mClients) {
 		SAFE_DELETE(c);
 	}
+	
 };
 
 bool ClientSimulator::Begin(bool bSuspend)
@@ -180,7 +200,23 @@ void ClientSimulator::RunSimulation()
 	mPrevAppTime = currentTime;
 }
 
+void ClientSimulator::Update()
+{
+	static double prevAppTime = Core::Time::GetAppTime();
 
+	double currAppTime = Core::Time::GetAppTime();
+	if (currAppTime - prevAppTime >= 1.0)
+	{
+		float kbSize = (float)msRecvedData / 1024.0f;
+
+		if (kbSize>0.0f)
+			Logger::LogDebugString("Recieved Data : %g KB/S", kbSize);
+
+		msRecvedData = 0;
+
+		prevAppTime = currAppTime;
+	}
+}
 
 bool ClientSimulator::End()
 {

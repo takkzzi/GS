@@ -29,7 +29,8 @@ void GamePacketReader::Update(float dt)
 	if (mElapsedTime >= 1.0f)
 	{
 		float kbSize = (float)mRecvDataSize / 1024.f;
-		Logger::LogDebugString("Recieved Data : %g KB/S", kbSize);
+		if (kbSize > 0.0f)
+			Logger::LogDebugString("Recieved Data : %g KB/S", kbSize);
 		mRecvDataSize = 0;
 		mElapsedTime = 0.0f;
 	}

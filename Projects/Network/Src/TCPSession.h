@@ -9,7 +9,6 @@ namespace Network
 	class TcpSession;
 	class SessionEventObject;
 
-
 	enum OverlappedIoType 
 	{
 		IO_NONE,
@@ -80,13 +79,16 @@ namespace Network
 		CircleBuffer*			GetReadBuffer()	{ return &mRecvBuffer; }
 		CircleBuffer*			GetSendBuffer() { return &mSendBuffer; }
 
+		void					SetEventObject(SessionEventObject* obj) { mEventObj = obj; }
+
 	//Start Event Callback
 	public :
 		void					OnAccept(SOCKET listenSock);
 		void					OnSendComplete(OverlappedIoData* overlapIoData, DWORD sendSize);
 		void					OnRecvComplete(OverlappedIoData* overlapIoData, DWORD recvSize);
-		void					OnDisconnect();
 
+		void					OnDisconnect();
+		void					OnCancelAccept();
 	protected:
 		void					OnConnect();
 		void					Update();
@@ -104,7 +106,6 @@ namespace Network
 		volatile	SessionState	mState;
 		
 		SOCKET					mSock;
-		HANDLE					mEvent;
 		SOCKADDR_IN				mRemoteAddr;
 
 		OverlappedIoData		mAcceptIoData;
@@ -127,4 +128,14 @@ namespace Network
 
 	};
 	
+	
+	class SessionEventObject
+	{
+	public :
+		SessionEventObject() {};
+		virtual ~SessionEventObject() {};
+
+		virtual void		OnDisconnect() {} ;
+	};
+
 }
