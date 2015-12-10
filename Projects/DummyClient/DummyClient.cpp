@@ -67,14 +67,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	sessTester[1]->Begin();
 	
 	
-	sessTester[2] = new ClientSimulator();
-	sessTester[2]->Begin();
+	//sessTester[2] = new ClientSimulator();
+	//sessTester[2]->Begin();
 
-	sessTester[3] = new ClientSimulator();
-	sessTester[3]->Begin();
+	//sessTester[3] = new ClientSimulator();
+	//sessTester[3]->Begin();
 
-	sessTester[4] = new ClientSimulator();
-	sessTester[4]->Begin();
+	//sessTester[4] = new ClientSimulator();
+	//sessTester[4]->Begin();
 	
 
 	// Main message loop:

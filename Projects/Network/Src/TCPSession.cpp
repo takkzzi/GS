@@ -162,6 +162,10 @@ bool TcpSession::Connect(const CHAR* addr, USHORT port)
 		if (errCode != WSAEWOULDBLOCK)
 		{	
 			ResetState(true);
+
+			if (mEventObj)
+				mEventObj->OnConnectFail(errCode);
+
 			CS_UNLOCK;
 			return FALSE;
 		}
@@ -374,6 +378,9 @@ void TcpSession::OnConnect()
 	mbSendPending = false;
 	mbRecvStarted = false;
 
+	if (mEventObj)
+		mEventObj->OnConnect();
+
 	SetState(SESSIONSTATE_CONNECTED);
 }
 
@@ -424,8 +431,8 @@ void TcpSession::OnCancelAccept()
 	CS_LOCK;
 	if (IsState(SESSIONSTATE_ACCEPTING))
 		ResetState(true);
-	else
-		ASSERT(0);
+	//else
+		//ASSERT(0);
 	CS_UNLOCK;
 }
 

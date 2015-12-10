@@ -49,7 +49,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	
 	GameServer* gameServer = new GameServer();
 	gameServer->Init();
-	gameServer->BeginServer(9500);
+	gameServer->BeginServer(4999);
 
 	//Main message loop:
 	MSG msg;

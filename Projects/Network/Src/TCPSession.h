@@ -135,7 +135,9 @@ namespace Network
 		SessionEventObject() {};
 		virtual ~SessionEventObject() {};
 
-		virtual void		OnDisconnect() {} ;
+		virtual void		OnConnect()			{};
+		virtual void		OnConnectFail(DWORD errorCode)		{};
+		virtual void		OnDisconnect()		{};
 	};
 
 }
